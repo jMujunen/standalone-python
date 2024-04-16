@@ -1,4 +1,7 @@
- 
+#!/usr/bin/env python
+
+# pomo.py - Simple GUI pomodoro timer
+
 import threading
 import PySimpleGUI as sg
 import datetime

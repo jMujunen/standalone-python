@@ -92,7 +92,7 @@ def log_cpu(args):
                 f'\033[1;31m  {columns[4].strip():>2} \033[0m'
                 f'\033[1;31m  {columns[5].strip():>2} \033[0m\n'
                 )
-            print(colored_ouput.strip("\n"), end=end)
+            print(f'{colored_ouput.strip()}', end=end)
             # Write data to file
             with open(args.output + '.sh', 'a') as file:
                 file.write(colored_ouput)

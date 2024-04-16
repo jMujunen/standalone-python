@@ -53,7 +53,7 @@ def main(args):
                     header = next(file).split(',')
                     args.column = header.index(args.column)
                     numbers = file.readlines()
-                    numbers = [(x.split(',')[args.column]) for x in numbers]
+                    numbers = [float(x.split(',')[args.column]) for x in numbers]
                     numbers = [DIGITS_RE.findall(numbers[x]) for x in range(len(numbers))]
                     numbers = [float(x[0][0]) for x in numbers]
                     plt.plot(numbers)
