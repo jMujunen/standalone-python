@@ -143,7 +143,7 @@ class GpuData:
         ).stdout.strip()
         matches = name_regex.findall(subout)
         if short:
-            self.name = matches[0][-1]
+            self.name = matches[0][:1]
         else:
             self.name = ' '.join(matches[0])
         return self.name

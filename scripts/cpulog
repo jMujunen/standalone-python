@@ -30,7 +30,6 @@ def parse_args():
     parser.add_argument(
         '-o', '--output',
         type=str,
-        default='/tmp/cpu_data_timestamp.csv',
         help='Path to output file.',
     )   
     parser.add_argument(
@@ -52,17 +51,23 @@ def log_cpu(args):
         count = round(args.time / args.interval)
     else:
         count = 0
+    if not args.output:
+        output_file = '/tmp/cpu_data_timestamp.csv'
+    else:
+        output_file = args.output
 
     line = f'datetime,voltage,average_clock,max_clock\n'
+
+    if not os.path.exists(output_file):
+        with open(output_file, 'w') as file:
+            file.write(line)
+            file.close()
     print(
         f'[\033[38;2;57;206;196m {count} \033[0m] '
         f'\033[1;32m {line.strip()} \033[0m',
         end='\n'
         )
     
-    with open(args.output, 'w') as file:
-        file.write(line)
-        file.close()
     if args.nostop:
         count +=1
     else:
@@ -94,11 +99,11 @@ def log_cpu(args):
                 )
             print(f'{colored_ouput.strip()}', end=end)
             # Write data to file
-            with open(args.output + '.sh', 'a') as file:
+            with open(output_file + '.sh', 'a') as file:
                 file.write(colored_ouput)
                 file.close()
-            with open(args.output, 'a') as file:
-                file.write(line)
+            with open(output_file, 'a') as file:
+                file.write(f'{line}\n')
                 file.close()
             if args.nostop:
                 count +=1

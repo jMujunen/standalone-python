@@ -89,4 +89,12 @@ def main(timer=25, timeout=200):
     window.close()
 
 if __name__ == '__main__':
-    main()
+    if ('--help', '-help', '-h') in sys.argv:
+        print('Usage: pomo [minutes]')
+        print('Default 25 minutes')
+        sys.exit(0)
+    if len(sys.argv) > 1:
+        timer = int(sys.argv[1])
+        main(timer)
+    else:
+        main(25)
