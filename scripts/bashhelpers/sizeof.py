@@ -7,21 +7,23 @@ import subprocess
 import sys
 import argparse
 
-from human_bytes import convert_bytes
+from ByteConverter import ByteConverter
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Additianl functionality to `sizeof` bash alias',
-        usage='sizeof.py OPTIONS ... PATH',
+        usage='sizeof.py [-l LINES] ... PATH',
     )
     parser.add_argument('path', nargs='?', default='.', 
         help='Path to directory. Defaults to current directory.')
+    parser.add_argument('-l', '--lines', type=int, default=1)
     args = parser.parse_args()
     return args
 
+
 def sizeof(path):
     output = subprocess.run(
-        f'du {path} | tail -1',
+        f'du -b {path} | sort -h | tail -{int(args.lines)}',
         shell=True,
         capture_output=True,
         text=True
@@ -31,8 +33,10 @@ def sizeof(path):
     stderr = output.stderr.strip()
     if not 'denied' in stderr:
         print(stderr)
-    size, directory = stdout.split('\t')
-    print(convert_bytes(int(size)))
+    output = stdout.split('\n')
+    for item in output:
+        size, directory = item.split('\t')
+        print(f'{ByteConverter.convert_bytes(int(size)).ljust(12)}{directory}')
     return stdout, stderr if stderr else stdout
 
 

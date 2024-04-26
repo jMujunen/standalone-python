@@ -52,7 +52,7 @@ def log_cpu(args):
     else:
         count = 0
     if not args.output:
-        output_file = '/tmp/cpu_data_timestamp.csv'
+        output_file = '/tmp/cpu.csv'
     else:
         output_file = args.output
 

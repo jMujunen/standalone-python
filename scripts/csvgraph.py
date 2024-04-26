@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# graph.py - Generate a graph from a list of numbers
+# gcsv.py - Generate a graph from a list of numbers
 
 import os
 import sys
@@ -10,7 +10,8 @@ import re
 import matplotlib.pyplot as plt
 
 DIGITS_RE = re.compile(r'(\d+(\.\d+)?)')
-
+ALL_COLUMNS_KEYWORDS = ["all", "-all", "--all", "-all", "-a", 
+                        "all columns", "all_columns", "all columns", "all_columns"]
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Generate a graph from numbers in a file.",
@@ -28,12 +29,22 @@ def parse_args():
             Examples: 
                 - graph.py /tmp/cpu_data.csv -c 1
                 - graph.py /tmp/cpu_data.csv -c "average_clock"''',
+        nargs="+"
     )
+
     return parser.parse_args()
 
 def main(args):
     try:
         with open(args.FILE) as file:
+            header = next(file)
+            """
+            TODO:
+            ? Add support for column range including all
+            for column in args.column:
+                # Processes all columns if `all|-all|--all` ...  is passed
+               if column in ALL_COLUMNS_KEYWORDS:
+            """
             if args.column:
                 try:
                     args.column = int(args.column)
@@ -43,7 +54,6 @@ def main(args):
                     numbers = [float(x[0][0]) for x in numbers]
                     plt.plot(numbers)
                     plt.show()
-
                 except Exception as e:
                     try:
                         args.column = str(args.column)
@@ -63,12 +73,11 @@ def main(args):
                     sys.exit(1)
             else:
                 numbers = file.readlines()
-                numbers = [float(x) for x in numbers]
+                numbers = [float(x) for x in numbers[1:] if len(x) < 20]
                 plt.plot(numbers)
                 plt.show()
         sys.exit(0)
-    except Exception as e:
-        print(e)
+    except KeyboardInterrupt:
         sys.exit(1)
 
 
