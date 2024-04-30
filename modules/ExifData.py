@@ -15,63 +15,46 @@ class ExifData():
     def __init__(self, path, recursive):
         self.path = path
         self.recursive = recursive
-        self.exif = self.get_datetime(self.path)
 
-        if os.path.isdir(self.path):
-            self.get_datetime_directory(self.path)
-        else:
-            self.get_datetime(self.path)
-
-
-    def get_datetime(self, file):
+    @property
+    def exif(self):
         # Open Image
-        self.image = Image.open(file)
-        self.exifdata = self.image.getexif()
+        with Image.open(self.path) as image:
+            data = image.getexif()
+        return data
+    @property
+    def capture_date(self):
         # Iterating over all EXIF data fields
-        count = 0
-        for tag_id in self.exifdata:
-            count += 1
+        for tag_id in self.exif:
             # Get the tag name, instead of human unreadable tag id
-            self.tag = TAGS.get(tag_id, tag_id)
-            self.data = self.exifdata.get(tag_id)
+            tag = TAGS.get(tag_id, tag_id)
+            data = self.exif.get(tag_id)
             # Decode bytes 
-            if isinstance(self.data, bytes):
-                self.data = self.data.decode()
-
-            if str(self.tag).startswith('DateTime'):
-                try:
-                    return self.data
-                except:
-                    return "Error: Maybe EXIF is missing DateTimeOriginal Tag?"
+            if isinstance(data, bytes):
+                data = data.decode()
+            if str(tag).startswith('DateTime'):
+                return data
+        return None
             
-    def get_datetime_recursive(self, dir_path):
-        # Loop through all files in the directory tree
-        for root, dirs, files in os.walk(dir_path):
-            for file in files:
-                file_path = os.path.join(root, file)
-                self.get_datetime(file_path)
-            
-    def get_datetime_directory(self, dir_path):
-        # Loop through all files in the directory
-        for file in os.listdir(dir_path):
-            file_path = os.path.join(dir_path, file)
-            self.get_datetime(file_path)
+    def __format__(self, format_spec):
+        formats = {
+            'date': self.capture_date[:10],
+            'time': self.capture_date[-8:],
+            'year': self.capture_date[:4],
+            'month': self.capture_date[5:7],
+            'day': self.capture_date[8:10],
+            'datetime': self.capture_date
+        }
 
-    def get_date(self, original_datatime):
-        return original_datatime[:10]
+        if format_spec in formats:
+            return formats[format_spec]
+        else:
+            return self.exif
 
-    def get_time(self, original_datatime):
-        return original_datatime[-8:]
-
-    def get_year(self, original_datatime):
-        return original_datatime[:4]
-
-    def get_month(self, original_datatime):
-        return original_datatime[5:7]
-
-    def get_day(self, original_datatime):
-        return original_datatime[8:10]
-
+    def __str__(self):
+        date = self.capture_date[:10].replace(':', '-')
+        time = self.capture_date[-8:]
+        return f'{date} {time}'
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -91,8 +74,13 @@ if __name__ == '__main__':
     path = args.file_path
 
     exif = ExifData(path, args.recursive)
-
-
+    print('\n')
+    print(format(exif, 'datetime'))
+    print(format(exif, 'year'))
+    print(format(exif, 'month'))
+    print(format(exif, 'day'))
+    print('\n')
+    print(exif)
 
 
 '''
@@ -108,7 +96,7 @@ if __name__ == '__main__':
     except:
         sys.exit()
 
-    datetime = get_datetime(image_path)
+    datetime = exif(image_path)
     try:
         date = get_date(datetime)
         time = get_time(datetime)

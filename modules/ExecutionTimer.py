@@ -6,8 +6,8 @@ import os
 from time import time
 
 class ExecutionTimer:
-    def __init__(self, color="\033[0m"):
-        self.color = color
+    def __init__(self):
+        pass
     def __enter__(self):
         """
         Context manager for measuring execution time.
@@ -18,7 +18,7 @@ class ExecutionTimer:
     def __exit__(self, exc_type, exc_value, traceback):
         self.end_time = time()
         self.execution_time = self.end_time - self.start_time
-        print(f"Execution time: {self.color}{round(self.execution_time, 6)} seconds\033[0m")
+        print(f"Execution time: {round(self.execution_time, 6)} seconds")
 
 if __name__ == "__main__":
     with ExecutionTimer():

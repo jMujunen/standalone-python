@@ -46,28 +46,29 @@ def main(args):
                if column in ALL_COLUMNS_KEYWORDS:
             """
             if args.column:
-                try:
-                    args.column = int(args.column)
-                    numbers = file.readlines()
-                    numbers = [(x.split(',')[args.column]) for x in numbers]
-                    numbers = [DIGITS_RE.findall(numbers[x]) for x in range(len(numbers))]
-                    numbers = [float(x[0][0]) for x in numbers]
-                    plt.plot(numbers)
-                    plt.show()
-                except Exception as e:
+                for column in args.column:
                     try:
-                        args.column = str(args.column)
+                        column = int(column)
+                        numbers = file.readlines()
+                        numbers = [(x.split(',')[column]) for x in numbers]
+                        numbers = [DIGITS_RE.findall(numbers[x]) for x in range(len(numbers))]
+                        numbers = [float(x[0][0]) for x in numbers]
+                        plt.plot(numbers)
+                        plt.show()
                     except Exception as e:
-                        print('Invalid column type')
-                        sys.exit(1)
-                    header = next(file).split(',')
-                    args.column = header.index(args.column)
-                    numbers = file.readlines()
-                    numbers = [float(x.split(',')[args.column]) for x in numbers]
-                    numbers = [DIGITS_RE.findall(numbers[x]) for x in range(len(numbers))]
-                    numbers = [float(x[0][0]) for x in numbers]
-                    plt.plot(numbers)
-                    plt.show()
+                        try:
+                            args.column = str(column)
+                        except Exception as e:
+                            print('Invalid column type')
+                            sys.exit(1)
+                        header = next(file).split(',')
+                        column = header.index(column)
+                        numbers = file.readlines()
+                        numbers = [float(x.split(',')[column]) for x in numbers]
+                        numbers = [DIGITS_RE.findall(numbers[x]) for x in range(len(numbers))]
+                        numbers = [float(x[0][0]) for x in numbers]
+                        plt.plot(numbers)
+                        plt.show()
                 else:
                     print('Invalid column type')
                     sys.exit(1)
