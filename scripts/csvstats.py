@@ -8,6 +8,7 @@ import os
 import re
 
 DIGIT_REGEX = re.compile(r'(\d+(\.\d+)?)')
+FILE = "/tmp/hwinfo.csv"
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -20,11 +21,12 @@ def parse_args():
         help="Enter the file name",
         type=str
         )
+    print('test')
     return parser.parse_args()
 
-def main(args):
+def main(csv_file):
     try:
-        with open(args.FILE) as file:
+        with open(csv_file) as file:
             header = next(file)
             content = file.readlines()
         
@@ -78,5 +80,7 @@ def main(args):
         pass
 
 if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        main(FILE)
     args = parse_args()
-    main(args)
+    main(args.FILE)

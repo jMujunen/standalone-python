@@ -50,19 +50,28 @@ def main(input_directory, output_directory):
             # Extract the file name without extension
             file_name = os.path.splitext(input_file)[0]
 
-            # Define the output file path
-            output_file = os.path.join(output_directory, f"{file_name}_output.mp4")
-
+            try:
+                # Define the output file path
+                output_file = os.path.join(output_directory, f"{file_name}.mp4")
+            except Exception as e:
+                print(f"[\033[31m {e} \033[0m")
+                output_file = os.path.join(output_directory, f"{file_name}1.mp4")
+                if os.path.isfile(output_file):
+                    sys.exit(666)
             # Run ffmpeg command for each file
-            result = subprocess.run(["ffmpeg", "-i", os.path.join(input_directory, input_file), "-c:v", "h264_nvenc", "-rc", "constqp", "-qp", "28", output_file])
+            result = subprocess.run(
+                ["ffmpeg", "-i", os.path.join(input_directory, input_file), 
+                "-c:v", "h264_nvenc", "-rc", "constqp", "-qp", "28", output_file], 
+                shell=True, 
+                capture_output=True, 
+                text=True)
             
             # Check if conversion was successful
             if result.returncode == 0:
                 print(f"[\033[38;5;200m File {input_file} successfully converted to {output_file} \033[0m]")
                 successfully_compressed.append(input_file)
             else:
-                print(f"[\033[38;5;200m File {input_file} could not be converted. Error code: {result.returncode} \033[0m]")
-
+                print(f"[\033[38;5;200m File {input_file} could not be converted. Error code: {result.returncode}:{result.stderr} \033[0m]")
     print("[\033[38;5;200m Batch conversion completed. \033[0m]")
     return successfully_compressed
 
