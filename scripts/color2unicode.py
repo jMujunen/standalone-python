@@ -4,7 +4,7 @@
 
 import argparse
 import re
-
+import pyperclip
 
 def rgb_to_ansi(r, g, b):
     """
@@ -80,6 +80,7 @@ def main(args):
         return
     stripped_ansi_code = ansi_code.replace("\033", "")
     print(f"{ansi_code}{stripped_ansi_code}\033[0m")
+    pyperclip.copy(stripped_ansi_code)
 
 
 

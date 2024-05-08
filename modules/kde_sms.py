@@ -3,6 +3,11 @@
 import subprocess
 import sys
 
+
+
+
+class SMS:
+
 def send_sms(destination, msg):
     dev_id = subprocess.run(
         'kdeconnect-cli -l --id-only',
