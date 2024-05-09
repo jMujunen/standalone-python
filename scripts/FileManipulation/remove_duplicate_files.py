@@ -7,7 +7,7 @@ import argparse
 import glob
 import sys
 
-from pb import ProgressBar
+from ProgressBar import ProgressBar
 from ExecutionTimer import ExecutionTimer
 
 def parse_arguments():
@@ -57,8 +57,10 @@ def find_common_files(directory_remove, directory_keep, recursive):
         if recursive:
             common_files = []
             files1 = get_files_in_directory(directory_remove, recursive)
+            print(files1)
             print('\n----------------------------------------')
             files2 = get_files_in_directory(directory_keep, recursive)
+            print(files2)
             print('\n----------------------------------------')
             print('Comparing files...')
             with ExecutionTimer():
@@ -110,12 +112,16 @@ if __name__ == "__main__":
 
     # Find common files
     common_files_list = find_common_files(directory_remove, directory_keep, recursive)
-    # Remove common files
-    runtime_code = remove_files_recusivly(directory_remove, common_files_list)
+    input('Press any key to continue...')
+    print(common_files_list)
+    print(len(common_files_list))
+    # input('Press any key to continue...')
+    # # Remove common files
+    # #runtime_code = remove_files_recusivly(directory_remove, common_files_list)
 
-    # Check the return code and print a helpful message
-    if runtime_code == 0:
-        print("\nDone!")
-    else:
-        print(f'Error {runtime_code} : Something went wrong')
+    # # Check the return code and print a helpful message
+    # if runtime_code == 0:
+    #     print("\nDone!")
+    # else:
+    #     print(f'Error {runtime_code} : Something went wrong')
     

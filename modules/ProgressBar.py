@@ -43,6 +43,30 @@ class ProgressBar:
         self.inital_value = inital_value
         self.value_ = 0
 
+    def update(self, current_value=0):
+        """
+        Updates the progress bar with the given current value
+
+        Parameters
+        ----------
+        current_value : int
+            The value to update the progress bar with
+        """
+        self.progress = current_value / self.inital_value * 100
+        output = str(f"[{self.progress:.1f}%]")
+        print(output.ljust(int(self.progress), '='), end='[100.0%]\r')
+
+    def increment(self, increment=1):
+        """
+        Increments the current value of the progress bar by the given amount
+
+        Parameters
+        ----------
+        increment : int
+            The amount to increment the current value by
+        """
+        self.value = self.value + increment
+        self.update(self.value)
     @property
     def value(self):
         """
@@ -66,7 +90,7 @@ class ProgressBar:
             The new value to set for the progress bar.
         """
         self.value_ = new_value
-        self.update(new_value)
+        self.update(self.value_)
     def __len__(self):
         """Returns the length of the progress bar for use in a for loop"""
         return self.inital_value
