@@ -29,6 +29,26 @@ def write_to_file(file_path, content):
             file.write(line + '\n')
 
 def main(input_directory, output_directory):
+    """
+    Compresses all .mp4 files in the input directory and saves the compressed files in the output directory.
+    
+    Args:
+        input_directory (str): The directory containing the .mp4 files to be compressed.
+        output_directory (str): The directory where the compressed .mp4 files will be saved.
+    
+    Returns:
+        list: A list of the names of the successfully compressed .mp4 files.
+    
+    Raises:
+        SystemExit: If the output file already exists and is not a file.
+    
+    Prints:
+        str: The progress of the compression process.
+        str: Information about the current file being compressed.
+        str: Information about the successful conversion of a file.
+        str: Information about the failed conversion of a file.
+        str: A message indicating the completion of the batch conversion.
+    """
     successfully_compressed = []
 
     # Replace whitespace in the output directory path with underscores
