@@ -34,7 +34,7 @@ def parse_args():
         "COLUMNS",
         help="Columns to plot",
         nargs="*",
-        default=[' ping']
+        default=[' cpu_temp', ' gpu_temp', ' system_temp', ' cpu_voltage', ' gpu_voltage', ' gpu_usage']
     )
     return parser.parse_args()
 
