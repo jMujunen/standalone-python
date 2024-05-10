@@ -10,7 +10,7 @@ import nmap
 from Notification import Notification
 import datetime
 from time import sleep
-from kde_sms import send_sms
+from kde_sms import SMS
 
 class Entity:
     def __init__(self, name, address):
