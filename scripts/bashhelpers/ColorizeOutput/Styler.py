@@ -6,7 +6,7 @@ class Styler:
     Class for colorizing command output using regular expressions.
     """
     # TODO
-    # - Add options for styling the header 
+    # - [x] Add options for styling the header 
     # - Add options for styling by column
 
     def __init__(self, command, **kwargs):
@@ -26,7 +26,8 @@ class Styler:
     @property
     def styles(self):
         return self._styles
-    def set_style(self, pattern, color):
+    def body_style(self, pattern, color):
+        
         # TODO
         # ---------------------------------------------------------------
         # ! Add support for setting foreground and background colors with
@@ -57,6 +58,7 @@ class Styler:
         return command_output.stdout
 
     def colorized_command_output(self, style):
+        
         command_output = self.run_command()
         if not isinstance(style, list):
             style = [style]

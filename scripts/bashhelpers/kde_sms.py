@@ -3,8 +3,6 @@
 # kde_sms.py - Send dad jokes on a somewhat regular basis
 
 import subprocess
-import requests
-from bs4 import BeautifulSoup
 
 class SMS:
     """
@@ -65,14 +63,14 @@ class SMS:
         if not destination_number:
             raise ValueError(f"Invalid destination: {destination}")
 
-        print(f'\033[33mAttempting send \033[0m \033[36m{msg}\033[0m] to \033[0m \033[36m{destination_number}\033[0m]...')
+        print(f'\033[33mAttempting send \033[0m \033[36m{msg}\033[0m] to \033[0m \033[36m{destination_number}\033[0m...')
         send_sms_process = subprocess.run(
             f'kdeconnect-cli --send-sms "{msg}" --destination {destination_number} -d {self.device_id}',
             shell=True,
             capture_output=True,
             text=True
         )
-        return send_sms_process.returncode
+        return True if send_sms_process.returncode == 0 else False
     
     @property
     def contacts(self):
@@ -108,14 +106,19 @@ def main():
     com = SMS('d847bc89_cacd_4cb7_855b_9570dba7d6fa')
     url = "https://icanhazdadjoke.com"
     try:
-        msg = joke()
-        if msg.returncode == 0:
-            print(f'\033[32m{msg.stdout}\033[0m')
-        elif msg.returncode == 1:
-            print(f'\033[31m{msg.stdout}\033[0m')
+        joke = joke()
+        if joke.returncode == 0:
+            # msg successful if instance is True
+            if com.send(joke.stdout, 'muru'):
+                print(f'\033[32m{joke.stdout}\033[0m')
+            else:
+                print(f'\033[31mError sending msg: \n{joke.stderr}\033[0m')
+                return 1
         else:
-            print(f'\033[31mERROR: \n{msg}\033[0m')
+            print(f'\033[31mError getting joke: \n{joke.stderr}\033[0m')
+            return 1
 
+        com.send(joke.stdout, 'me')
 
         print(f'\033[33m{com}\033[0m') # print SMS object (com)
     except Exception as e:
