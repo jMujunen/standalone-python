@@ -20,10 +20,8 @@ class ProgressBar:
     -------
     update(current_value=0)
         Updates the progress bar with the given current value
-
     increment(increment=1)
         Increments the current value of the progress bar by the given amount
-
     value(value)
         Sets the current value of the progress bar to the given value
     
@@ -34,7 +32,6 @@ class ProgressBar:
     def __init__(self, inital_value=100):
         """
         Initializes a new instance of the class
-
         Parameters
         ----------
         inital_value : int
@@ -42,11 +39,9 @@ class ProgressBar:
         """
         self.inital_value = inital_value
         self.value_ = 0
-
     def update(self, current_value=0):
         """
         Updates the progress bar with the given current value
-
         Parameters
         ----------
         current_value : int
@@ -59,7 +54,6 @@ class ProgressBar:
     def increment(self, increment=1):
         """
         Increments the current value of the progress bar by the given amount
-
         Parameters
         ----------
         increment : int
@@ -71,7 +65,6 @@ class ProgressBar:
     def value(self):
         """
         This is a property method that returns the current value of the progress bar
-
         Returns
         -------
         int
@@ -83,7 +76,6 @@ class ProgressBar:
     def value(self, new_value):
         """
         Method which sets the value of the progress bar
-
         Args
         ------
         new_value : int
@@ -94,7 +86,6 @@ class ProgressBar:
     def __len__(self):
         """Returns the length of the progress bar for use in a for loop"""
         return self.inital_value
-
 # Example usage
 if __name__ == '__main__':
     pb = ProgressBar(100)

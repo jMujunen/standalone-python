@@ -8,7 +8,7 @@ import datetime
 import time
 
 from Notification import Notification
-from kde_sms import send_sms
+#from kde_sms import send_sms
 import sys
 
 GRAPH_SIZE = (300 , 300)          # this one setting drives the other settings

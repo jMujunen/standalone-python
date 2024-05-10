@@ -8,6 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
+from matplotlib.animation import FuncAnimation
 
 FILE = "/tmp/hwinfo.csv"
 
@@ -20,24 +21,44 @@ def parse_args():
     parser.add_argument(
         "-f", "--file",
         help="Path to the csv file",
-        type=str
+        type=str,
+        default="/tmp/hwinfo.csv"
     )
     parser.add_argument(
         "-w", "--window",
         help="Window size for the moving average",
-        type=int
+        type=int,
+        default=100
     )
     parser.add_argument(
         "COLUMNS",
         help="Columns to plot",
         nargs="*",
-        default=['cpu_temp', 'gpu_temp', 'system_temp', 'ping']
+        default=[' ping']
     )
     return parser.parse_args()
 
 
-def main(filepath, window_size=100, columns=3):
-    df = pd.read_csv(filepath)
+def main(filepath, window_size, columns):
+    """Main entry point for the program.
+
+    Args:
+        filepath (str): Path to the csv file to plot.
+        window_size (int, optional): Window size for the moving average. Defaults to 100.
+        columns (list, optional): Columns to plot. Defaults to ['cpu_temp', 'gpu_temp', 'system_temp', 'ping'].
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        ValueError: If any of the columns do not exist.
+
+    Returns:
+        None
+    """
+    try:
+        df = pd.read_csv(filepath)
+    except FileNotFoundError:
+        print(f"File {filepath} not found.")
+        return
 
     # Remove the 'cpu_max_clock' and 'cpu_avg_clock' columns
     """     
@@ -52,27 +73,40 @@ def main(filepath, window_size=100, columns=3):
     # ' gpu_usage', ' ram_usage', ' system_temp', ' ping'], axis=1),
 
     df_data = df[columns]
+    if any(col not in df_data.columns for col in columns):
+        raise ValueError("One or more of the columns do not exist.")
+
     # Smooth the data using moving averages
-    smoothed_data = {}
+    smooth_data = {}
     for column in columns:  # Exclude the 'datetime' column
-        smoothed_data[column] = np.convolve(
-            df_filtered[column], np.ones(window_size)/window_size, mode='valid')
+        smooth_data[column] = np.convolve(
+            df_data[column], np.ones(window_size)/window_size, mode='valid')
 
     # Create a new DataFrame for the smoothed data
-    smoothed_df = pd.DataFrame(smoothed_data)
+    smooth_df = pd.DataFrame(smooth_data)
 
-    # Plot the smoothed data
-    smoothed_df.plot(figsize=(10, 6), grid=True)
+    # Plot the smooth data
+    fig, ax = plt.subplots(figsize=(10, 6))
+    line, = ax.plot([], [], label=column)
+
+    def init():
+        ax.set_xlim(left=0, right=len(df_data))
+        ax.set_ylim(bottom=np.min(smooth_data.values())-1, top=np.max(smooth_data.values())+1)
+        return line,
+
+    def animate(i):
+        new_data = pd.read_csv(filepath)
+        ax.clear()
+        new_smooth_data = {}
+        for column in columns:
+            new_smooth_data[column] = np.convolve(
+                new_data[column], np.ones(window_size)/window_size, mode='valid')
+        new_smooth_df = pd.DataFrame(new_smooth_data)
+        new_smooth_df.plot(ax=ax, grid=True)
+
+    ani = FuncAnimation(fig, animate, frames= 100, interval=100)  # Update every 1000 milliseconds (1 second)
     plt.show()
-
-
-def animate(i):
-    new_data = df = pd.read_csv(filepath)
-    # Update the plot with the new data
-    ax.clear()
-    ax.plot(new_data)  # Plot the new data
-
-
+    
 if __name__ == "__main__":
     args = parse_args()
     main(args.file, args.window, args.COLUMNS)

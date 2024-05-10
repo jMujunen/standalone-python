@@ -23,7 +23,7 @@ def parse_args():
 def main(program_name):
     basename = program_name.split('-')[0]
     print(basename)
-    path_regex = re.compile(f'{basename}.*:\s(.*)\sexists')
+    path_regex = re.compile(fr'{basename}.*:\s(.*)\sexists')
     output = subprocess.run(
         f'sudo pacman -U --noconfirm --noprogressbar {program_name}',
         shell=True,
