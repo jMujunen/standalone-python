@@ -168,7 +168,7 @@ class fg(ForegroundColor):
 class bg(BackgroundColor):
     pass
 
-class cp:
+class Parse:
     def __init__(self, text, *styles):
         self.text = text
         self.styles = styles
@@ -179,9 +179,9 @@ class cp:
         return styled_text
 
 def cprint(text, *styles):
-    print(str(cp(text, *styles)))
+    print(str(Parse(text, *styles)))
     
-    
+
 # Example usage
 if __name__ == '__main__':
     print(f'{fg.red}Hello, World!{style.reset}')
