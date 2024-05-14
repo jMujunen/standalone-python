@@ -37,14 +37,14 @@ class CompareFiles():
         self.common_files = []
         print("Iterating through directories...")
         try:
-            paths1 = [os.path.join(root, file) for root, _, files in os.walk(directory1) for file in files]
+            #paths1 = [os.path.join(root, file) for root, _, files in os.walk(directory1) for file in files]
             filenames1 = [os.path.basename(file) for file in paths1]
 
-            paths2 = [os.path.join(root, file) for root, _, files in os.walk(directory2) for file in files]
+            #paths2 = [os.path.join(root, file) for root, _, files in os.walk(directory2) for file in files]
             filenames2 = [os.path.basename(file) for file in paths2]
 
             jobs = len(paths1)
-
+            
             print(f"\nFound {jobs} files")
 
             print('\n'.join(paths1))

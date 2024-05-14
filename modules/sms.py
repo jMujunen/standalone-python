@@ -3,6 +3,10 @@
 # kde_sms.py - Send dad jokes on a somewhat regular basis
 
 import subprocess
+import sys, re
+
+RESET = '\033[0m'
+RED, GREEN, BLUE, YELLOW = '\033[31m', '\033[32m', '\033[36m', '\033[33m'
 
 class SMS:
     """
@@ -29,7 +33,7 @@ class SMS:
             contacts (dict): Dictionary mapping contact names to phone numbers.
         """
         self._device_id = dev_id
-        self._contacts = {'muru': '6048359467', 'me': '6042265455'}
+        self._contacts = {}
 
     @property
     def device_id(self):
@@ -59,18 +63,21 @@ class SMS:
         Returns:
             int: Return code of the subprocess.
         """
-        destination_number = self._contacts.get(destination)
-        if not destination_number:
-            raise ValueError(f"Invalid destination: {destination}")
-
-        print(f'\033[33mAttempting send \033[0m \033[36m{msg}\033[0m] to \033[0m \033[36m{destination_number}\033[0m...')
+        if destination in self._contacts:
+            destination = self._contacts.get(destination)
+        elif re.compile(r'\d{10}').fullmatch(destination):
+            pass
+        else:
+            raise ValueError(f'Invalid destination: {destination}')
+        
+        print(f'\033[33mAttempting send {RESET} {BLUE}{msg}{RESET}] to {RESET} {BLUE}{destination}{RESET}...')
         send_sms_process = subprocess.run(
-            f'kdeconnect-cli --send-sms "{msg}" --destination {destination_number} -d {self.device_id}',
+            f'kdeconnect-cli --send-sms "{msg}" --destination {destination} -d {self.device_id}',
             shell=True,
             capture_output=True,
             text=True
         )
-        return True if send_sms_process.returncode == 0 else False
+        return send_sms_process.returncode
     
     @property
     def contacts(self):
@@ -96,33 +103,48 @@ class SMS:
         return str(self.__dict__)
 
 
-
-
 # Example usage
-def main():
+def main(dest):
     def joke():
         return subprocess.run(f'curl {url}', shell=True, capture_output=True, text=True)
 
     com = SMS('d847bc89_cacd_4cb7_855b_9570dba7d6fa')
     url = "https://icanhazdadjoke.com"
-    try:
-        joke = joke()
-        if joke.returncode == 0:
-            # msg successful if instance is True
-            if com.send(joke.stdout, 'muru'):
-                print(f'\033[32m{joke.stdout}\033[0m')
+
+    # Regenerate a new joke until the user says agrees to send it
+    while True:
+        try:
+            joke = joke()
+            if joke.returncode == 0:
+                print(joke.stdout)
+                answer = input('Send? [Y/n]:')
+                # Regex
+                if re.compile(r'[Yy]|^$').match(answer):  
+                    break 
+                    # msg successful if instance is True
+                else:
+                    continue
             else:
-                print(f'\033[31mError sending msg: \n{joke.stderr}\033[0m')
+                print(f'{RED}Error getting joke: \n{joke.stderr}{RESET}')
                 return 1
-        else:
-            print(f'\033[31mError getting joke: \n{joke.stderr}\033[0m')
+        except Exception as e:
+            print(f"Error: {e}")
             return 1
 
-        com.send(joke.stdout, 'me')
 
-        print(f'\033[33m{com}\033[0m') # print SMS object (com)
-    except Exception as e:
-        print(f"Error: {e}")
+    if com.send(joke.stdout, dest):
+        print(f'{GREEN}{joke.stdout}{RESET}')
+    # else:
+    #     print(f'{RED}Error sending msg: \n{joke.stderr}{RESET}')
+    #     return 1
+
+    print(f'{YELLOW}{com}{RESET}') # print SMS object (com)
+
+    
+    return 0
 
 if __name__ == '__main__':
-    main()
+    try:
+        main(sys.argv[1])
+    except Exception as e:
+        print(e)

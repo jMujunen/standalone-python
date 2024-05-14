@@ -34,7 +34,7 @@ def parse_args():
         "COLUMNS",
         help="Columns to plot",
         nargs="*",
-        default=[' cpu_temp', ' gpu_temp', ' system_temp', ' cpu_voltage', ' gpu_voltage', ' gpu_usage']
+    default=[' cpu_temp', ' system_temp', ' gpu_usage', ' gpu_power', ' gpu_memory_usage']
     )
     return parser.parse_args()
 
@@ -55,11 +55,17 @@ def main(filepath, window_size, columns):
         None
     """
     try:
-        df = pd.read_csv(filepath)
+        # Remove header until we can process it
+        df = pd.read_csv(filepath, header=None)
     except FileNotFoundError:
-        print(f"File {filepath} not found.")
-        return
+         print(f"File {filepath} not found.")
+         return 1
+    # Process header and strip whitespace
+    for column in columns:
+        df[column] = df[column].str.strip()
+    
 
+    
     # Remove the 'cpu_max_clock' and 'cpu_avg_clock' columns
     """     
     df_filtered = df.drop(
@@ -71,7 +77,6 @@ def main(filepath, window_size, columns):
 
     # df_filtered = df.drop([' cpu_max_clock', ' cpu_avg_clock', ' gpu_temp', ' gpu_power',
     # ' gpu_usage', ' ram_usage', ' system_temp', ' ping'], axis=1),
-
     df_data = df[columns]
     if any(col not in df_data.columns for col in columns):
         raise ValueError("One or more of the columns do not exist.")
@@ -91,7 +96,7 @@ def main(filepath, window_size, columns):
 
     def init():
         ax.set_xlim(left=0, right=len(df_data))
-        ax.set_ylim(bottom=np.min(smooth_data.values())-1, top=np.max(smooth_data.values())+1)
+        ax.set_ylim(bottom=np.min(smooth_data.values())-1, top=250)
         return line,
 
     def animate(i):
@@ -104,7 +109,7 @@ def main(filepath, window_size, columns):
         new_smooth_df = pd.DataFrame(new_smooth_data)
         new_smooth_df.plot(ax=ax, grid=True)
 
-    ani = FuncAnimation(fig, animate, frames= 100, interval=100)  # Update every 1000 milliseconds (1 second)
+    ani = FuncAnimation(fig, animate, frames=100, interval=200)  # Update every 1000 milliseconds (1 second)
     plt.show()
     
 if __name__ == "__main__":

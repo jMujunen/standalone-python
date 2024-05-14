@@ -2,7 +2,6 @@
 
 # join.py - turns a multiline string to a single line
 
-
 import clipboard
 
 def main(text):

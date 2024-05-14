@@ -36,7 +36,7 @@ class GpuData:
             shell=True,
             capture_output=True,
             text=True
-        ).stdout.strip()
+        ).stdout.replace('MHz','').strip()
         return core_clock
     @property
     def max_core_clock(self):
@@ -46,7 +46,7 @@ class GpuData:
             shell=True,
             capture_output=True,
             text=True
-        ).stdout.strip()
+        ).stdout.replace('MHz','').strip()
         return core_clock
     @property
     def memory_clock(self):
@@ -56,7 +56,7 @@ class GpuData:
             shell=True,
             capture_output=True,
             text=True
-        ).stdout.strip()
+        ).stdout.replace('MHz','').strip()
         return memory_clock
     @property
     def max_memory_clock(self):
@@ -66,24 +66,16 @@ class GpuData:
             shell=True,
             capture_output=True,
             text=True
-        ).stdout.strip()
+        ).stdout.replace('MHz','').strip()
         return memory_clock
     @property
-    def memory_usage(self, percentage=False):
-        if percentage:
-            memory_usage = subprocess.run(
-                'nvidia-smi --query-gpu=utilization.memory --format=csv,noheader',
-                shell=True,
-                capture_output=True,
-                text=True
-            ).stdout.strip()
-        else:
-            memory_usage = subprocess.run(
-                'nvidia-smi --query-gpu=memory.used --format=csv,noheader',
-                shell=True,
-                capture_output=True,
-                text=True
-            ).stdout.strip()
+    def memory_usage(self):
+        memory_usage = subprocess.run(
+            'nvidia-smi --query-gpu=utilization.memory --format=csv,noheader',
+            shell=True,
+            capture_output=True,
+            text=True
+        ).stdout.replace('%','').strip()
         return memory_usage
     @property
     def voltage(self):
@@ -174,7 +166,7 @@ class GpuData:
         f'Core Temp: {self.core_temp} °C\n'
         f'Core Clock: {self.core_clock} MHz\n'
         f'Memory Clock: {self.memory_clock} MHz\n'
-        f'Memory Usage: {self.memory_usage}\n'
+        f'Memory Usage: {self.memory_usage} %\n'
         f'Core Usage: {self.core_usage} %\n'
         f'Power: {self.power} W\n'
         f'Average FPS: {self.average_fps()} FPS\n'
@@ -194,4 +186,3 @@ if __name__ == '__main__':
     print(f'Full GPU Name: {gpu.gpu_name()}')
     print(f'Short GPU Name: {gpu.gpu_name(short=True)}')
     print(str(gpu))
-

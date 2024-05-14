@@ -17,7 +17,7 @@ def parse_arguments():
 '''
 # Function to remove file after compression completes successfully
 def remove_file(file_path):
-    if os.path.isfile(file_path):
+    if os.path.isfile(file_path):cls
         os.remove(file_path)
     else:
         print(f'[\033[38;5;200m Error: {file_path} is a directory \033[0m]')
@@ -53,21 +53,27 @@ def main(input_directory, output_directory):
 
     # Replace whitespace in the output directory path with underscores
     output_directory = output_directory.replace(' ', '_')
-    # Create the output directory if it doesn't exist
-    os.makedirs(output_directory, exist_ok=True)
+
+    try:
+        # Create the output directory if it doesn't exist
+        os.makedirs(output_directory, exist_ok=True)
+    except OSError as e:
+        print(f"[\033[31m Error creating output directory '{output_directory}': {e} \033[0m]")
+        return
 
     # Get total files
     files = os.listdir(input_directory)
     number_of_files = len(files)
 
+    print(f"\033[34mTotal number of .mp4 files to process:\033[0m \033[2;36m{number_of_files}\033[m") # DEBUGGING
+    
     # Iterate over all .mp4 files in the input directory
     for i, input_file in enumerate(os.listdir(input_directory)):
-        print(f"[\033[38;5;200m Processing {i + 1} out of {number_of_files} \033[0m]")
+        print(f"[\033[33m Processing {input_file} ({i + 1}/{number_of_files}) \033[0m]")
         if input_file.endswith(".mp4"):
-            # Print information about the current file to the user
-            print(f"Processing file: {input_file}")
 
-            # Extract the file name without extension
+            # Extract the file name without extension 
+            # (some_video_file_name.getsome.arhagag.mp4) -> (some_video_file_name)
             file_name = os.path.splitext(input_file)[0]
 
             try:
@@ -75,27 +81,27 @@ def main(input_directory, output_directory):
                 output_file = os.path.join(output_directory, f"{file_name}.mp4")
             except Exception as e:
                 print(f"[\033[31m {e} \033[0m")
-                output_file = os.path.join(output_directory, f"{file_name}1.mp4")
-                if os.path.isfile(output_file):
-                    sys.exit(666)
+                continue
+            
             # Run ffmpeg command for each file
             result = subprocess.run(
-                f"ffmpeg -i {os.path.join(input_directory, input_file)} \
-                    -c:v h264_nvenc -rc constqp -qp 28 output_file", 
-                shell=True, 
-                capture_output=True, 
-                text=True)
-            
+                 f'ffmpeg -i \'{os.path.join(input_directory, input_file)}\' \
+                    -c:v h264_nvenc -rc constqp -qp 28 \'{output_file}\' -n',
+                    shell=True, 
+                    capture_output=True, 
+                    text=True)
+            result = result.returncode
             # Check if conversion was successful
-            if result.returncode == 0:
-                print(f"[\033[38;5;200m File {input_file} successfully converted to {output_file} \033[0m]")
+            if result == 0:
+                print(f"[\033[32m Successfully converted {input_file} \033[0m]")
                 successfully_compressed.append(input_file)
             else:
-                print(f"[\033[38;5;200m File {input_file} could not be converted. Error code: {result.returncode}:{result.stderr} \033[0m]")
-    print("[\033[38;5;200m Batch conversion completed. \033[0m]")
+                print(f"[\033[31m {input_file} could not be converted. Error code: {result}:{result} \033[0m]")
+    print("[\033[1;32m Batch conversion completed. \033[0m]")
     return successfully_compressed
 
 if __name__ == "__main__":
     args = parse_arguments()
     files_to_remove = main(args.input_directory, args.output_directory)
     write_to_file(args.successfully_compressed, files_to_remove)
+
