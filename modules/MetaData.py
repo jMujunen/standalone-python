@@ -7,15 +7,13 @@ import os, sys, re, subprocess
 from PIL import Image, UnidentifiedImageError
 from PIL.ExifTags import TAGS
 from moviepy.editor import VideoFileClip
+import cv2
 
 import imagehash
 
 class FileObject:
     def __init__(self, path):
         self.path = path
-        self.content = None
-        self.metadata = None
-
     @property
     def size(self):
         return int(os.path.getsize(self.path))
@@ -110,12 +108,24 @@ class ImageObject(FileObject):
                 return data
         return None
     
-    def __str__(self):
-        return f"""Image: {self.path}
-            Dimensions: {self.dimensions}
-            Hash: {self.hash}
-            EXIF: {self.exif}
-            Capture Date: {self.capture_date}"""
+    @property
+    def corrupt(self):
+        try:
+            img = Image.open(file_path)
+            img.verify()
+            return False  # Image is not corrupt
+        except (IOError, SyntaxError):
+            return True  # Image is corrupt
+        except Exception as e:
+            print(f"Error: {e}")
+
+
+    # def __str__(self):
+    #     return f"""Image: {self.path}
+    #         Dimensions: {self.dimensions}
+    #         Hash: {self.hash}
+    #         EXIF: {self.exif}
+    #         Capture Date: {self.capture_date}"""
 
 
 class VideoObject(FileObject):
@@ -147,6 +157,32 @@ class VideoObject(FileObject):
         capture_date = metadata['format']['tags'].get('creation_time')
         bit_rate = metadata['format']['bit_rate']
         return bit_rate
+    @property
+    def is_corrupt(self):
+        try:
+            cap = cv2.VideoCapture(file_path)
+            if not cap.isOpened():
+                return True  # Video is corrupt
+            else:
+                return False  # Video is not corrupt
+        except (IOError, SyntaxError):
+            return True  # Video is corrupt
+        except Exception as e:
+            print(f"Error: {e}")
 
-    def __str__(self):
-        return f"VideoObject(path={self.path}, metadata={self.metadata}, bitrate={self.bitrate})"
+
+
+# Example
+
+if __name__ == "__main__":
+    img = ImageObject("/home/joona/Pictures/PEGBOARD.jpg")
+    video = VideoObject("/mnt/ssd/compressed_obs/Dayz/blaze kill CQC.mp4")
+    txtfile = FileObject("/home/joona/python/Projects/dir_oraganizer/getinfo.py")
+
+    #img.read()
+    txtfile.read()
+    print(img)
+    print(video)
+    print(txtfile)
+
+

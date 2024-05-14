@@ -114,37 +114,35 @@ def main(dest):
     # Regenerate a new joke until the user says agrees to send it
     while True:
         try:
-            joke = joke()
-            if joke.returncode == 0:
-                print(joke.stdout)
+            new_joke = joke()
+            if new_joke.returncode == 0:
+                print(new_joke.stdout)
                 answer = input('Send? [Y/n]:')
                 # Regex
-                if re.compile(r'[Yy]|^$').match(answer):  
+                if re.compile(r'[Yy]|^$').match(answer): 
                     break 
                     # msg successful if instance is True
                 else:
                     continue
             else:
-                print(f'{RED}Error getting joke: \n{joke.stderr}{RESET}')
+                print(f'{RED}Error getting joke: \n{new_joke.returncode}{RESET}')
                 return 1
+        except KeyboardInterrupt:
+            sys.exit(0)
         except Exception as e:
             print(f"Error: {e}")
             return 1
 
-
-    if com.send(joke.stdout, dest):
-        print(f'{GREEN}{joke.stdout}{RESET}')
-    # else:
-    #     print(f'{RED}Error sending msg: \n{joke.stderr}{RESET}')
-    #     return 1
-
-    print(f'{YELLOW}{com}{RESET}') # print SMS object (com)
-
-    
-    return 0
-
+    if com.send(new_joke.stdout, dest) == 0:
+        print(f'{GREEN}Success{RESET}')
+        return 0
+    else:
+         print(f'{RED}Error sending msg: \n{new_joke.returncode}{RESET}')
+         return 1
+          
 if __name__ == '__main__':
     try:
-        main(sys.argv[1])
-    except Exception as e:
-        print(e)
+       main(sys.argv[1])
+    except IndexError as e:
+        print('Usage:')
+        print('sms.py <destination>')
