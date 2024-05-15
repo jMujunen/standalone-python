@@ -19,6 +19,9 @@ class FileObject:
         return int(os.path.getsize(self.path))
     @property
     def file_name(self):
+        return str(os.path.splitext(self.path)[0])
+    @property
+    def basename(self):
         return str(os.path.basename(self.path))
     @property
     def extension(self):
@@ -27,14 +30,18 @@ class FileObject:
         with open(self.path, 'rb') as f:
             self.content = f.read()
         return self.content
+    @property
     def is_file(self):
         return os.path.isfile(self.path)
+    @property
     def is_dir(self):
         return os.path.isdir(self.path)
     def __eq__(self, other):
         if not isinstance(other, FileObject):
             return False
-        if self.content is None:
+        elif isinstance(other, VideoObject):
+            return self.size == other.size
+        elif self.content is None:
             self.contnet = self.read()
         return self.content == other.content
     def __setattr__(self, name, value):
@@ -54,10 +61,15 @@ class DirectoryObject(FileObject):
         return len(os.listdir(self.path))
     def __iter__(self):
         for item in os.listdir(self.path):
-            if os.path.isdir(os.path.join(self.path, item)):
-                yield DirectoryObject(os.path.join(self.path, item))
+            if os.path.isfile(os.path.join(self.path, item)):
+                if os.path.splitext(item)[1].lower() in ['.mp4', '.avi', '.mkv', '.wmv', '.webm', '.mov']:
+                    yield VideoObject(os.path.join(self.path, item))
+                elif os.path.splitext(item)[1].lower() in ['.jpg', '.jpeg', '.png', '.nef']:
+                    yield ImageObject(os.path.join(self.path, item))
+                else:
+                    yield FileObject(os.path.join(self.path, item))
             else:
-                yield FileObject(os.path.join(self.path, item))
+                yield DirectoryObject(os.path.join(self.path, item))
     def __str__(self):
         return f"Directory: {self.path}\nFiles: {len(self)}\n"
     def __eq__(self, other):
@@ -109,13 +121,15 @@ class ImageObject(FileObject):
         return None
     
     @property
-    def corrupt(self):
+    def is_corrupt(self):
         try:
-            img = Image.open(file_path)
+            img = Image.open(self.path)
             img.verify()
             return False  # Image is not corrupt
         except (IOError, SyntaxError):
             return True  # Image is corrupt
+        except KeyboardInterrupt:
+            sys.exit(0)
         except Exception as e:
             print(f"Error: {e}")
 
@@ -160,13 +174,15 @@ class VideoObject(FileObject):
     @property
     def is_corrupt(self):
         try:
-            cap = cv2.VideoCapture(file_path)
+            cap = cv2.VideoCapture(self.path)
             if not cap.isOpened():
                 return True  # Video is corrupt
             else:
                 return False  # Video is not corrupt
         except (IOError, SyntaxError):
             return True  # Video is corrupt
+        except KeyboardInterrupt:
+            sys.exit(0)
         except Exception as e:
             print(f"Error: {e}")
 
@@ -179,10 +195,10 @@ if __name__ == "__main__":
     video = VideoObject("/mnt/ssd/compressed_obs/Dayz/blaze kill CQC.mp4")
     txtfile = FileObject("/home/joona/python/Projects/dir_oraganizer/getinfo.py")
 
-    #img.read()
-    txtfile.read()
+    
     print(img)
     print(video)
     print(txtfile)
+
 
 
