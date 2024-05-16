@@ -76,3 +76,5 @@ class Styler:
         #         command_output = command_output.replace(match, f'{color_prefix}{match}{color_suffix}')
 
         return command_output
+
+ff

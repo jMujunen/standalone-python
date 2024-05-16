@@ -34,7 +34,7 @@ def parse_args():
         "COLUMNS",
         help="Columns to plot",
         nargs="*",
-    default=[' cpu_temp', ' system_temp', ' gpu_usage', ' gpu_power', ' gpu_memory_usage']
+    default=['cpu_temp', 'system_temp', 'gpu_usage', 'gpu_power', 'gpu_memory_usage']
     )
     return parser.parse_args()
 
@@ -56,7 +56,7 @@ def main(filepath, window_size, columns):
     """
     try:
         # Remove header until we can process it
-        df = pd.read_csv(filepath, header=None)
+        df = pd.read_csv(filepath)
     except FileNotFoundError:
          print(f"File {filepath} not found.")
          return 1

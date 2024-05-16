@@ -36,6 +36,13 @@ class FileObject:
     @property
     def is_dir(self):
         return os.path.isdir(self.path)
+    @property
+    def is_video(self):
+        return self.extension.lower() in ['.mp4', '.avi', '.mkv', '.wmv', '.webm', '.mov']
+    @property
+    def is_image(self):
+        return self.extension.lower() in ['.jpg', '.jpeg', '.png', '.nef']
+        # return FileObject(os.path.join(self.path, matching_files))
     def __eq__(self, other):
         if not isinstance(other, FileObject):
             return False
@@ -57,19 +64,48 @@ class DirectoryObject(FileObject):
     def __init__(self, path):
         self.path = path
         super().__init__(self.path)
+    @property
+    def files(self):
+        return [file for folder in os.walk(self.path) for file in folder[2]]
+    @property
+    def directories(self):
+        return [file for folder in os.walk(self.path) for file in folder[1]]
+    def file_info(self, file_name):
+        if file_name not in self.files:
+            return
+        if len(self.directories) == 0:
+            for f in os.listdir(self.path):
+                if f == file_name:
+                    return FileObject(os.path.join(self.path, f))
+        for d in self.directories:
+            try:
+                if file_name in os.listdir(os.path.join(self.path, d)):
+                        file = FileObject(os.path.join(self.path, d, file_name))
+                        if file.is_image:
+                            return ImageObject(os.path.join(self.path, d, file_name))
+                        elif file.is_video:
+                            return VideoObject(os.path.join(self.path, d, file_name))
+                        else:
+                            return FileObject(os.path.join(self.path, d, file_name))
+            except FileNotFoundError:
+                pass
+    def __contains__(self, item):
+        return item in self.files
     def __len__(self):
-        return len(os.listdir(self.path))
+        return len(self.directories) + len(self.files)
     def __iter__(self):
-        for item in os.listdir(self.path):
-            if os.path.isfile(os.path.join(self.path, item)):
-                if os.path.splitext(item)[1].lower() in ['.mp4', '.avi', '.mkv', '.wmv', '.webm', '.mov']:
-                    yield VideoObject(os.path.join(self.path, item))
-                elif os.path.splitext(item)[1].lower() in ['.jpg', '.jpeg', '.png', '.nef']:
-                    yield ImageObject(os.path.join(self.path, item))
+        for root, _, file in os.walk(self.path):
+            yield DirectoryObject(root)
+            for filename in file:
+                if os.path.isfile(os.path.join(root, filename)):
+                    if os.path.splitext(filename)[1].lower() in ['.mp4', '.avi', '.mkv', '.wmv', '.webm', '.mov']:
+                        yield VideoObject(os.path.join(root, filename))
+                    elif os.path.splitext(filename)[1].lower() in ['.jpg', '.jpeg', '.png', '.nef']:
+                        yield ImageObject(os.path.join(root, filename))
+                    else:
+                        yield FileObject(os.path.join(root, filename))
                 else:
-                    yield FileObject(os.path.join(self.path, item))
-            else:
-                yield DirectoryObject(os.path.join(self.path, item))
+                    yield DirectoryObject(os.path.join(root, filename))
     def __str__(self):
         return f"Directory: {self.path}\nFiles: {len(self)}\n"
     def __eq__(self, other):
@@ -202,3 +238,4 @@ if __name__ == "__main__":
 
 
 
+f = len([f for folder in os.walk('/mnt/ssd/compressed_obs/CSGO/') for f in folder])
