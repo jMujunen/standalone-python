@@ -11,6 +11,12 @@ import argparse
 from matplotlib.animation import FuncAnimation
 
 FILE = "/tmp/hwinfo.csv"
+GROUPS = {
+    "misc": ["ping", "ram_usage"],
+    "gpu": ["gpu_temp", "gpu_usage", "gpu_power"],
+    "temps": ["system_temp", "gpu_temp", "cpu_temp"],
+    
+}
 
 
 def parse_args():
@@ -32,7 +38,8 @@ def parse_args():
     )
     parser.add_argument(
         "COLUMNS",
-        help="Columns to plot",
+        help="""Columns to plot
+        Supports groups, such as 'cpu' or 'gpu' or 'temps' .""",
         nargs="*",
     default=['cpu_temp'] #, 'system_temp', 'gpu_usage', 'gpu_power', 'gpu_memory_usage']
     )
@@ -76,7 +83,7 @@ def main(filepath, window_size, columns):
         return line,
 
     def animate(i):
-        new_data = pd.read_csv(filepath, sep=r',\s+')
+        new_data = pd.read_csv(filepath, sep=r',\s+', engine='python')
         new_smooth_data = {}
         for column in columns:
             new_smooth_data[column] = np.convolve(
@@ -91,4 +98,6 @@ def main(filepath, window_size, columns):
     
 if __name__ == "__main__":
     args = parse_args()
+    if args.COLUMNS[0] in GROUPS.keys():
+        args.COLUMNS = GROUPS[args.COLUMNS[0]]
     main(args.file, args.window, args.COLUMNS)
