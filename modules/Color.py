@@ -179,8 +179,8 @@ class Parse:
             styled_text = f'{s}{styled_text}{style.reset}'
         return styled_text
 
-def cprint(text, *styles):
-    print(str(Parse(text, *styles)))
+def cprint(text, *styles, end='\n'):
+    print(str(Parse(text, *styles)), end=end)
     
 
 # Example usage
