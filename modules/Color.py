@@ -156,6 +156,7 @@ class Attributes(metaclass=ColorMeta):
         'negative': '\033[7m',
         'strike': '\033[9m',
         'overline': '\033[53m',
+        'double_underline': '\033[21m',
         'reset': '\033[0m',
     }
 

@@ -7,7 +7,7 @@ class GpuData:
     def __init__(self):
         self.type = 'GPU'
         self.temp = self.core_temp
-        self.name = self.gpu_name(short=True)
+        self.name = self.gpu_name(short=True)   
     @property
     def core_temp(self):
         # temperature.gpu
@@ -41,13 +41,13 @@ class GpuData:
     @property
     def max_core_clock(self):
         # clocks.max.graphics
-        core_usage = subprocess.run(
+        max_core_clock = subprocess.run(
             'nvidia-smi --query-gpu=clocks.max.graphics --format=csv,noheader',
             shell=True,
             capture_output=True,
             text=True
         ).stdout.replace('MHz','').strip()
-        return core_clock
+        return max_core_clock
     @property
     def memory_clock(self):
         # clocks.current.memory
@@ -61,13 +61,13 @@ class GpuData:
     @property
     def max_memory_clock(self):
         # clocks.max.memory
-        core_usage = subprocess.run(
+        max_memory_clock = subprocess.run(
             'nvidia-smi --query-gpu=clocks.max.memory --format=csv,noheader',
             shell=True,
             capture_output=True,
             text=True
         ).stdout.replace('MHz','').strip()
-        return memory_clock
+        return max_memory_clock
     @property
     def memory_usage(self):
         memory_usage = subprocess.run(
@@ -108,31 +108,6 @@ class GpuData:
             text=True
         ).stdout.replace('%','').strip()
         return core_usage
-    def average_fps(self):
-        average_fps = subprocess.run(
-            'nvidia-smi --query-gpu=encoder.stats.averageFps --format=csv,noheader',
-            shell=True,
-            capture_output=True,
-            text=True
-        ).stdout.strip()
-        return average_fps
-    def average_latency(self):
-        average_latency = subprocess.run(
-            'nvidia-smi --query-gpu=encoder.stats.averageLatency --format=csv,noheader',
-            shell=True,
-            capture_output=True,
-            text=True
-        ).stdout.strip()
-        return average_latency
-    @property
-    def fan_speed(self):
-        fan_speed = subprocess.run(
-            'nvidia-smi --query-gpu=fan.speed --format=csv,noheader',
-            shell=True,
-            capture_output=True,
-            text=True
-        ).stdout.strip()
-        return fan_speed
 
     def gpu_name(self, short=False):
         name_regex = re.compile(r'(AMD|NVIDIA|Intel)\s?(\s?GeForce\s?|\s?Radeon\s?)\s?(\sGTX\s?|\s?RTX\s?)(.*)')
@@ -175,11 +150,9 @@ class GpuData:
         f'Voltage: {self.voltage} V\n'
         ).strip()
         # Memory Temp: {self.memory_temp()} °C
-    def __lower__(self):
-        return ''.join(self.name).lower()
 
-    def __upper__(self):
-        return self.name.upper()
+    def __call__(self):
+        return self.__dict__
 # Example
 if __name__ == '__main__':
     gpu = GpuData()

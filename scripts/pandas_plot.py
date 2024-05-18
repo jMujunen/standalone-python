@@ -43,6 +43,7 @@ def parse_args():
         nargs="*",
     default=['cpu_temp'] #, 'system_temp', 'gpu_usage', 'gpu_power', 'gpu_memory_usage']
     )
+    # TODO: Add support for limiting the range of the x-axis (time) 
     return parser.parse_args()
 
 
