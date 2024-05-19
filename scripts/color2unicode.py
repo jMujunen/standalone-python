@@ -16,6 +16,7 @@ def rgb_to_ansi(r, g, b):
         g (int): Green component of the color, in range 0-255.
         b (int): Blue component of the color, in range 0-255.
 
+
     Returns:
         str: ANSI escape code string for the given RGB color.
 
@@ -23,6 +24,9 @@ def rgb_to_ansi(r, g, b):
         >>> rgb_to_ansi(255, 0, 0)
         Returns: '\x1b[38;2;255;0;0m'
     """
+    # if isinstance(args[0], str) and len(args[0]) > 5:
+    #     r, g, b = args[0].split(',')
+    # r, g, b = args
     return f"\033[38;2;{r};{g};{b}m"
 
 
@@ -77,13 +81,18 @@ def hex_to_ansi(hex_code):
     return rgb_to_ansi(*rgb)
 
 
-def main(args):
+def main(color):
     # Parse the color input based on the format (RGB or Hex)
-    color_input = args.color
+    color_input = color
 
     if re.match(r"^\d{1,3},\s*\d{1,3},\s*\d{1,3}$", color_input):
         # RGB format
         rgb_values = map(int, color_input.split(","))
+        ansi_code = rgb_to_ansi(*rgb_values)
+    elif re.match(r"\(\d{1,3},\s*\d{1,3},\s*\d{1,3}\)", color_input) or \
+        re.match(r"\('\d{1,3},\s*\d{1,3},\s*\d{1,3}'\)", color_input):
+        # RGB format
+        rgb_values = re.findall(r"\d+", color_input)
         ansi_code = rgb_to_ansi(*rgb_values)
     elif re.match(r"^#(?:[0-9a-fA-F]{3}){1,2}$", color_input):
         # Hex format
@@ -116,4 +125,4 @@ def parse_arguments():
 
 if __name__ == "__main__":
     args = parse_arguments()
-    main(args)
+    main(args.color)

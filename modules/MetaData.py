@@ -104,7 +104,10 @@ class FileObject:
     def __str__(self):
         return str(self.__dict__)
 
-
+class ExecutableObject(FileObject):
+    def __init__(self, path):
+        self.path = path
+        super().__init__(self.path)
 class DirectoryObject(FileObject):
     def __init__(self, path):
         self.path = path
@@ -112,8 +115,9 @@ class DirectoryObject(FileObject):
 
     @property
     def files(self):
-        return [FileObject(os.path.join(folder[0], file))
-            for folder in os.walk(self.path) for file in folder[2]]
+        return [file for folder in os.walk(self.path) for file in folder[2]]
+        # return [FileObject(os.path.join(folder[0], file))
+        #     for folder in os.walk(self.path) for file in folder[2]]
 
     @property
     def directories(self):
@@ -286,16 +290,27 @@ def file_type(path):
         raise FileNotFoundError("Path does not exist")
     
     ext = os.path.splitext(path)[1].lower()
-    if ext in FILE_TYPES['img']:
-        return ImageObject(path)
-    elif ext in FILE_TYPES['video']:
-        return VideoObject(path)
-    elif ext in FILE_TYPES['doc'] + FILE_TYPES['audio'] + FILE_TYPES['zip'] + FILE_TYPES['raw'] + FILE_TYPES['settings'] + FILE_TYPES['text'] + FILE_TYPES['code']:
+    classes = {
+        '.jpg': ImageObject,  # Images
+        '.jpeg': ImageObject,
+        '.png': ImageObject,
+        '.nef': ImageObject,
+        '.mp4': VideoObject,  # Videos
+        '.avi': VideoObject,
+        '.mkv': VideoObject,
+        '.wmv': VideoObject,
+        '.webm': VideoObject,
+        '.mov': VideoObject,
+        '.py': ExecutableObject,  # Code files
+        '.bat': ExecutableObject,
+        '.sh': ExecutableObject,
+    } 
+    
+    cls = classes.get(ext)
+    if not cls:
         return FileObject(path)
     else:
-        return None  # Unsupported file type
-
-# Example
+        return cls(path)
 if __name__ == "__main__":
     img = ImageObject("/home/joona/Pictures/PEGBOARD.jpg")
     video = VideoObject("/mnt/ssd/compressed_obs/Dayz/blaze kill CQC.mp4")
