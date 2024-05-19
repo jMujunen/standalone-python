@@ -5,6 +5,7 @@
 import argparse
 import re
 import pyperclip
+import random
 
 def rgb_to_ansi(r, g, b):
     """
@@ -25,6 +26,19 @@ def rgb_to_ansi(r, g, b):
     return f"\033[38;2;{r};{g};{b}m"
 
 
+def random_hex():
+    """
+    Generate a random hexadecimal color code.
+
+    Returns:
+        str: A randomly generated hexadecimal color code in the format "#RRGGBB", where RR, GG, and BB represent random integers between 0 and 255.
+
+    Example:
+        >>> random_hex()
+        '#e0c1f8'
+    """
+    return "#%02x%02x%02x" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+
 def hex_to_rgb(hex_code):
     """
     Convert a hex color code to a tuple of RGB color values.
@@ -42,7 +56,6 @@ def hex_to_rgb(hex_code):
     """
     hex_code = hex_code.lstrip("#")
     return tuple(int(hex_code[i : i + 2], 16) for i in (0, 2, 4))
-
 
 def hex_to_ansi(hex_code):
     """

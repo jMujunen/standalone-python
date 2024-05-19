@@ -6,8 +6,10 @@ import re
 class GpuData:
     def __init__(self):
         self.type = 'GPU'
-        self.temp = self.core_temp
         self.name = self.gpu_name(short=True)   
+    @property
+    def temp(self):
+        return self.core_temp
     @property
     def core_temp(self):
         # temperature.gpu

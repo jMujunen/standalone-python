@@ -148,7 +148,6 @@ class ForegroundColor(metaclass=ColorMeta):
 
 class Attributes(metaclass=ColorMeta):
     STYLE = {
-        'reset': '\\033[033m[\033[0mm',
         'bold': '\033[1m',
         'faint': '\033[2m',
         'italic': '\033[3m',

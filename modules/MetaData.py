@@ -150,7 +150,6 @@ class ImageObject(FileObject):
                 hash_value = imagehash.average_hash(img)
             return hash_value
         except UnidentifiedImageError as e:
-            ERRORS.append(self.path)
             print(f"Error: {e}")
             return None
 
@@ -267,5 +266,5 @@ if __name__ == "__main__":
     print(txtfile)
 
 
-f = len([f for folder in os.walk('/mnt/ssd/compressed_obs/CSGO/')
-        for f in folder])
+# f = len([f for folder in os.walk('/mnt/ssd/compressed_obs/CSGO/')
+#         for f in folder])
