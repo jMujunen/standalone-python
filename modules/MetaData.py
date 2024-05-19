@@ -14,6 +14,33 @@ import cv2
 
 import imagehash
 
+FILE_TYPES = {
+    'img': ['.jpg', '.jpeg', '.png', '.gif', '.heic', '.nef','.webp', '.svg', '.ico', '.heatmap'],
+
+    'doc': ['.pdf', '.doc', '.docx', '.txt', '.odt', '.pptx'],
+    
+    'video': ['.mp4', '.avi', '.mkv', '.wmv', '.webm', '.m4v', '.flv', '.mpg', '.mov'],
+
+    'audio': ['.3ga', '.aac', '.ac3', '.aif', '.aiff',
+         '.alac', '.amr', '.ape', '.au', '.dss',
+         '.flac', '.flv', '.m4a', '.m4b', '.m4p',
+         '.mp3', '.mpga', '.ogg', '.oga', '.mogg',
+         '.opus', '.qcp', '.tta', '.voc', '.wav',
+         '.wma', '.wv'],
+
+    'zip': ['.zip', '.rar', '.tar', '.bz2', '.7z', '.gz', '.xz', '.tar.gz', '.tgz', '.zipx'],
+
+    'raw': ['.cr2', '.nef', '.raf', '.dng', '.raf'],
+
+    'settings': ['.properties', 'ini', '.config', '.cfg', '.conf', '.yml', '.yaml'],
+
+    'text': ['.txt', '.md', '.log', '.json', '.csv', '.xml'],
+
+    'code': ['.py', '.bat', '.sh', '.c', '.cpp', '.h', '.java', '.js', '.ts', '.php', '.html', '.css', '.scss', '.xmp'],
+    'other': ['.lrprev', '.dat', '.db', '.dbf', '.mdb', '.sqlite', '.sqlite3', '.exe'],  # For any other file type
+    'ignored': ['.trashinfo', '.lnk', '.plist', '.shadow','directoryStoreFile','indexArrays', 'indexBigDates','indexCompactDirectory', 'indexDirectory','indexGroups','indexHead', 'indexIds','indexPositions', 'indexPostings','indexUpdates', 'shadowIndexGroups','shadowIndexHead', 'indexPositionTable','indexTermIds', 'shadowIndexArrays','shadowIndexCompactDirectory', 'shadowIndexDirectory','shadowIndexTermIds', '.updates', '.loc', '.state', '.37', '.tmp', '.pyc'],
+    'dupes': []  # For duplicate files
+}
 
 class FileObject:
     def __init__(self, path):
@@ -85,7 +112,8 @@ class DirectoryObject(FileObject):
 
     @property
     def files(self):
-        return [file for folder in os.walk(self.path) for file in folder[2]]
+        return [FileObject(os.path.join(folder[0], file))
+            for folder in os.walk(self.path) for file in folder[2]]
 
     @property
     def directories(self):
@@ -253,13 +281,25 @@ class VideoObject(FileObject):
         except Exception as e:
             print(f"Error: {e}")
 
+def file_type(path):
+    if not os.path.exists(path):
+        raise FileNotFoundError("Path does not exist")
+    
+    ext = os.path.splitext(path)[1].lower()
+    if ext in FILE_TYPES['img']:
+        return ImageObject(path)
+    elif ext in FILE_TYPES['video']:
+        return VideoObject(path)
+    elif ext in FILE_TYPES['doc'] + FILE_TYPES['audio'] + FILE_TYPES['zip'] + FILE_TYPES['raw'] + FILE_TYPES['settings'] + FILE_TYPES['text'] + FILE_TYPES['code']:
+        return FileObject(path)
+    else:
+        return None  # Unsupported file type
 
 # Example
 if __name__ == "__main__":
     img = ImageObject("/home/joona/Pictures/PEGBOARD.jpg")
     video = VideoObject("/mnt/ssd/compressed_obs/Dayz/blaze kill CQC.mp4")
-    txtfile = FileObject(
-        "/home/joona/python/Projects/dir_oraganizer/getinfo.py")
+    txtfile = FileObject("/home/joona/python/Projects/dir_oraganizer/getinfo.py")
 
     print(img)
     print(video)
