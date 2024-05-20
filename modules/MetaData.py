@@ -15,32 +15,124 @@ import cv2
 import imagehash
 
 FILE_TYPES = {
-    'img': ['.jpg', '.jpeg', '.png', '.gif', '.heic', '.nef','.webp', '.svg', '.ico', '.heatmap'],
-
-    'doc': ['.pdf', '.doc', '.docx', '.txt', '.odt', '.pptx'],
-    
-    'video': ['.mp4', '.avi', '.mkv', '.wmv', '.webm', '.m4v', '.flv', '.mpg', '.mov'],
-
-    'audio': ['.3ga', '.aac', '.ac3', '.aif', '.aiff',
-         '.alac', '.amr', '.ape', '.au', '.dss',
-         '.flac', '.flv', '.m4a', '.m4b', '.m4p',
-         '.mp3', '.mpga', '.ogg', '.oga', '.mogg',
-         '.opus', '.qcp', '.tta', '.voc', '.wav',
-         '.wma', '.wv'],
-
-    'zip': ['.zip', '.rar', '.tar', '.bz2', '.7z', '.gz', '.xz', '.tar.gz', '.tgz', '.zipx'],
-
-    'raw': ['.cr2', '.nef', '.raf', '.dng', '.raf'],
-
-    'settings': ['.properties', 'ini', '.config', '.cfg', '.conf', '.yml', '.yaml'],
-
-    'text': ['.txt', '.md', '.log', '.json', '.csv', '.xml'],
-
-    'code': ['.py', '.bat', '.sh', '.c', '.cpp', '.h', '.java', '.js', '.ts', '.php', '.html', '.css', '.scss', '.xmp'],
-    'other': ['.lrprev', '.dat', '.db', '.dbf', '.mdb', '.sqlite', '.sqlite3', '.exe'],  # For any other file type
-    'ignored': ['.trashinfo', '.lnk', '.plist', '.shadow','directoryStoreFile','indexArrays', 'indexBigDates','indexCompactDirectory', 'indexDirectory','indexGroups','indexHead', 'indexIds','indexPositions', 'indexPostings','indexUpdates', 'shadowIndexGroups','shadowIndexHead', 'indexPositionTable','indexTermIds', 'shadowIndexArrays','shadowIndexCompactDirectory', 'shadowIndexDirectory','shadowIndexTermIds', '.updates', '.loc', '.state', '.37', '.tmp', '.pyc'],
-    'dupes': []  # For duplicate files
+    "img": [
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".heic",
+        ".nef",
+        ".webp",
+        ".svg",
+        ".ico",
+        ".heatmap",
+    ],
+    "doc": [".pdf", ".doc", ".docx", ".txt", ".odt", ".pptx"],
+    "video": [".mp4", ".avi", ".mkv", ".wmv", ".webm", ".m4v", ".flv", ".mpg", ".mov"],
+    "audio": [
+        ".3ga",
+        ".aac",
+        ".ac3",
+        ".aif",
+        ".aiff",
+        ".alac",
+        ".amr",
+        ".ape",
+        ".au",
+        ".dss",
+        ".flac",
+        ".flv",
+        ".m4a",
+        ".m4b",
+        ".m4p",
+        ".mp3",
+        ".mpga",
+        ".ogg",
+        ".oga",
+        ".mogg",
+        ".opus",
+        ".qcp",
+        ".tta",
+        ".voc",
+        ".wav",
+        ".wma",
+        ".wv",
+    ],
+    "zip": [
+        ".zip",
+        ".rar",
+        ".tar",
+        ".bz2",
+        ".7z",
+        ".gz",
+        ".xz",
+        ".tar.gz",
+        ".tgz",
+        ".zipx",
+    ],
+    "raw": [".cr2", ".nef", ".raf", ".dng", ".raf"],
+    "settings": [".properties", "ini", ".config", ".cfg", ".conf", ".yml", ".yaml"],
+    "text": [".txt", ".md", ".log", ".json", ".csv", ".xml"],
+    "code": [
+        ".py",
+        ".bat",
+        ".sh",
+        ".c",
+        ".cpp",
+        ".h",
+        ".java",
+        ".js",
+        ".ts",
+        ".php",
+        ".html",
+        ".css",
+        ".scss",
+        ".xmp",
+    ],
+    "other": [
+        ".lrprev",
+        ".dat",
+        ".db",
+        ".dbf",
+        ".mdb",
+        ".sqlite",
+        ".sqlite3",
+        ".exe",
+    ],  # For any other file type
+    "ignored": [
+        ".trashinfo",
+        ".lnk",
+        ".plist",
+        ".shadow",
+        "directoryStoreFile",
+        "indexArrays",
+        "indexBigDates",
+        "indexCompactDirectory",
+        "indexDirectory",
+        "indexGroups",
+        "indexHead",
+        "indexIds",
+        "indexPositions",
+        "indexPostings",
+        "indexUpdates",
+        "shadowIndexGroups",
+        "shadowIndexHead",
+        "indexPositionTable",
+        "indexTermIds",
+        "shadowIndexArrays",
+        "shadowIndexCompactDirectory",
+        "shadowIndexDirectory",
+        "shadowIndexTermIds",
+        ".updates",
+        ".loc",
+        ".state",
+        ".37",
+        ".tmp",
+        ".pyc",
+    ],
+    "dupes": [],  # For duplicate files
 }
+
 
 class FileObject:
     def __init__(self, path):
@@ -63,7 +155,7 @@ class FileObject:
         return str(os.path.splitext(self.path)[-1]).lower()
 
     def read(self):
-        with open(self.path, 'rb') as f:
+        with open(self.path, "rb") as f:
             self.content = f.read()
         return self.content
 
@@ -77,11 +169,18 @@ class FileObject:
 
     @property
     def is_video(self):
-        return self.extension.lower() in ['.mp4', '.avi', '.mkv', '.wmv', '.webm', '.mov']
+        return self.extension.lower() in [
+            ".mp4",
+            ".avi",
+            ".mkv",
+            ".wmv",
+            ".webm",
+            ".mov",
+        ]
 
     @property
     def is_image(self):
-        return self.extension.lower() in ['.jpg', '.jpeg', '.png', '.nef']
+        return self.extension.lower() in [".jpg", ".jpeg", ".png", ".nef"]
         # return FileObject(os.path.join(self.path, matching_files))
 
     def __eq__(self, other):
@@ -99,15 +198,19 @@ class FileObject:
             return self.__dict__[name]
         except AttributeError:
             raise AttributeError(
-                f"{self.__class__.__name__} object has no attribute {name}")
+                f"{self.__class__.__name__} object has no attribute {name}"
+            )
 
     def __str__(self):
         return str(self.__dict__)
+
 
 class ExecutableObject(FileObject):
     def __init__(self, path):
         self.path = path
         super().__init__(self.path)
+
+
 class DirectoryObject(FileObject):
     def __init__(self, path):
         self.path = path
@@ -154,9 +257,21 @@ class DirectoryObject(FileObject):
             yield DirectoryObject(root)
             for filename in file:
                 if os.path.isfile(os.path.join(root, filename)):
-                    if os.path.splitext(filename)[1].lower() in ['.mp4', '.avi', '.mkv', '.wmv', '.webm', '.mov']:
+                    if os.path.splitext(filename)[1].lower() in [
+                        ".mp4",
+                        ".avi",
+                        ".mkv",
+                        ".wmv",
+                        ".webm",
+                        ".mov",
+                    ]:
                         yield VideoObject(os.path.join(root, filename))
-                    elif os.path.splitext(filename)[1].lower() in ['.jpg', '.jpeg', '.png', '.nef']:
+                    elif os.path.splitext(filename)[1].lower() in [
+                        ".jpg",
+                        ".jpeg",
+                        ".png",
+                        ".nef",
+                    ]:
                         yield ImageObject(os.path.join(root, filename))
                     else:
                         yield FileObject(os.path.join(root, filename))
@@ -213,7 +328,7 @@ class ImageObject(FileObject):
             # Decode bytes
             if isinstance(data, bytes):
                 data = data.decode()
-            if str(tag).startswith('DateTime'):
+            if str(tag).startswith("DateTime"):
                 return data
         return None
 
@@ -249,7 +364,7 @@ class VideoObject(FileObject):
                 "duration": clip.duration,
                 "dimensions": (clip.size[0], clip.size[1]),
                 "fps": clip.fps,
-                "aspect_ratio": clip.aspect_ratio
+                "aspect_ratio": clip.aspect_ratio,
             }
         return metadata
 
@@ -262,12 +377,12 @@ class VideoObject(FileObject):
             "-print_format",
             "json",
             "-show_format",
-            self.path
+            self.path,
         ]
-        ffprobe_output = subprocess.check_output(ffprobe_cmd).decode('utf-8')
+        ffprobe_output = subprocess.check_output(ffprobe_cmd).decode("utf-8")
         metadata = json.loads(ffprobe_output)
-        capture_date = metadata['format']['tags'].get('creation_time')
-        bit_rate = metadata['format']['bit_rate']
+        capture_date = metadata["format"]["tags"].get("creation_time")
+        bit_rate = metadata["format"]["bit_rate"]
         return bit_rate
 
     @property
@@ -285,32 +400,35 @@ class VideoObject(FileObject):
         except Exception as e:
             print(f"Error: {e}")
 
+
 def file_type(path):
     if not os.path.exists(path):
         raise FileNotFoundError("Path does not exist")
-    
+
     ext = os.path.splitext(path)[1].lower()
     classes = {
-        '.jpg': ImageObject,  # Images
-        '.jpeg': ImageObject,
-        '.png': ImageObject,
-        '.nef': ImageObject,
-        '.mp4': VideoObject,  # Videos
-        '.avi': VideoObject,
-        '.mkv': VideoObject,
-        '.wmv': VideoObject,
-        '.webm': VideoObject,
-        '.mov': VideoObject,
-        '.py': ExecutableObject,  # Code files
-        '.bat': ExecutableObject,
-        '.sh': ExecutableObject,
-    } 
-    
+        ".jpg": ImageObject,  # Images
+        ".jpeg": ImageObject,
+        ".png": ImageObject,
+        ".nef": ImageObject,
+        ".mp4": VideoObject,  # Videos
+        ".avi": VideoObject,
+        ".mkv": VideoObject,
+        ".wmv": VideoObject,
+        ".webm": VideoObject,
+        ".mov": VideoObject,
+        ".py": ExecutableObject,  # Code files
+        ".bat": ExecutableObject,
+        ".sh": ExecutableObject,
+    }
+
     cls = classes.get(ext)
     if not cls:
         return FileObject(path)
     else:
         return cls(path)
+
+
 if __name__ == "__main__":
     img = ImageObject("/home/joona/Pictures/PEGBOARD.jpg")
     video = VideoObject("/mnt/ssd/compressed_obs/Dayz/blaze kill CQC.mp4")
