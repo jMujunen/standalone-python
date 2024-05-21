@@ -14,6 +14,8 @@ import cv2
 
 import imagehash
 
+GIT_OBJECT_REGEX = re.compile(r"([a-f0-9]{37,41})")
+
 FILE_TYPES = {
     "img": [
         ".jpg",
@@ -137,6 +139,27 @@ FILE_TYPES = {
 class FileObject:
     def __init__(self, path):
         self.path = path
+        self.content = None
+
+    def head(self, n=5):
+        lines = []
+        if isinstance(self, FileObject):
+            try:
+                with open(self.path, "r") as f:
+                    lines = [next(f) for _ in range(n)]
+            except (StopIteration, UnicodeDecodeError):
+                pass
+        return "".join(lines)
+
+    def tail(self, n=5):
+        lines = []
+        if isinstance(self, FileObject):
+            try:
+                with open(self.path, "r") as f:
+                    lines = f.readlines()[-n:]
+            except (StopIteration, UnicodeDecodeError):
+                pass
+        return "".join(lines)
 
     @property
     def size(self):
@@ -156,12 +179,23 @@ class FileObject:
 
     def read(self):
         with open(self.path, "rb") as f:
-            self.content = f.read()
-        return self.content
+            content = f.read()
+        try:
+            self.content = content.decode()
+        except (UnicodeDecodeError, AttributeError):
+            self.content = content
+        finally:
+            return self.content
 
     @property
     def is_file(self):
+        if GIT_OBJECT_REGEX.match(self.basename):
+            return False
         return os.path.isfile(self.path)
+
+    @property
+    def is_executable(self):
+        return os.access(self.path, os.X_OK)
 
     @property
     def is_dir(self):
@@ -179,6 +213,10 @@ class FileObject:
         ]
 
     @property
+    def is_gitobject(self):
+        return GIT_OBJECT_REGEX.match(self.basename)
+
+    @property
     def is_image(self):
         return self.extension.lower() in [".jpg", ".jpeg", ".png", ".nef"]
         # return FileObject(os.path.join(self.path, matching_files))
@@ -189,17 +227,17 @@ class FileObject:
         elif isinstance(other, VideoObject):
             return self.size == other.size
         elif self.content is None:
-            self.contnet = self.read()
+            self.content = self.read()
         return self.content == other.content
 
-    def __setattr__(self, name, value):
-        try:
-            self.__dict__[name] = value
-            return self.__dict__[name]
-        except AttributeError:
-            raise AttributeError(
-                f"{self.__class__.__name__} object has no attribute {name}"
-            )
+    # def __setattr__(self, name, value):
+    #     try:
+    #         self.__dict__[name] = value
+    #         return self.__dict__[name]
+    #     except AttributeError:
+    #         raise AttributeError(
+    #             f"{self.__class__.__name__} object has no attribute {name}"
+    #         )
 
     def __str__(self):
         return str(self.__dict__)
@@ -208,7 +246,29 @@ class FileObject:
 class ExecutableObject(FileObject):
     def __init__(self, path):
         self.path = path
+        self._shebang = ""
         super().__init__(self.path)
+
+    @property
+    def shebang(self):
+        if not self._shebang:
+            self._shebang = self.head(1).strip()
+        return self._shebang
+
+    @shebang.setter
+    def shebang(self, shebang):
+        self.content = shebang + self.read()[len(self.shebang.strip()) :]
+        try:
+            with open(self.path, "w") as f:
+                f.seek(0)
+                f.write(self.content)
+
+            print(f"{self.basename}\n{self.shebang} -> {shebang}")
+            print(self.tail(2))
+            self._shebang = shebang
+            return self.content
+        except PermissionError:
+            pass
 
 
 class DirectoryObject(FileObject):
@@ -241,6 +301,8 @@ class DirectoryObject(FileObject):
                         return ImageObject(os.path.join(self.path, d, file_name))
                     elif file.is_video:
                         return VideoObject(os.path.join(self.path, d, file_name))
+                    elif file.is_executable:
+                        return ExecutableObject(os.path.join(self.path, d, file_name))
                     else:
                         return FileObject(os.path.join(self.path, d, file_name))
             except FileNotFoundError:
@@ -273,6 +335,15 @@ class DirectoryObject(FileObject):
                         ".nef",
                     ]:
                         yield ImageObject(os.path.join(root, filename))
+                    elif os.path.splitext(filename)[1].lower() in [
+                        ".sh",
+                        ".py",
+                        ".bash",
+                        ".cmd",
+                        ".ps1",
+                        ".bat",
+                    ]:
+                        yield ExecutableObject(os.path.join(root, filename))
                     else:
                         yield FileObject(os.path.join(root, filename))
                 else:
@@ -420,6 +491,7 @@ def file_type(path):
         ".py": ExecutableObject,  # Code files
         ".bat": ExecutableObject,
         ".sh": ExecutableObject,
+        "": DirectoryObject,  # Directories
     }
 
     cls = classes.get(ext)
