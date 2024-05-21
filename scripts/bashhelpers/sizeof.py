@@ -41,7 +41,7 @@ def sizeof(path):
     output = stdout.split("\n")
     for item in output:
         size, directory = item.split("\t")
-        print(f"{ByteConverter.convert_bytes(int(size)).ljust(12)}{directory}")
+        print(f"{str(ByteConverter(int(size))).ljust(12)}{directory}")
     return stdout, stderr if stderr else stdout
 
 
