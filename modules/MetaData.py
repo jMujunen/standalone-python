@@ -267,6 +267,7 @@ class ExecutableObject(FileObject):
             self._shebang = shebang
             return self.content
         except PermissionError:
+            print(f"Permission denied: {self.path}")
             pass
 
 
@@ -293,16 +294,23 @@ class DirectoryObject(FileObject):
     def directories(self):
         return [file for folder in os.walk(self.path) for file in folder[1]]
 
+    @property
+    def dir_paths(self):
+        return [os.path.join(self.path, d) for d in self.directories]
+
     def file_info(self, file_name):
         if file_name not in self.files:
             return
-        # if len(self.directories) == 0:
-        #     for f in os.listdir(self.path):
-        #         if f == file_name:
-        #             return FileObject(os.path.join(self.path, f))
+        if len(self.directories) == 0:
+            for f in os.listdir(self.path):
+                if f == file_name:
+                    return FileObject(os.path.join(self.path, f))
         try:
-            if file_name in os.listdir(self.path):
-                return obj(os.path.join(self.path, file_name))
+            try:
+                if file_name in os.listdir(self.path):
+                    return obj(os.path.join(self.path, file_name))
+            except NotADirectoryError:
+                pass
             for d in self.directories:
                 if file_name in os.listdir(os.path.join(self.path, d)):
                     file = FileObject(os.path.join(self.path, d, file_name))
@@ -315,10 +323,19 @@ class DirectoryObject(FileObject):
                     #     return ExecutableObject(os.path.join(self.path, d, file_name))
                     # else:
                     #     return FileObject(os.path.join(self.path, d, file_name))
-        except FileNotFoundError:
+        except (FileNotFoundError, NotADirectoryError) as e:
+            print(e)
             pass
 
     def __contains__(self, item):
+        if (
+            isinstance(item, FileObject)
+            or isinstance(item, VideoObject)
+            or isinstance(item, ImageObject)
+            or isinstance(item, ExecutableObject)
+            or isinstance(item, DirectoryObject)
+        ):
+            return item.basename in self.files
         return item in self.files
 
     def __len__(self):
