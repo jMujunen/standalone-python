@@ -32,8 +32,8 @@ def parse_args():
         required=False,
     )
     parser.add_argument(
-        "-a",
-        "-add",
+        "-m",
+        "--missing",
         action="store_true",
         help="Add shebangs to files with missing shebangs",
         required=False,
@@ -58,13 +58,17 @@ def parse_args():
         required=False,
     )
 
-    args = parser.parse_args()
+    return parser.parse_args()
 
 
 def main(args):
     directory = DirectoryObject(args.directory)
     for item in directory:
-        if item.is_file and item.is_executable and item.extension == args.file:
+        if (
+            item.is_file
+            and item.is_executable
+            and item.extension.strip(".") == args.file
+        ):
             try:
                 shebang = item.shebang
                 if args.verbose:
@@ -77,7 +81,7 @@ def main(args):
                     elif shebang == "#!/usr/bin/env python":
                         item.shebang = "#!/usr/bin/env python3"
 
-                if args.add and not SHEBANG_REGEX.match(shebang):
+                if args.missing and not SHEBANG_REGEX.match(shebang):
                     if args.file == "sh":
                         item.shebang = f"#!/bin/sh\n{shebang}"
                     elif args.file == "py":

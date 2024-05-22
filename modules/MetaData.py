@@ -24,11 +24,9 @@ FILE_TYPES = {
         ".gif",
         ".heic",
         ".nef",
-        ".webp",
-        ".svg",
-        ".ico",
-        ".heatmap",
     ],
+    "img_other": [".heatmap", ".ico", ".svg", ".webp"],
+    "metadata": [".xml", "aae", "exif", "iptc", "tiff", "xmp"],
     "doc": [".pdf", ".doc", ".docx", ".txt", ".odt", ".pptx"],
     "video": [".mp4", ".avi", ".mkv", ".wmv", ".webm", ".m4v", ".flv", ".mpg", ".mov"],
     "audio": [
@@ -74,7 +72,7 @@ FILE_TYPES = {
     ],
     "raw": [".cr2", ".nef", ".raf", ".dng", ".raf"],
     "settings": [".properties", "ini", ".config", ".cfg", ".conf", ".yml", ".yaml"],
-    "text": [".txt", ".md", ".log", ".json", ".csv", ".xml"],
+    "text": [".txt", ".md", ".log", ".json", ".csv", ".out", ".note"],
     "code": [
         ".py",
         ".bat",
@@ -89,7 +87,7 @@ FILE_TYPES = {
         ".html",
         ".css",
         ".scss",
-        ".xmp",
+        ".ps1",
     ],
     "other": [
         ".lrprev",
@@ -100,6 +98,12 @@ FILE_TYPES = {
         ".sqlite",
         ".sqlite3",
         ".exe",
+        ".mdat",
+        ".thp",
+        ".jar",
+        ".mca",
+        ".dll",
+        ".package",
     ],  # For any other file type
     "ignored": [
         ".trashinfo",
@@ -131,6 +135,8 @@ FILE_TYPES = {
         ".37",
         ".tmp",
         ".pyc",
+        ".cachedmsg",
+        ".git",
     ],
     "dupes": [],  # For duplicate files
 }
@@ -203,14 +209,7 @@ class FileObject:
 
     @property
     def is_video(self):
-        return self.extension.lower() in [
-            ".mp4",
-            ".avi",
-            ".mkv",
-            ".wmv",
-            ".webm",
-            ".mov",
-        ]
+        return self.extension.lower() in FILE_TYPES["video"]
 
     @property
     def is_gitobject(self):
@@ -218,7 +217,7 @@ class FileObject:
 
     @property
     def is_image(self):
-        return self.extension.lower() in [".jpg", ".jpeg", ".png", ".nef"]
+        return self.extension.lower() in FILE_TYPES["img"]
         # return FileObject(os.path.join(self.path, matching_files))
 
     def __eq__(self, other):
@@ -274,6 +273,7 @@ class ExecutableObject(FileObject):
 class DirectoryObject(FileObject):
     def __init__(self, path):
         self.path = path
+        self.map = {}
         super().__init__(self.path)
 
     @property
@@ -282,6 +282,13 @@ class DirectoryObject(FileObject):
         # return [FileObject(os.path.join(folder[0], file))
         #     for folder in os.walk(self.path) for file in folder[2]]
 
+    def objects(self):
+        return [
+            obj(os.path.join(self.path, folder[0], file))
+            for folder in os.walk(self.path)
+            for file in folder[2]
+        ]
+
     @property
     def directories(self):
         return [file for folder in os.walk(self.path) for file in folder[1]]
@@ -289,24 +296,27 @@ class DirectoryObject(FileObject):
     def file_info(self, file_name):
         if file_name not in self.files:
             return
-        if len(self.directories) == 0:
-            for f in os.listdir(self.path):
-                if f == file_name:
-                    return FileObject(os.path.join(self.path, f))
-        for d in self.directories:
-            try:
+        # if len(self.directories) == 0:
+        #     for f in os.listdir(self.path):
+        #         if f == file_name:
+        #             return FileObject(os.path.join(self.path, f))
+        try:
+            if file_name in os.listdir(self.path):
+                return obj(os.path.join(self.path, file_name))
+            for d in self.directories:
                 if file_name in os.listdir(os.path.join(self.path, d)):
                     file = FileObject(os.path.join(self.path, d, file_name))
-                    if file.is_image:
-                        return ImageObject(os.path.join(self.path, d, file_name))
-                    elif file.is_video:
-                        return VideoObject(os.path.join(self.path, d, file_name))
-                    elif file.is_executable:
-                        return ExecutableObject(os.path.join(self.path, d, file_name))
-                    else:
-                        return FileObject(os.path.join(self.path, d, file_name))
-            except FileNotFoundError:
-                pass
+                    return obj(os.path.join(self.path, d, file_name))
+                    # if file.is_image:
+                    #     return ImageObject(os.path.join(self.path, d, file_name))
+                    # elif file.is_video:
+                    #     return VideoObject(os.path.join(self.path, d, file_name))
+                    # elif file.is_executable:
+                    #     return ExecutableObject(os.path.join(self.path, d, file_name))
+                    # else:
+                    #     return FileObject(os.path.join(self.path, d, file_name))
+        except FileNotFoundError:
+            pass
 
     def __contains__(self, item):
         return item in self.files
@@ -319,21 +329,9 @@ class DirectoryObject(FileObject):
             yield DirectoryObject(root)
             for filename in file:
                 if os.path.isfile(os.path.join(root, filename)):
-                    if os.path.splitext(filename)[1].lower() in [
-                        ".mp4",
-                        ".avi",
-                        ".mkv",
-                        ".wmv",
-                        ".webm",
-                        ".mov",
-                    ]:
+                    if os.path.splitext(filename)[1].lower() in FILE_TYPES["video"]:
                         yield VideoObject(os.path.join(root, filename))
-                    elif os.path.splitext(filename)[1].lower() in [
-                        ".jpg",
-                        ".jpeg",
-                        ".png",
-                        ".nef",
-                    ]:
+                    elif os.path.splitext(filename)[1].lower() in FILE_TYPES["img"]:
                         yield ImageObject(os.path.join(root, filename))
                     elif os.path.splitext(filename)[1].lower() in [
                         ".sh",
@@ -368,8 +366,18 @@ class ImageObject(FileObject):
                 hash_value = imagehash.average_hash(img)
             return hash_value
         except UnidentifiedImageError as e:
-            print(f"Error: {e}")
-            return None
+            try:
+                if obj(self.path).is_corrupt:
+                    print(f"\033[1;31m{self.path} is corrupt\033[0m")
+                    return
+            except Exception as e:
+                print(
+                    f'\033[1;32mError detecting corruption of "{self.path}":\033[0m\033[1;31m {e}\033[0m'
+                )
+                return
+
+            print(f"Error calculating hash: {e}")
+            return
 
     @property
     def dimensions(self):
@@ -406,6 +414,8 @@ class ImageObject(FileObject):
     @property
     def is_corrupt(self):
         try:
+            if self.extension == ".heic":
+                pass
             img = Image.open(self.path)
             img.verify()
             return False  # Image is not corrupt
@@ -472,7 +482,7 @@ class VideoObject(FileObject):
             print(f"Error: {e}")
 
 
-def file_type(path):
+def obj(path):
     if not os.path.exists(path):
         raise FileNotFoundError("Path does not exist")
 
