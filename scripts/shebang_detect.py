@@ -69,26 +69,34 @@ def main(args):
             and item.is_executable
             and item.extension.strip(".") == args.file
         ):
-            try:
-                shebang = item.shebang
-                if args.verbose:
-                    cprint(item.path, fg.yellow)
-                    cprint(f"{shebang}\n", fg.green)
+            shebang = item.shebang
+            if args.verbose:
+                # Print the file name and shebang
+                cprint(item.basename, fg.yellow)
+                cprint(f"{shebang}\n", fg.green)
 
-                if args.convert:
-                    if shebang == "#!/bin/bash":
-                        item.shebang = "#!/bin/sh"
-                    elif shebang == "#!/usr/bin/env python":
-                        item.shebang = "#!/usr/bin/env python3"
+            if args.convert:
+                if SHEBANG_REGEX.match(shebang):
+                    new_shebang = SHEBANG_REGEX.sub(
+                        "#!/usr/bin/env python3", shebang
+                    )  # Convert to python3
+                    item.shebang = new_shebang
 
-                if args.missing and not SHEBANG_REGEX.match(shebang):
+                elif not SHEBANG_REGEX.match(
+                    shebang
+                ):  # Add the shebang if it's missing
                     if args.file == "sh":
                         item.shebang = f"#!/bin/sh\n{shebang}"
                     elif args.file == "py":
                         item.shebang = f"#!/usr/bin/env python3\n{shebang}"
 
-            except Exception as e:
-                cprint(e, bg.red)
+            if (
+                not SHEBANG_REGEX.match(shebang) and args.missing
+            ):  # Add the shebang if it's missing
+                if args.file == "sh":
+                    item.shebang = f"#!/bin/sh\n{shebang}"
+                elif args.file == "py":
+                    item.shebang = f"#!/usr/bin/env python3\n{shebang}"
 
 
 if __name__ == "__main__":

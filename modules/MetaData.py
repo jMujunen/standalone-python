@@ -144,9 +144,14 @@ FILE_TYPES = {
 
 class FileObject:
     """
-    A class representing a file object
+    This is the base class for all of the following objects. 
+    It represents a generic file and defines the common methods that are used by all of them.
+    It can be used standlone (Eg. text based files) or as a parent class for other classes.
+    
+    Attributes:
+        path (str): The absolute path to the file.
+        content (Any): Contains the content of the file. Only holds a value if read() is called.
     """
-
     def __init__(self, path):
         """
         Constructor for the FileObject class.
@@ -159,10 +164,10 @@ class FileObject:
 
     def head(self, n=5):
         """
-        Returns the first n lines of the file
+        Return the first n lines of the file
 
         Args:
-            n (int): The number of lines to return
+            n (int): The number of lines to return (default is 5)
 
         Returns:
             str: The first n lines of the file
@@ -178,10 +183,10 @@ class FileObject:
 
     def tail(self, n=5):
         """
-        Returns the last n lines of the file
+        Return the last n lines of the file
 
         Args:
-            n (int): The number of lines to return
+            n (int): The number of lines to return (default is 5)
 
         Returns:
             str: The last n lines of the file
@@ -198,7 +203,7 @@ class FileObject:
     @property
     def size(self):
         """
-        Returns the size of the file in bytes
+        Return the size of the file in bytes
 
         Returns:
             int: The size of the file in bytes
@@ -208,7 +213,7 @@ class FileObject:
     @property
     def file_name(self):
         """
-        Returns the file name without the extension
+        Return the file name without the extension
 
         Returns:
             str: The file name without the extension
@@ -218,7 +223,7 @@ class FileObject:
     @property
     def basename(self):
         """
-        Returns the file name with the extension
+        Return the file name with the extension
 
         Returns:
             str: The file name with the extension
@@ -228,7 +233,7 @@ class FileObject:
     @property
     def extension(self):
         """
-        Returns the file extension
+        Return the file extension
 
         Returns:
             str: The file extension
@@ -237,7 +242,7 @@ class FileObject:
 
     def read(self):
         """
-        Reads the content of the file
+        Method for reading the content of a file. This method should overridden for VideoObjects
 
         Returns:
             str: The content of the file
@@ -254,7 +259,7 @@ class FileObject:
     @property
     def is_file(self):
         """
-        Checks if the object is a file
+        Check if the object is a file
 
         Returns:
             bool: True if the object is a file, False otherwise
@@ -266,7 +271,7 @@ class FileObject:
     @property
     def is_executable(self):
         """
-        Checks if the file is executable
+        Check if the file is executable
 
         Returns:
             bool: True if the file is executable, False otherwise
@@ -276,7 +281,7 @@ class FileObject:
     @property
     def is_dir(self):
         """
-        Checks if the object is a directory
+        Check if the object is a directory
 
         Returns:
             bool: True if the object is a directory, False otherwise
@@ -286,7 +291,7 @@ class FileObject:
     @property
     def is_video(self):
         """
-        Checks if the file is a video
+        Check if the file is a video
 
         Returns:
             bool: True if the file is a video, False otherwise
@@ -296,7 +301,7 @@ class FileObject:
     @property
     def is_gitobject(self):
         """
-        Checks if the file is a git object
+        Check if the file is a git object
 
         Returns:
             bool: True if the file is a git object, False otherwise
@@ -306,7 +311,7 @@ class FileObject:
     @property
     def is_image(self):
         """
-        Checks if the file is an image
+        Check if the file is an image
 
         Returns:
             bool: True if the file is an image, False otherwise
@@ -315,7 +320,7 @@ class FileObject:
 
     def __eq__(self, other):
         """
-        Compares two FileObjects
+        Compare two FileObjects
 
         Args:
             other (Object): The Object to compare (FileObject, VideoObject, etc.)
@@ -333,28 +338,46 @@ class FileObject:
 
     def __str__(self):
         """
-        Returns a string representation of the FileObject
+        Return a string representation of the FileObject
 
         Returns:
             str: A string representation of the FileObject
         """
         return str(self.__dict__)
 
-
-class ExecutableObject(FileObject):
+def ExecutableObject(FileObject):
+    """
+    A call representing information about an executable file
+    
+    Attributes:
+        path (str): The absolute path to the file. (Required)
+    """
     def __init__(self, path):
-        self.path = path
-        self._shebang = ""
-        super().__init__(self.path)
+        super().__init__(path)
 
     @property
     def shebang(self):
+        """
+        Get the shebang line of the file.
+
+        Returns:
+            str: The shebang line of the file
+        """
         if not self._shebang:
             self._shebang = self.head(1).strip()
         return self._shebang
 
     @shebang.setter
     def shebang(self, shebang):
+        """
+        Set a new shebang line for the file.
+
+        Args:
+            shebang (str): The new shebang line
+
+        Returns:
+            str: The content of the file after updating the shebang line
+        """
         self.content = shebang + self.read()[len(self.shebang.strip()) :]
         try:
             with open(self.path, "w") as f:
@@ -369,41 +392,86 @@ class ExecutableObject(FileObject):
             print(f"Permission denied: {self.path}")
             pass
 
+    def __str__(self):
+        """
+        Return a string representation of the ExecutableObject.
+
+        Returns:
+            str: A string representation of the ExecutableObject
+        """
+        return "Executable Object: " + self.__dict__.__str__()
 
 class DirectoryObject(FileObject):
+    """
+    A class representing information about a directory.
+    
+    Attributes:
+        path (str): The path to the directory (Required)
+    
+    Methods:
+        file_info (file_name): Returns information about a specific file in the directory
+    
+    Properties:
+        files       : A read-only property returning a list of file names
+        objects     : A read-only property yielding a sequence of DirectoryObject or FileObject instances
+        directories : A read-only property returning a list of subdirectory names
+        dir_paths   : A read-only property returning a list of absolute paths for subdirectories
+    
+    """
     def __init__(self, path):
         self.path = path
-        self.map = {}
         super().__init__(self.path)
 
     @property
     def files(self):
+        """
+        Return a list of file names in the directory represented by this object.
+
+        Returns:
+            list: A list of file names
+        """
         return [file for folder in os.walk(self.path) for file in folder[2]]
-        # return [FileObject(os.path.join(folder[0], file))
-        #     for folder in os.walk(self.path) for file in folder[2]]
 
     def objects(self):
+        """
+        Convert each file in self to an appropriate type of object inheriting from FileObject.
+
+        Yields:
+            The appropriate inhearitance of FileObject
+        """
         return [
             obj(os.path.join(self.path, folder[0], file))
             for folder in os.walk(self.path)
             for file in folder[2]
         ]
-
-    @property
-    def directories(self):
-        return [file for folder in os.walk(self.path) for file in folder[1]]
-
+        
     @property
     def dir_paths(self):
+        """
+        Return a list of absolute paths for subdirectories.
+        
+        Returns:
+            list: A list of absolute paths for subdirectories
+        """
         return [os.path.join(self.path, d) for d in self.directories]
 
     def file_info(self, file_name):
+        """
+        Query the object for files with the given name. Returns an appropriate FileObject if found.
+
+        Paramaters
+        -----
+            file_name (str): The name of the file
+        Returns:
+        ------
+            FileObject: Information about the specified file
+        """
         if file_name not in self.files:
             return
-        if len(self.directories) == 0:
-            for f in os.listdir(self.path):
-                if f == file_name:
-                    return FileObject(os.path.join(self.path, f))
+        # if len(self.directories) == 0:
+        #     for f in os.listdir(self.path):
+        #         if f == file_name:
+        #             return FileObject(os.path.join(self.path, f))
         try:
             try:
                 if file_name in os.listdir(self.path):
@@ -412,21 +480,21 @@ class DirectoryObject(FileObject):
                 pass
             for d in self.directories:
                 if file_name in os.listdir(os.path.join(self.path, d)):
-                    file = FileObject(os.path.join(self.path, d, file_name))
                     return obj(os.path.join(self.path, d, file_name))
-                    # if file.is_image:
-                    #     return ImageObject(os.path.join(self.path, d, file_name))
-                    # elif file.is_video:
-                    #     return VideoObject(os.path.join(self.path, d, file_name))
-                    # elif file.is_executable:
-                    #     return ExecutableObject(os.path.join(self.path, d, file_name))
-                    # else:
-                    #     return FileObject(os.path.join(self.path, d, file_name))
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e)
             pass
 
     def __contains__(self, item):
+        """
+        Compare items in two DirecoryObjects
+
+        Parameters:
+            item (FileObject, VideoObject, ImageObject, ExecutableObject, DirectoryObject): The item to check.
+
+        Returns:
+            bool: True if the item is present, False otherwise.
+        """
         if (
             isinstance(item, FileObject)
             or isinstance(item, VideoObject)
@@ -438,9 +506,21 @@ class DirectoryObject(FileObject):
         return item in self.files
 
     def __len__(self):
+        """
+        Return the number of items in the object
+        
+        Returns:
+            int: The number of files and subdirectories in the directory
+        """
         return len(self.directories) + len(self.files)
 
     def __iter__(self):
+        """
+        Yield a sequence of FileObject instances for each item in self
+        
+        Yields:
+            FileObject: The appropriate instance of FileObject
+        """
         for root, _, file in os.walk(self.path):
             yield DirectoryObject(root)
             for filename in file:
@@ -449,34 +529,51 @@ class DirectoryObject(FileObject):
                         yield VideoObject(os.path.join(root, filename))
                     elif os.path.splitext(filename)[1].lower() in FILE_TYPES["img"]:
                         yield ImageObject(os.path.join(root, filename))
-                    elif os.path.splitext(filename)[1].lower() in [
-                        ".sh",
-                        ".py",
-                        ".bash",
-                        ".cmd",
-                        ".ps1",
-                        ".bat",
-                    ]:
+                    elif os.path.splitext(filename)[1].lower() in FILE_TYPES["exe"]:
                         yield ExecutableObject(os.path.join(root, filename))
                     else:
                         yield FileObject(os.path.join(root, filename))
-                else:
+                elif os.path.isdir(os.path.join(root, filename)):
                     yield DirectoryObject(os.path.join(root, filename))
-
-    def __str__(self):
-        return f"Directory: {self.path}\nFiles: {len(self)}\n"
-
+                else:
+                    pass
     def __eq__(self, other):
+        """
+        Compare two DirectoryObjects
+
+        Parameters:
+            other (DirectoryObject): The DirectoryObject instance to compare with.
+
+        Returns:
+            bool: True if the path of the two DirectoryObject instances are equal, False otherwise.
+        """
         if not isinstance(other, DirectoryObject):
             return False
         return self.path == other.path
 
 
 class ImageObject(FileObject):
+    """
+    A class representing information about an image
+    
+    Attributes:
+        path (str): The absolute path to the file. (Required)
+    """
     def __init__(self, path):
         super().__init__(path)
 
     def calculate_hash(self):
+        """
+        Calculate the hash value of the image
+
+        Returns:
+            hash_value (str): The calculated hash value of the image.
+
+        Raises:
+            UnidentifiedImageError: If the image format cannot be identified.
+            Exception: If there is an error detecting the corruption of the image.
+            Exception: If there is an error calculating the hash value.
+        """
         try:
             with Image.open(self.path) as img:
                 hash_value = imagehash.dhash(img)
@@ -556,6 +653,12 @@ class VideoObject(FileObject):
 
     @property
     def metadata(self):
+        """
+        Extract metadata from the video including duration, dimensions, fps, and aspect ratio
+
+        Returns:
+            dict: A dictionary containing the metadata
+        """
         with VideoFileClip(self.path) as clip:
             metadata = {
                 "duration": clip.duration,
@@ -639,3 +742,4 @@ if __name__ == "__main__":
 
 # f = len([f for folder in os.walk('/mnt/ssd/compressed_obs/CSGO/')
 #         for f in folder])
+
