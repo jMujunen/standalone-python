@@ -20,7 +20,25 @@ class ExecutionTimer:
     def __exit__(self, exc_type, exc_value, traceback):
         self.end_time = time()
         self.execution_time = self.end_time - self.start_time
-        print(f"Execution time: {round(self.execution_time, 6)} seconds")
+        print(
+            f"\n\033[34mExecution time: {self.format_execution_time(self.execution_time)}\033[0m"
+        )
+
+    def format_execution_time(self, seconds):
+        # Format the execution time in hours, minutes, seconds, and milliseconds
+        if seconds < 1:
+            return f"{round(seconds * 1000)} milliseconds"
+        if seconds >= 1 and seconds < 60:
+            return f"{round(seconds)} seconds"
+        elif seconds >= 60 and seconds < 3600:
+            minutes = round(seconds / 60)
+            seconds = round(seconds % 60)
+            return f"{minutes} minutes, {seconds} seconds"
+        else:
+            hours = round(seconds / 3600)
+            minutes = round((seconds % 3600) / 60)
+            seconds = round((seconds % 3600) % 60)
+            return f"{hours} hours"
 
 
 if __name__ == "__main__":

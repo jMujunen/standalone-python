@@ -8,6 +8,7 @@ import sys
 import argparse
 
 from ByteConverter import ByteConverter
+from ExecutionTimer import ExecutionTimer
 
 
 def parse_args():
@@ -91,4 +92,5 @@ def all_file_sizes(self, path):
 # Example usage
 if __name__ == "__main__":
     args = parse_args()
-    sizeof(args.path)
+    with ExecutionTimer():
+        sizeof(args.path)

@@ -143,11 +143,30 @@ FILE_TYPES = {
 
 
 class FileObject:
+    """
+    A class representing a file object
+    """
+
     def __init__(self, path):
+        """
+        Constructor for the FileObject class.
+
+        Args:
+            path (str): The path to the file
+        """
         self.path = path
         self.content = None
 
     def head(self, n=5):
+        """
+        Returns the first n lines of the file
+
+        Args:
+            n (int): The number of lines to return
+
+        Returns:
+            str: The first n lines of the file
+        """
         lines = []
         if isinstance(self, FileObject):
             try:
@@ -158,6 +177,15 @@ class FileObject:
         return "".join(lines)
 
     def tail(self, n=5):
+        """
+        Returns the last n lines of the file
+
+        Args:
+            n (int): The number of lines to return
+
+        Returns:
+            str: The last n lines of the file
+        """
         lines = []
         if isinstance(self, FileObject):
             try:
@@ -169,21 +197,51 @@ class FileObject:
 
     @property
     def size(self):
+        """
+        Returns the size of the file in bytes
+
+        Returns:
+            int: The size of the file in bytes
+        """
         return int(os.path.getsize(self.path))
 
     @property
     def file_name(self):
+        """
+        Returns the file name without the extension
+
+        Returns:
+            str: The file name without the extension
+        """
         return str(os.path.splitext(self.path)[0])
 
     @property
     def basename(self):
+        """
+        Returns the file name with the extension
+
+        Returns:
+            str: The file name with the extension
+        """
         return str(os.path.basename(self.path))
 
     @property
     def extension(self):
+        """
+        Returns the file extension
+
+        Returns:
+            str: The file extension
+        """
         return str(os.path.splitext(self.path)[-1]).lower()
 
     def read(self):
+        """
+        Reads the content of the file
+
+        Returns:
+            str: The content of the file
+        """
         with open(self.path, "rb") as f:
             content = f.read()
         try:
@@ -195,32 +253,76 @@ class FileObject:
 
     @property
     def is_file(self):
+        """
+        Checks if the object is a file
+
+        Returns:
+            bool: True if the object is a file, False otherwise
+        """
         if GIT_OBJECT_REGEX.match(self.basename):
             return False
         return os.path.isfile(self.path)
 
     @property
     def is_executable(self):
+        """
+        Checks if the file is executable
+
+        Returns:
+            bool: True if the file is executable, False otherwise
+        """
         return os.access(self.path, os.X_OK)
 
     @property
     def is_dir(self):
+        """
+        Checks if the object is a directory
+
+        Returns:
+            bool: True if the object is a directory, False otherwise
+        """
         return os.path.isdir(self.path)
 
     @property
     def is_video(self):
+        """
+        Checks if the file is a video
+
+        Returns:
+            bool: True if the file is a video, False otherwise
+        """
         return self.extension.lower() in FILE_TYPES["video"]
 
     @property
     def is_gitobject(self):
+        """
+        Checks if the file is a git object
+
+        Returns:
+            bool: True if the file is a git object, False otherwise
+        """
         return GIT_OBJECT_REGEX.match(self.basename)
 
     @property
     def is_image(self):
+        """
+        Checks if the file is an image
+
+        Returns:
+            bool: True if the file is an image, False otherwise
+        """
         return self.extension.lower() in FILE_TYPES["img"]
-        # return FileObject(os.path.join(self.path, matching_files))
 
     def __eq__(self, other):
+        """
+        Compares two FileObjects
+
+        Args:
+            other (Object): The Object to compare (FileObject, VideoObject, etc.)
+
+        Returns:
+            bool: True if the two Objects are equal, False otherwise
+        """
         if not isinstance(other, FileObject):
             return False
         elif isinstance(other, VideoObject):
@@ -229,16 +331,13 @@ class FileObject:
             self.content = self.read()
         return self.content == other.content
 
-    # def __setattr__(self, name, value):
-    #     try:
-    #         self.__dict__[name] = value
-    #         return self.__dict__[name]
-    #     except AttributeError:
-    #         raise AttributeError(
-    #             f"{self.__class__.__name__} object has no attribute {name}"
-    #         )
-
     def __str__(self):
+        """
+        Returns a string representation of the FileObject
+
+        Returns:
+            str: A string representation of the FileObject
+        """
         return str(self.__dict__)
 
 
@@ -380,7 +479,7 @@ class ImageObject(FileObject):
     def calculate_hash(self):
         try:
             with Image.open(self.path) as img:
-                hash_value = imagehash.average_hash(img)
+                hash_value = imagehash.dhash(img)
             return hash_value
         except UnidentifiedImageError as e:
             try:

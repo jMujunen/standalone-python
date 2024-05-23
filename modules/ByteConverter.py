@@ -10,23 +10,26 @@ class ByteConverter:
     """
 
     def __init__(self, size_in_bytes):
-        self.size_in_bytes = self(size_in_bytes)
+        self._size_in_bytes = int(size_in_bytes)
+        self._convert()
 
-    def __call__(self, size_in_bytes):
-        self.size_in_bytes = int(size_in_bytes)
-        if size_in_bytes < 1024:
-            return f"{size_in_bytes} B"
-        elif size_in_bytes < 1024**2:
-            return f"{size_in_bytes / 1024:.2f} KB"
-        elif size_in_bytes < 1024**3:
-            return f"{size_in_bytes / (1024**2):.2f} MB"
+    def _convert(self):
+        if self._size_in_bytes < 1024:
+            self._size_str = f"{self._size_in_bytes} B"
+        elif self._size_in_bytes < 1024**2:
+            self._size_str = f"{self._size_in_bytes / 1024:.2f} KB"
+        elif self._size_in_bytes < 1024**3:
+            self._size_str = f"{self._size_in_bytes / (1024**2):.2f} MB"
+        elif self._size_in_bytes < 1024**4:
+            self._size_str = f"{self._size_in_bytes / (1024**3):.2f} GB"
         else:
-            return f"{size_in_bytes / (1024**3):.2f} GB"
+            self._size_str = f"{self._size_in_bytes / (1024**4):.2f} TB"
 
     def __str__(self):
-        return str(self.size_in_bytes)
+        return self._size_str
 
 
-# Example usage:
 if __name__ == "__main__":
-    bytes = ByteConverter()
+    size_in_bytes = int(input("Enter the file size in bytes: "))
+    converter = ByteConverter(size_in_bytes)
+    print(converter)
