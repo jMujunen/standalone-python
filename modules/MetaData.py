@@ -386,9 +386,9 @@ class FileObject:
         """
         return str(self.__dict__)
 
-def ExecutableObject(FileObject):
+class ExecutableObject(FileObject):
     """
-    A call representing information about an executable file
+    A class representing information about an executable file
     
     Attributes:
     ----------
@@ -400,6 +400,7 @@ def ExecutableObject(FileObject):
         shebang.setter (str): Set a new shebang
     """
     def __init__(self, path):
+        self._shebang = None
         super().__init__(path)
 
     @property
@@ -411,7 +412,7 @@ def ExecutableObject(FileObject):
         ----------
             str: The shebang line of the file
         """
-        if not self._shebang:
+        if self._shebang is None:
             self._shebang = self.head(1).strip()
         return self._shebang
 
@@ -450,6 +451,9 @@ class DirectoryObject(FileObject):
     Attributes:
     ----------
         path (str): The path to the directory (Required)
+        _files (list): A list of file names in the directory
+        _directories (list): A list containing the paths of subdirectories
+        _objects (list): A list of items in the directory represented by FileObject
     
     Methods:
     ----------
@@ -464,12 +468,14 @@ class DirectoryObject(FileObject):
     ----------
         files       : A read-only property returning a list of file names
         objects     : A read-only property yielding a sequence of DirectoryObject or FileObject instances
-        directories : A read-only property returning a list of subdirectory names
-        dir_paths   : A read-only property returning a list of absolute paths for subdirectories
+        directories : A read-only property yielding a list of absolute paths for subdirectories
     
     """
     def __init__(self, path):
         self.path = path
+        self._files = None
+        self._directories = None
+        self._objects = None
         super().__init__(self.path)
 
     @property
@@ -481,7 +487,21 @@ class DirectoryObject(FileObject):
         ----------
             list: A list of file names
         """
-        return [file for folder in os.walk(self.path) for file in folder[2]]
+        if self._files is None:
+            self._files = [file for folder in os.walk(self.path) for file in folder[2]]
+        return self._files
+    @property
+    def directories(self):
+        """
+        Return a list of subdirectory paths in the directory represented by this object.
+
+        Returns:
+        ----------
+            list: A list of subdirectory paths
+        """
+        if self._directories is None:
+            self._directories = [folder[0] for folder in os.walk(self.path)]
+        return self._directories
 
     def objects(self):
         """
@@ -491,23 +511,10 @@ class DirectoryObject(FileObject):
         ------
             The appropriate inhearitance of FileObject
         """
-        return [
-            obj(os.path.join(self.path, folder[0], file))
-            for folder in os.walk(self.path)
-            for file in folder[2]
-        ]
+        if self._objects is None:
+            self._objects = [obj(item.path) for item in self]
+        return self._objects
         
-    @property
-    def dir_paths(self):
-        """
-        Return a list of absolute paths for subdirectories.
-        
-        Returns:
-        ----------
-            list: A list of absolute paths for subdirectories
-        """
-        return [os.path.join(self.path, d) for d in self.directories]
-
     def file_info(self, file_name):
         """
         Query the object for files with the given name. Returns an appropriate FileObject if found.
@@ -579,22 +586,18 @@ class DirectoryObject(FileObject):
         -------
             FileObject: The appropriate instance of FileObject
         """
-        for root, _, file in os.walk(self.path):
-            yield DirectoryObject(root)
-            for filename in file:
-                if os.path.isfile(os.path.join(root, filename)):
-                    if os.path.splitext(filename)[1].lower() in FILE_TYPES["video"]:
-                        yield VideoObject(os.path.join(root, filename))
-                    elif os.path.splitext(filename)[1].lower() in FILE_TYPES["img"]:
-                        yield ImageObject(os.path.join(root, filename))
-                    elif os.path.splitext(filename)[1].lower() in FILE_TYPES["exe"]:
-                        yield ExecutableObject(os.path.join(root, filename))
-                    else:
-                        yield FileObject(os.path.join(root, filename))
-                elif os.path.isdir(os.path.join(root, filename)):
-                    yield DirectoryObject(os.path.join(root, filename))
+        for root, dirs, files in os.walk(self.path):
+            for file in files:
+                if os.path.splitext(file)[1].lower() in FILE_TYPES["video"]:
+                    yield VideoObject(os.path.join(root, file))
+                elif os.path.splitext(file)[1].lower() in FILE_TYPES["img"]:
+                    yield ImageObject(os.path.join(root, file))
+                elif os.path.splitext(file)[1].lower() in FILE_TYPES["code"]:
+                    yield ExecutableObject(os.path.join(root, file))
                 else:
-                    pass
+                    yield FileObject(os.path.join(root, file))
+            for directory in dirs:
+                yield DirectoryObject(os.path.join(self.path, directory))
     def __eq__(self, other):
         """
         Compare two DirectoryObjects
