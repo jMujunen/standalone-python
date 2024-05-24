@@ -149,14 +149,37 @@ class FileObject:
     It can be used standlone (Eg. text based files) or as a parent class for other classes.
     
     Attributes:
+    ----------
         path (str): The absolute path to the file.
         content (Any): Contains the content of the file. Only holds a value if read() is called.
+
+    Properties:
+    ----------
+        size: The size of the file in bytes.
+        file_name: The name of the file without its extension.
+        extension: The extension of the file (Eg. file.out.txt -> file.out)
+        basename: The basename of the file (Eg. file.out.txt)
+        is_file: Check if the objects path is a file
+        is_executable: Check if the object has an executable flag
+        is_image: Check if item is an image
+        is_video: Check if item is a video
+        is_gitobject: Check if item is a git object
+
+    Methods:
+    ----------
+        read(): Return the contents of the file
+        head(self, n=5): Return the first n lines of the file
+        tail(self, n=5): Return the last n lines of the file
+        __eq__(): Compare properties of FileObjects
+        __str__(): Return a string representation of the object
+        
     """
     def __init__(self, path):
         """
         Constructor for the FileObject class.
 
-        Args:
+        Paramaters:
+        ----------
             path (str): The path to the file
         """
         self.path = path
@@ -166,10 +189,12 @@ class FileObject:
         """
         Return the first n lines of the file
 
-        Args:
+        Paramaters:
+        ----------
             n (int): The number of lines to return (default is 5)
 
         Returns:
+        ----------
             str: The first n lines of the file
         """
         lines = []
@@ -185,10 +210,12 @@ class FileObject:
         """
         Return the last n lines of the file
 
-        Args:
+        Paramaters:
+        ----------
             n (int): The number of lines to return (default is 5)
 
         Returns:
+        ----------
             str: The last n lines of the file
         """
         lines = []
@@ -206,6 +233,7 @@ class FileObject:
         Return the size of the file in bytes
 
         Returns:
+        ----------
             int: The size of the file in bytes
         """
         return int(os.path.getsize(self.path))
@@ -216,6 +244,7 @@ class FileObject:
         Return the file name without the extension
 
         Returns:
+        ----------
             str: The file name without the extension
         """
         return str(os.path.splitext(self.path)[0])
@@ -226,6 +255,7 @@ class FileObject:
         Return the file name with the extension
 
         Returns:
+        ----------
             str: The file name with the extension
         """
         return str(os.path.basename(self.path))
@@ -236,6 +266,7 @@ class FileObject:
         Return the file extension
 
         Returns:
+        ----------
             str: The file extension
         """
         return str(os.path.splitext(self.path)[-1]).lower()
@@ -245,6 +276,7 @@ class FileObject:
         Method for reading the content of a file. This method should overridden for VideoObjects
 
         Returns:
+        ----------
             str: The content of the file
         """
         with open(self.path, "rb") as f:
@@ -262,6 +294,7 @@ class FileObject:
         Check if the object is a file
 
         Returns:
+        ----------
             bool: True if the object is a file, False otherwise
         """
         if GIT_OBJECT_REGEX.match(self.basename):
@@ -274,6 +307,7 @@ class FileObject:
         Check if the file is executable
 
         Returns:
+        ----------
             bool: True if the file is executable, False otherwise
         """
         return os.access(self.path, os.X_OK)
@@ -284,6 +318,7 @@ class FileObject:
         Check if the object is a directory
 
         Returns:
+        ----------
             bool: True if the object is a directory, False otherwise
         """
         return os.path.isdir(self.path)
@@ -294,6 +329,7 @@ class FileObject:
         Check if the file is a video
 
         Returns:
+        ----------
             bool: True if the file is a video, False otherwise
         """
         return self.extension.lower() in FILE_TYPES["video"]
@@ -304,6 +340,7 @@ class FileObject:
         Check if the file is a git object
 
         Returns:
+        ----------
             bool: True if the file is a git object, False otherwise
         """
         return GIT_OBJECT_REGEX.match(self.basename)
@@ -314,6 +351,7 @@ class FileObject:
         Check if the file is an image
 
         Returns:
+        ----------
             bool: True if the file is an image, False otherwise
         """
         return self.extension.lower() in FILE_TYPES["img"]
@@ -322,10 +360,12 @@ class FileObject:
         """
         Compare two FileObjects
 
-        Args:
+        Paramaters:
+        ----------
             other (Object): The Object to compare (FileObject, VideoObject, etc.)
 
         Returns:
+        ----------
             bool: True if the two Objects are equal, False otherwise
         """
         if not isinstance(other, FileObject):
@@ -341,6 +381,7 @@ class FileObject:
         Return a string representation of the FileObject
 
         Returns:
+        ----------
             str: A string representation of the FileObject
         """
         return str(self.__dict__)
@@ -350,7 +391,13 @@ def ExecutableObject(FileObject):
     A call representing information about an executable file
     
     Attributes:
+    ----------
         path (str): The absolute path to the file. (Required)
+
+    Properties:
+    ----------
+        shebang (str): Return the shebang line of the file
+        shebang.setter (str): Set a new shebang
     """
     def __init__(self, path):
         super().__init__(path)
@@ -361,6 +408,7 @@ def ExecutableObject(FileObject):
         Get the shebang line of the file.
 
         Returns:
+        ----------
             str: The shebang line of the file
         """
         if not self._shebang:
@@ -372,10 +420,12 @@ def ExecutableObject(FileObject):
         """
         Set a new shebang line for the file.
 
-        Args:
+        Paramaters:
+        ----------
             shebang (str): The new shebang line
 
         Returns:
+        ----------
             str: The content of the file after updating the shebang line
         """
         self.content = shebang + self.read()[len(self.shebang.strip()) :]
@@ -392,26 +442,26 @@ def ExecutableObject(FileObject):
             print(f"Permission denied: {self.path}")
             pass
 
-    def __str__(self):
-        """
-        Return a string representation of the ExecutableObject.
-
-        Returns:
-            str: A string representation of the ExecutableObject
-        """
-        return "Executable Object: " + self.__dict__.__str__()
 
 class DirectoryObject(FileObject):
     """
     A class representing information about a directory.
     
     Attributes:
+    ----------
         path (str): The path to the directory (Required)
     
     Methods:
+    ----------
         file_info (file_name): Returns information about a specific file in the directory
+        objects (): Convert each file in self to an appropriate type of object inheriting from FileObject
+        __eq__ (other): Compare properties of two DirectoryObjects
+        __contains__ (other): Check if an item is present in two DirectoryObjects
+        __len__ (): Return the number of items in the object
+        __iter__ (): Define an iterator which yields the appropriate instance of FileObject
     
     Properties:
+    ----------
         files       : A read-only property returning a list of file names
         objects     : A read-only property yielding a sequence of DirectoryObject or FileObject instances
         directories : A read-only property returning a list of subdirectory names
@@ -428,6 +478,7 @@ class DirectoryObject(FileObject):
         Return a list of file names in the directory represented by this object.
 
         Returns:
+        ----------
             list: A list of file names
         """
         return [file for folder in os.walk(self.path) for file in folder[2]]
@@ -437,6 +488,7 @@ class DirectoryObject(FileObject):
         Convert each file in self to an appropriate type of object inheriting from FileObject.
 
         Yields:
+        ------
             The appropriate inhearitance of FileObject
         """
         return [
@@ -451,6 +503,7 @@ class DirectoryObject(FileObject):
         Return a list of absolute paths for subdirectories.
         
         Returns:
+        ----------
             list: A list of absolute paths for subdirectories
         """
         return [os.path.join(self.path, d) for d in self.directories]
@@ -460,10 +513,11 @@ class DirectoryObject(FileObject):
         Query the object for files with the given name. Returns an appropriate FileObject if found.
 
         Paramaters
-        -----
+        ----------
             file_name (str): The name of the file
         Returns:
-        ------
+        ---------
+
             FileObject: Information about the specified file
         """
         if file_name not in self.files:
@@ -490,9 +544,11 @@ class DirectoryObject(FileObject):
         Compare items in two DirecoryObjects
 
         Parameters:
+        ----------
             item (FileObject, VideoObject, ImageObject, ExecutableObject, DirectoryObject): The item to check.
 
         Returns:
+        ----------
             bool: True if the item is present, False otherwise.
         """
         if (
@@ -510,6 +566,7 @@ class DirectoryObject(FileObject):
         Return the number of items in the object
         
         Returns:
+        ----------
             int: The number of files and subdirectories in the directory
         """
         return len(self.directories) + len(self.files)
@@ -519,6 +576,7 @@ class DirectoryObject(FileObject):
         Yield a sequence of FileObject instances for each item in self
         
         Yields:
+        -------
             FileObject: The appropriate instance of FileObject
         """
         for root, _, file in os.walk(self.path):
@@ -542,9 +600,11 @@ class DirectoryObject(FileObject):
         Compare two DirectoryObjects
 
         Parameters:
+        ----------
             other (DirectoryObject): The DirectoryObject instance to compare with.
 
         Returns:
+        ----------
             bool: True if the path of the two DirectoryObject instances are equal, False otherwise.
         """
         if not isinstance(other, DirectoryObject):
@@ -557,7 +617,19 @@ class ImageObject(FileObject):
     A class representing information about an image
     
     Attributes:
-        path (str): The absolute path to the file. (Required)
+    ----------
+        path (str): The absolute path to the file.
+
+    Methods:
+    ----------
+        calculate_hash(self): Calculate the hash value of the image
+    
+    Properties:
+    ----------
+        dimensions (tuple): The dimensions of the image in pixels.
+        is_corrupt (bool): Check integrity of the image
+        exif (dict): Extract the EXIF data from the image
+        capture_date (str or None): Return the capture date of the image if it exists in the EXIF data
     """
     def __init__(self, path):
         super().__init__(path)
@@ -567,12 +639,13 @@ class ImageObject(FileObject):
         Calculate the hash value of the image
 
         Returns:
+        ----------
             hash_value (str): The calculated hash value of the image.
+            None (None)     : NoneType if an error occurs while calculating the hash
 
         Raises:
-            UnidentifiedImageError: If the image format cannot be identified.
-            Exception: If there is an error detecting the corruption of the image.
-            Exception: If there is an error calculating the hash value.
+        --------
+            UnidentifiedImageError: If the image format cannot be identified which returns None
         """
         try:
             with Image.open(self.path) as img:
@@ -595,9 +668,11 @@ class ImageObject(FileObject):
     @property
     def dimensions(self):
         """
-        Calculate the dimensions of the image located at the specified path.
+        Extract the dimensions of the image
+
         Returns:
-            Tuple[int, int]: width x height of the image in pixels.
+        ----------
+            Tuple(int, int): width x height of the image in pixels.
         """
         with Image.open(self.path) as img:
             width, height = img.size
@@ -605,6 +680,13 @@ class ImageObject(FileObject):
 
     @property
     def exif(self):
+        """
+        Extract the EXIF data from the image
+
+        Returns:
+        ----------
+            dict: A dictionary containing the EXIF data of the image.
+        """
         # Open Image
         with Image.open(self.path) as img:
             data = img.getexif()
@@ -612,6 +694,14 @@ class ImageObject(FileObject):
 
     @property
     def capture_date(self):
+        """
+        Return the capture date of the image if it exists in the EXIF data.
+
+        Returns:
+        ----------
+            str or None: The capture date in the format 'YYYY:MM:DD HH:MM:SS' if it exists,
+                         otherwise None.
+        """
         # Iterating over all EXIF data fields
         for tag_id in self.exif:
             # Get the tag name, instead of human unreadable tag id
@@ -626,16 +716,28 @@ class ImageObject(FileObject):
 
     @property
     def is_corrupt(self):
+        """
+        Check if the image is corrupt
+
+        Returns:
+        ----------
+            bool: True if the image is corrupt, False otherwise
+        """
+        # If the file is a HEIC image, it cannot be verified
+        if self.extension == ".heic":
+            return False  # Placeholder TODO
+
         try:
-            if self.extension == ".heic":
-                pass
+            # Verify integrity of the image
             img = Image.open(self.path)
             img.verify()
-            return False  # Image is not corrupt
+            return False
+        # If an IOError or SyntaxError is raised, the image is corrupt           
         except (IOError, SyntaxError):
-            return True  # Image is corrupt
+            return True
         except KeyboardInterrupt:
             sys.exit(0)
+        # If any other exception is raised, we didnt account for something so print the error
         except Exception as e:
             print(f"Error: {e}")
 
@@ -648,16 +750,32 @@ class ImageObject(FileObject):
 
 
 class VideoObject(FileObject):
+    """
+    A class representing information about a video.
+
+    Attributes:
+    ----------
+        path (str): The absolute path to the file.
+    
+    Methods:
+    ----------
+        metadata (dict): Extract metadata from the video including duration, dimensions, fps, and aspect ratio.
+        bitrate (int): Extract the bitrate of the video from the ffprobe output.
+        is_corrupt (bool): Check integrity of the video.
+
+    """
+
     def __init__(self, path):
         super().__init__(path)
 
     @property
     def metadata(self):
         """
-        Extract metadata from the video including duration, dimensions, fps, and aspect ratio
+        Extract metadata from the video including duration, dimensions, fps, and aspect ratio.
 
         Returns:
-            dict: A dictionary containing the metadata
+        ----------
+            dict: A dictionary containing the metadata.
         """
         with VideoFileClip(self.path) as clip:
             metadata = {
@@ -670,6 +788,13 @@ class VideoObject(FileObject):
 
     @property
     def bitrate(self):
+        """
+        Extract the bitrate of the video from the ffprobe output.
+
+        Returns:
+        ----------
+            int: The bitrate of the video in bits per second.
+        """
         ffprobe_cmd = [
             "ffprobe",
             "-v",
@@ -687,6 +812,13 @@ class VideoObject(FileObject):
 
     @property
     def is_corrupt(self):
+        """
+        Check if the video is corrupt.
+
+        Returns:
+        ----------
+            bool: True if the video is corrupt, False otherwise.
+        """
         try:
             cap = cv2.VideoCapture(self.path)
             if not cap.isOpened():
