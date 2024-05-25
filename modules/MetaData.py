@@ -5,6 +5,7 @@
 import os
 import sys
 import re
+import json
 import subprocess
 
 from PIL import Image, UnidentifiedImageError
@@ -237,7 +238,15 @@ class FileObject:
             int: The size of the file in bytes
         """
         return int(os.path.getsize(self.path))
+    @property
+    def dir_name(self):
+        """
+        Return the parent directory of the file
 
+        Returns:
+            str: The parent directory of the file
+        """
+        return os.path.dirname(self.path) if not self.is_dir else self.path
     @property
     def file_name(self):
         """
@@ -502,17 +511,26 @@ class DirectoryObject(FileObject):
         if self._directories is None:
             self._directories = [folder[0] for folder in os.walk(self.path)]
         return self._directories
+    @property
+    def rel_directories(self):
+        """
+        Return a list of subdirectory paths relative to the directory represented by this object
+
+        Returns:
+            list: A list of subdirectory paths relative to the directory represented by this object
+        """
+        return [folder.replace(self.path, "") for folder in self.directories]
 
     def objects(self):
         """
         Convert each file in self to an appropriate type of object inheriting from FileObject.
 
-        Yields:
+        Returns:
         ------
             The appropriate inhearitance of FileObject
         """
         if self._objects is None:
-            self._objects = [obj(item.path) for item in self]
+            self._objects = [item for item in self]
         return self._objects
         
     def file_info(self, file_name):
@@ -529,6 +547,7 @@ class DirectoryObject(FileObject):
         """
         if file_name not in self.files:
             return
+        
         # if len(self.directories) == 0:
         #     for f in os.listdir(self.path):
         #         if f == file_name:
@@ -637,9 +656,13 @@ class ImageObject(FileObject):
     def __init__(self, path):
         super().__init__(path)
 
-    def calculate_hash(self):
+    def calculate_hash(self, spec):
         """
         Calculate the hash value of the image
+
+        Paramters:
+        ---------
+            spec (str): The specification for the hashing algorithm to use.
 
         Returns:
         ----------
@@ -650,9 +673,21 @@ class ImageObject(FileObject):
         --------
             UnidentifiedImageError: If the image format cannot be identified which returns None
         """
+
+        specs = {
+            "avg": lambda x: imagehash.average_hash(x),
+            "dhash": lambda x: imagehash.dhash(x),
+            "phash": lambda x: imagehash.phash(x)
+
+        }
+        # Ignore heic until feature is implemented to support it.
+        # Excluding this has unwanted effects when comparing hash values
+        if self.extension == ".heic":
+            pass
+
         try:
             with Image.open(self.path) as img:
-                hash_value = imagehash.dhash(img)
+                hash_value = specs[spec](img)
             return hash_value
         except UnidentifiedImageError as e:
             try:
@@ -855,9 +890,10 @@ def obj(path):
         ".py": ExecutableObject,  # Code files
         ".bat": ExecutableObject,
         ".sh": ExecutableObject,
-        "": DirectoryObject,  # Directories
-    }
+        "": DirectoryObject,  # Directories,
 
+    }
+    
     cls = classes.get(ext)
     if not cls:
         return FileObject(path)

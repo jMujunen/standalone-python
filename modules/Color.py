@@ -145,7 +145,8 @@ class ForegroundColor(metaclass=ColorMeta):
         'yellow':  '\033[33m',
         'yellowgreen': '\033[38;2;154;205;50m',
     }
-
+    def listall(self):
+        return {k: v for k,v in self.STYLE.items()}
 class Attributes(metaclass=ColorMeta):
     STYLE = {
         'bold': '\033[1m',
@@ -164,6 +165,10 @@ class style(Attributes):
 
 class fg(ForegroundColor):
     pass
+
+    @property
+    def listall(self):
+        return [x for x in dir(self) if not x.startswith('_')]
 
 class bg(BackgroundColor):
     pass
@@ -187,3 +192,38 @@ if __name__ == '__main__':
     print(f'{fg.red}Hello, World!{style.reset}')
 
     cprint('Hello, World!', bg.red, style.italic)
+    print(dir(fg))
+
+
+# class StyleMeta(type):
+#     def __getattr__(self, item):
+#         return f'\033[{self.STYLE[item]}m'
+
+# class ForegroundColor(metaclass=StyleMeta):
+#     STYLE = {color: str(40 + i) for i, color in enumerate(['black', 'red', 'green', 
+#                                                             'yellow', 'blue', 'magenta', 
+#                                                             'cyan', 'light_grey'])}
+
+# class BackgroundColor(metaclass=StyleMeta):
+#     STYLE = {color: str(100 + i) for i, color in enumerate(['black', 'red', 'green', 
+#                                                              'yellow', 'blue', 'magenta', 
+#                                                              'cyan', 'light_grey'])}
+
+# class Attributes(metaclass=StyleMeta):
+#     STYLE = {'bold': '1', 'faint': '2', 'italic': '3', 'underline': '4', 
+#              'blink': '5', 'negative': '7', 'strike': '9', 'overline': '53'}
+    
+# class Fg(ForegroundColor): pass
+# class Bg(BackgroundColor): pass
+# class Attrs(Attributes): pass
+
+# def cprint(text, *args, **kwargs):
+#     text = text
+#     styles = [getattr(Attrs, s) for s in args 
+#               if any((hasattr(Attrs, s), print(f'Unknown style: {s}'), False))]
+    
+#     styled_text = text
+#     for style in styles[::-1]: # Reverse order to maintain precedence (last style prevails)
+#         styled_text = f'{style}{styled_text}{Attrs.strike}'
+        
+#     print(styled_text, **kwargs)  # Forward any other kwargs to print() function

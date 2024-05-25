@@ -53,7 +53,7 @@ def count_file_types(directory):
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        DIRECTORY = ''/join(sys.argv[:-1])
+        DIRECTORY = ''.join(sys.argv[1:])
     with ExecutionTimer():
         file_type_counts = count_file_types(DIRECTORY)
         for file_type, count in file_type_counts.items():
