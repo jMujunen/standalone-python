@@ -14,7 +14,6 @@ df.colorized_command_output([
         df.body_style(r"(tmpfs)", fg.yellow),
         df.body_style(r"([8-9]\d%)", fg.red),
         df.body_style(r"[6-7]\d%", fg.orange),
-        df.body_style(r"[2-6]\d%", fg.mediumaquamarine),
         df.body_style(r"tmpfs.*(\s\d{2}%)", fg.deeppink),
         df.body_style(r"tmpfs.*(\s[2-9]%)", fg.yellow),
         df.body_style(r"(/boot|/home|\s/\s)", fg.green),

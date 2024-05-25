@@ -80,8 +80,9 @@ class Styler:
         
         command_output = subprocess.run(f'{self.command} {self.flags} {self.positional_arguments}', shell=True, capture_output=True, text=True)
         if command_output.stderr:
-            print(command_output.stderr)
-            sys.exit(1)
+            #print(command_output.stderr)
+            #sys.exit(1)
+            return self.command
 
         return command_output.stdout
     def sort(self, ignore_header=True):
@@ -122,3 +123,4 @@ class Styler:
                 self.command_output = self.command_output.replace(match, f'{color_prefix}{match}{color_suffix}')
                 
         return self.command_output
+
