@@ -145,8 +145,6 @@ class ForegroundColor(metaclass=ColorMeta):
         'yellow':  '\033[33m',
         'yellowgreen': '\033[38;2;154;205;50m',
     }
-    def listall(self):
-        return {k: v for k,v in self.STYLE.items()}
 class Attributes(metaclass=ColorMeta):
     STYLE = {
         'bold': '\033[1m',
@@ -162,17 +160,28 @@ class Attributes(metaclass=ColorMeta):
 
 class style(Attributes):
     pass
-
+    def listall():
+        print(' '.join([k for k in style.STYLE.keys()]))
+    def showall():
+        for k, v in style.STYLE.items():
+            print(f'{v}{k}', end=f'{style.reset}\t')
+        print("")
 class fg(ForegroundColor):
     pass
-
-    @property
-    def listall(self):
-        return [x for x in dir(self) if not x.startswith('_')]
-
+    def listall():
+        print(' '.join([k for k in fg.STYLE.keys()]))
+    def showall():
+        for k, v in fg.STYLE.items():
+            print(f'{v}{k}', end=f'{style.reset}\t')
+        print("")
 class bg(BackgroundColor):
     pass
-
+    def listall():
+        print(' '.join([k for k in bg.STYLE.keys()]))
+    def showall():
+        for k, v in bg.STYLE.items():
+            print(f'{v}{k}', end=f'{style.reset}\t')
+        print("")
 class Parse:
     def __init__(self, text, *styles):
         self.text = text
