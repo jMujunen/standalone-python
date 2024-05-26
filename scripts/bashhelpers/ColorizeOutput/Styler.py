@@ -86,6 +86,17 @@ class Styler:
 
         return command_output.stdout
     def sort(self, ignore_header=True):
+        """
+        Sorts the output of the command. Ignores the header during sorting and prepends it unless specified.
+
+        Parameters:
+        ----------
+        ignore_header (bool): Specifies whether to ignore the header during sorting. Defaults to True.
+
+        Returns:
+        --------
+            str: The sorted command output as a string.
+        """
         rows = self.command_output.split('\n')
         # If specified, ignore the header during sorting, and prepend the header
         if ignore_header and len(rows) > 1:
