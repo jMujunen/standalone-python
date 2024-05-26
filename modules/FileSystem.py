@@ -96,3 +96,34 @@ class FileTree:
                 yield from recursive_traversal(child)
 
         yield from recursive_traversal(self.root)
+
+
+def create_file_tree(directory_object, file_tree):
+    """
+    Create a FileTree instance by traversing the given directory object \
+    and adding all files and directories to the tree.
+
+    Args:
+        directory_object: The directory object to traverse.
+        file_tree: The FileTree instance to populate.
+
+    Returns:
+        FileTree: The populated FileTree instance.
+    """
+    for directory in directory_object.directories:
+        dir_node = FileTreeNode(os.path.basename(directory), directory)
+        file_tree.add_node(dir_node)
+        
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                file_name, ext = os.path.splitext(file)
+                if not ext: # ignore directories with no extension (like .git)
+                    continue
+                file_node = FileTreeNode(os.path.basename(root) + '/' + file_name, 
+                                        os.path.join(root, file), parent=dir_node)
+                try:
+                    dir_node.add_child(file_node)
+                except Exception as e:
+                    print(e)
+                    pass
+    return file_tree
