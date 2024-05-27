@@ -46,6 +46,15 @@ class FileTreeNode:
         """
         return f"FileTreeNode('{self.name}', '{self.path}')"
 
+    def __str__(self):
+        """
+        Return a string representation of this object.
+
+        Returns:
+            str: A string representing this FileTreeNode instance.
+        """
+        return f"{self.path}"
+
 
 class FileTree:
     """

@@ -564,7 +564,34 @@ class DirectoryObject(FileObject):
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e)
             pass
-
+    @property
+    def images(self):
+        """
+        Return a list of ImageObject instances found in the directory.
+        
+        Returns:
+        --------
+            List[ImageObject]: A list of ImageObject instances
+        """
+        return [item for item in self if isinstance(item, ImageObject)]
+    def videos(self):
+        """
+        Return a list of VideoObject instances found in the directory.
+        
+        Returns:
+            List[VideoObject]: A list of VideoObject instances
+        """
+        return [item for item in self if isinstance(item, VideoObject)]
+    @property
+    def dirs(self):
+        """
+        Return a list of DirectoryObject instances found in the directory.
+        
+        Returns:
+            List[DirectoryObject]: A list of DirectoryObject instances
+        """
+        return [item for item in self if isinstance(item, DirectoryObject)]
+    
     def __contains__(self, item):
         """
         Compare items in two DirecoryObjects
@@ -654,6 +681,7 @@ class ImageObject(FileObject):
         capture_date (str or None): Return the capture date of the image if it exists in the EXIF data
     """
     def __init__(self, path):
+        self._exif = None
         super().__init__(path)
 
     def calculate_hash(self, spec):
@@ -725,11 +753,16 @@ class ImageObject(FileObject):
         ----------
             dict: A dictionary containing the EXIF data of the image.
         """
+        if self._exif is not None:
+            return self._exif
         # Open Image
-        with Image.open(self.path) as img:
-            data = img.getexif()
-        return data
-
+        try:
+            with Image.open(self.path) as img:
+                self._exif = img.getexif()
+            return self._exif
+        except UnidentifiedImageError as e:
+            print(e)
+        
     @property
     def capture_date(self):
         """
@@ -913,4 +946,3 @@ if __name__ == "__main__":
 
 # f = len([f for folder in os.walk('/mnt/ssd/compressed_obs/CSGO/')
 #         for f in folder])
-

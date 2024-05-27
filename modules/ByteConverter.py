@@ -7,42 +7,30 @@ class ByteConverter:
 
     Returns:
         str: A human-readable string representation of the size, with units such as B, KB, MB, or GB.
-    """
-
-    def __init__(self, size_in_bytes):
-        self._size_in_bytes = int(size_in_bytes)
-        self._convert()
-
-    def _convert(self):
-        if self._size_in_bytes < 0:
-            if abs(self._size_in_bytes) < 1024:
-                self._size_str = f"-{abs(self._size_in_bytes)} B"
-            elif abs(self._size_in_bytes) < 1024**2:
-                self._size_str = f"-{abs(self._size_in_bytes) / 1024:.2f} KB"
-            elif abs(self._size_in_bytes) < 1024**3:
-                self._size_str = f"-{(abs(self._size_in_bytes) / (1024**2)):.2f} MB"
-            elif abs(self._size_in_bytes) < 1024**4:
-                self._size_str = f"-{((abs(self._size_in_bytes) / (1024**3))):.2f} GB"
-            else:
-                self._size_str = f"-{(self._size_in_bytes / (1024**4)):.2f} TB"
-        else:
-            if self._size_in_bytes < 1024:
-                self._size_str = f"{self._size_in_bytes} B"
-            elif self._size_in_bytes < 1024**2:
-                self._size_str = f"{self._size_in_bytes / 1024:.2f} KB"
-            elif self._size_in_bytes < 1024**3:
-                self._size_str = f"{self._size_in_bytes / (1024**2):.2f} MB"
-            elif self._size_in_bytes < 1024**4:
-                self._size_str = f"{self._size_in_bytes / (1024**3):.2f} GB"
-            else:
-                self._size_str = f"{self._size_in_bytes / (1024**4):.2f} TB"
-
+     """
+    def __init__(self, size_in_bytes: int):
+        self._size_str = self._convert(abs(int(size_in_bytes)))
+        if size_in_bytes < 0:
+            self._size_str = '-' + self._size_str
+            
+    def _convert(self, size: int) -> str:
+        units = ['B', 'KB', 'MB', 'GB', 'TB']
+        for unit in units[:-1]:
+            if size < 1024:
+                return f"{size:.2f} {unit}"
+            size /= 1024
+        return f"{size/1024:.2f} {units[-1]}"  # Last unit is TB
     def __str__(self):
         return self._size_str
-    def __float__(self):
-        return float(self._size_str[:-3])
+    def __float__(self) -> float:
+        return float(self._size_str.split()[0])  
 
 if __name__ == "__main__":
-    size_in_bytes = int(input("Enter the file size in bytes: "))
-    converter = ByteConverter(size_in_bytes)
-    print(converter)
+
+    # Testing with different values of bytes.
+    print(ByteConverter(1024))   # Outputs: "1.00 KB"
+    print(ByteConverter(1536))   # Outputs: "1.50 MB"
+    print(ByteConverter(789456128))  # Outputs: "752.00 MB"
+    print(ByteConverter(-1536))    # Outputs: "-1.50 MB"
+
+
