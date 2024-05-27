@@ -21,17 +21,17 @@ def detect_encoding(file_path):
     Detects the encoding of the given text file.
 
     Args:
-    - file_path (str): The path to the text file.
+    -----
+        file_path (str): The path to the text file.
 
     Returns:
-    - str: The detected encoding.
+    ---------
+        str: The detected encoding.
     """
-    with open(file_path, 'rb') as file:
-        raw_data = file.read()
-        result = chardet.detect(raw_data)
-        encoding = result['encoding']
-        return encoding
-    
+def detect_encoding(file):
+    with open(file, 'rb') as f:
+        encoding = chardet.detect(f.read())['encoding']
+    return encoding
 
 
 def __main__():

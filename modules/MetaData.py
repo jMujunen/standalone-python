@@ -201,7 +201,7 @@ class FileObject:
         lines = []
         if isinstance(self, FileObject):
             try:
-                with open(self.path, "r") as f:
+                with open(self.path, "rb") as f:
                     lines = [next(f) for _ in range(n)]
             except (StopIteration, UnicodeDecodeError):
                 pass
@@ -222,7 +222,7 @@ class FileObject:
         lines = []
         if isinstance(self, FileObject):
             try:
-                with open(self.path, "r") as f:
+                with open(self.path, "rb") as f:
                     lines = f.readlines()[-n:]
             except (StopIteration, UnicodeDecodeError):
                 pass
