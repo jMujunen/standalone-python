@@ -31,7 +31,7 @@ class SystemTemp:
     def __str__(self):
         # Get the current temperature and format it for string representation
         current_temp = self.temp
-        return f'{current_temp}°C' if int(current_temp) else current_temp
+        return f'{current_temp}°C'
 
     def __int__(self):
         # Get the current temperature and format it for integer representation

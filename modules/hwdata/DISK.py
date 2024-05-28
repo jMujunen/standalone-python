@@ -3,6 +3,7 @@
 # Disk.py - Query disk information for HWINFO
 
 import psutil
+import shutil
 import os
 import sys
 
@@ -17,7 +18,7 @@ class Disk:
             self.name = os.path.split(mountpoint)[0]
     def percent_used(self):
         return psutil.disk_usage(self.mountpoint).percent
-   
+
     def __str__(self):
         return str(
             f'Name: {self.name}\n'

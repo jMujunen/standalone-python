@@ -227,6 +227,7 @@ class GpuData:
             text=True
         ).stdout.replace('W','').strip()
         return round(float(power))
+    
     @property
     def core_usage(self):
         """
@@ -238,7 +239,7 @@ class GpuData:
             str: Current GPU utilization in percentage.
         """
         core_usage = subprocess.run(
-             'nvidia-smi  --query-gpu=utilization.gpu  --format=csv,noheader',
+            'nvidia-smi  --query-gpu=utilization.gpu  --format=csv,noheader',
             shell=True,
             capture_output=True,
             text=True
@@ -252,20 +253,20 @@ class GpuData:
         Returns:
         -----------
 
-           str : Name of GPU with optional argument to get short model name (last part) 
+            str : Name of GPU with optional argument to get short model name (last part) 
         """
         name_regex = re.compile(r'(AMD|NVIDIA|Intel)\s?(\s?GeForce\s?|\s?Radeon\s?)\s?(\sGTX\s?|\s?RTX\s?)(.*)')
         subout = subprocess.run(
-             'nvidia-smi  --query-gpu=name  --format=csv,noheader',
+            'nvidia-smi  --query-gpu=name  --format=csv,noheader',
             shell=True,
             capture_output=True,
             text=True
         ).stdout.strip()
         matches = name_regex.findall(subout)
         if short:
-           self.name = matches[0][-1]
+            self.name = matches[0][-1]
         else:
-           self.name = '  '.join(matches[0])
+            self.name = '  '.join(matches[0])
         return self.name
     @property
     def timestamp(self):
@@ -285,44 +286,56 @@ class GpuData:
         ).stdout.strip()
         return timestamp
     @property
-    def speed(self):
+    def fan_speed(self):
         """
         Get the fan speed as a percentage of its maximum RPM rate.
 
         Returns:
         -----------
-
-           str : Fan speed in percentage 
+             str   : Fan speed in percentage 
         """
-        return self.fan_speed.replace('%','').strip()
-         # Memory Temp: {self.memory_temp()} °C
+        fan_speed = subprocess.run(
+            'nvidia-smi --query-gpu=fan.speed --format=csv,noheader',
+            shell=True,
+            capture_output=True,
+            text=True
+        ).stdout.strip()
+        return fan_speed.replace('%','').strip()
+    def csv(self):
+        """
+        Returns the object properties as a CSV string.
+        
+        Returns:
+        --------
+            csv (str): CSV string of object properties 
+        """
     def __str__(self):
         """
         Return string representation of GPU object.
-         
+
         Returns:
         -----------
-
-            str : String representation of GPU object.
+             str   : String representation of GPU object.
         """ 
         return (
             f'GPU: {self.name}\n'
             f'Core Temp: {self.core_temp} °C\n'
             f'Core Clock: {self.core_clock} MHz\n'
             f'Memory Clock: {self.memory_clock} MHz\n'
-            f'Memory Usage: {self.memory_usage}  %\n'
-            f'Core Usage: {self.core_usage}  %\n'
+             f'Memory Usage: {self.memory_usage}    %\n'
+             f'Core Usage: {self.core_usage}    %\n'
             f'Power: {self.power} W\n'        
         f'Voltage: {self.voltage} V\n'
+             f'Fan fan_speed {self.fan_speed}%\n'  # Added this line 
         ).strip()
+    
     def __call__(self):
         """
-        Return dictionary representation of GPU object.
-         
+        Return dictionary representation of GPU object. 
+        
         Returns:
         -----------
-
-             dict : Dictionary representation of GPU object.
+            dict : Dictionary representation of GPU object.
         """ 
         return self.__dict__
 # Example
