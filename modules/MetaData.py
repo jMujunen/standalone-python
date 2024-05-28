@@ -151,6 +151,7 @@ class FileObject:
     
     Attributes:
     ----------
+        encoding (str): The encoding to use when reading/writing the file. Defaults to utf-8.
         path (str): The absolute path to the file.
         content (Any): Contains the content of the file. Only holds a value if read() is called.
 
@@ -165,6 +166,7 @@ class FileObject:
         is_image: Check if item is an image
         is_video: Check if item is a video
         is_gitobject: Check if item is a git object
+        content: The content of the file. Only holds a value if read() is called.
 
     Methods:
     ----------
@@ -175,16 +177,18 @@ class FileObject:
         __str__(): Return a string representation of the object
         
     """
-    def __init__(self, path):
+    def __init__(self, path, encoding='utf-8'):
         """
         Constructor for the FileObject class.
 
         Paramaters:
         ----------
             path (str): The path to the file
+            encoding (str): Encoding type of the file (default is utf-8)
         """
+        self.encoding = encoding
         self.path = path
-        self.content = None
+        self._content = None
 
     def head(self, n=5):
         """
@@ -199,13 +203,10 @@ class FileObject:
             str: The first n lines of the file
         """
         lines = []
-        if isinstance(self, FileObject):
-            try:
-                with open(self.path, "rb") as f:
-                    lines = [next(f) for _ in range(n)]
-            except (StopIteration, UnicodeDecodeError):
-                pass
-        return "".join(lines)
+        if isinstance(self, (FileObject, ExecutableObject)):
+            with open(self.path, 'r', encoding = self.encoding) as f:
+                lines = [next(f) for _ in range(n)]
+        return ''.join(lines)
 
     def tail(self, n=5):
         """
@@ -220,13 +221,10 @@ class FileObject:
             str: The last n lines of the file
         """
         lines = []
-        if isinstance(self, FileObject):
-            try:
-                with open(self.path, "rb") as f:
-                    lines = f.readlines()[-n:]
-            except (StopIteration, UnicodeDecodeError):
-                pass
-        return "".join(lines)
+        if isinstance(self, (FileObject, ExecutableObject)):
+            with open(self.path, 'r', encoding = self.encoding) as f:
+                lines = f.readlines()[-n:]
+        return ''.join(lines)
 
     @property
     def size(self):
@@ -279,7 +277,11 @@ class FileObject:
             str: The file extension
         """
         return str(os.path.splitext(self.path)[-1]).lower()
-
+    @property
+    def content(self):
+        if not self._content:
+            self._content = self.read()
+        return self._content
     def read(self):
         """
         Method for reading the content of a file. This method should overridden for VideoObjects
@@ -288,14 +290,18 @@ class FileObject:
         ----------
             str: The content of the file
         """
-        with open(self.path, "rb") as f:
-            content = f.read()
+        if isinstance(self, ImageObject):
+            with open(self.path, "rb") as f:
+                content = f.read()
+        elif isinstance(self, (FileObject, ExecutableObject)):
+            with open(self.path, "r", encoding=self.encoding) as f:
+                content = f.read()
         try:
-            self.content = content.decode()
+            content = content.decode()
         except (UnicodeDecodeError, AttributeError):
-            self.content = content
+            content = content
         finally:
-            return self.content
+            return content
 
     @property
     def is_file(self):
@@ -381,9 +387,9 @@ class FileObject:
             return False
         elif isinstance(other, VideoObject):
             return self.size == other.size
-        elif self.content is None:
-            self.content = self.read()
-        return self.content == other.content
+        elif not self._content:
+            self._content = self.read()
+        return self._content == other.content
 
     def __str__(self):
         """
@@ -438,16 +444,16 @@ class ExecutableObject(FileObject):
         ----------
             str: The content of the file after updating the shebang line
         """
-        self.content = shebang + self.read()[len(self.shebang.strip()) :]
+        self._content = shebang + self.read()[len(self.shebang.strip()) :]
         try:
             with open(self.path, "w") as f:
                 f.seek(0)
-                f.write(self.content)
+                f.write(self._content)
 
             print(f"{self.basename}\n{self.shebang} -> {shebang}")
             print(self.tail(2))
             self._shebang = shebang
-            return self.content
+            return self._content
         except PermissionError:
             print(f"Permission denied: {self.path}")
             pass
