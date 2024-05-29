@@ -64,7 +64,7 @@ def main(filepath, window_size, columns):
     """
     if not os.path.isfile(filepath):
         raise FileNotFoundError(f"File {filepath} not found.")
-    df = pd.read_csv(filepath, sep=r',\s+')
+    df = pd.read_csv(filepath, sep=r',')
     if any(col not in df.columns for col in columns):
         raise ValueError("One or more of the columns do not exist.")
 

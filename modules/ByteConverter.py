@@ -14,6 +14,15 @@ class ByteConverter:
             self._size_str = '-' + self._size_str
             
     def _convert(self, size: int) -> str:
+        """
+        Converts a given size in bytes to the appropriate unit (B, KB, MB, GB, or TB).
+        
+        Parameters:
+            size (int): The size in bytes.
+            
+        Returns:
+            str: A string representation of the size with its corresponding unit attached.
+        """
         units = ['B', 'KB', 'MB', 'GB', 'TB']
         for unit in units[:-1]:
             if size < 1024:
@@ -26,7 +35,7 @@ class ByteConverter:
         return float(self._size_str.split()[0])  
 
 if __name__ == "__main__":
-
+    
     # Testing with different values of bytes.
     print(ByteConverter(1024))   # Outputs: "1.00 KB"
     print(ByteConverter(1536))   # Outputs: "1.50 MB"

@@ -8,6 +8,7 @@ import re
 import json
 import subprocess
 import datetime
+import pandas as pd
 
 from PIL import Image, UnidentifiedImageError
 from PIL.ExifTags import TAGS
@@ -718,6 +719,7 @@ class ImageObject(FileObject):
     Methods:
     ----------
         calculate_hash(self): Calculate the hash value of the image
+        render(self, size=None): Render an image using kitty at a specified size (optional)
     
     Properties:
     ----------
@@ -829,7 +831,26 @@ class ImageObject(FileObject):
                                         int(hour),int(minute), int(second[:2]))
                 # return data - Depreciated
         return None
-
+    def render(self, width=640, height=640):
+        """
+        Render the image in the terminal using kitty terminal
+        """
+        try:
+            subprocess.run(
+                f'kitten icat --use-window-size {width},100,{height},100 "{self.path}"', shell=True
+        )
+        except Exception as e:
+            print(f"An error occurred while rendering the image:\n{str(e)}")
+    def open(self):
+        """
+        Open the image in default program of your OS
+        """
+        try:
+            img = Image.open(self.path)
+            img.show()
+            return img
+        except UnidentifiedImageError as e:
+            print(e)
     @property
     def is_corrupt(self):
         """
@@ -954,6 +975,7 @@ class LogFile(FileObject):
     A class to represent a hwlog file.
     """
     def __init__(self, path, spec='csv', encoding='iso-8859-1'):
+        self.DIGIT_REGEX = re.compile(r"(\d+(\.\d+)?)")
         self.SANATIZE_REGEX = re.compile(
             r'(GPU2.\w+\(.*\)|NaN|N\/A|Fan2|°|Â|\*|,,+|\s\[[^\s]+\]|\"|\+)')
         specs = {
@@ -982,7 +1004,7 @@ class LogFile(FileObject):
         --------
             list: Each column of the log file.
         """
-        return [col for col in self.head(1).split(self.spec) if col.split().split(self.spec)]
+        return [col for col in self.head(1).split(self.spec)]
     @property
     def footer(self):
         second_last, last = self.tail(2).strip().split('\n')
@@ -1015,15 +1037,48 @@ class LogFile(FileObject):
             for i, line in enumerate(self):
                 if i == lines - 2:
                     break
-                sanatized_content.append(re.sub(
-                    self.SANATIZE_REGEX, '', line).strip().strip(self.spec))
+                sanatized_line = re.sub(self.SANATIZE_REGEX, '', line).strip().strip(self.spec)
+                if sanatized_line:
+                    sanatized_content.append(sanatized_line.replace(' ', '_'))
+
         else:
             for line in self:
-                sanatized_content.append(re.sub(
-                    self.SANATIZE_REGEX, '', line).strip().strip(self.spec))
+                sanatized_line = re.sub(self.SANATIZE_REGEX, '', line).strip().strip(self.spec)
+                if sanatized_line:
+                    sanatized_content.append(sanatized_line.replace(' ', '_'))
         self._content = '\n'.join(sanatized_content)
         return self._content
     
+    @property
+    def stats(self):
+        df = pd.read_csv(self.path)
+        return df.mean()
+        #return {'min': df.min(), 'max': df.max(), 'mean': df.mean()}
+    @property
+    
+        
+    def compare(self, other): #*args):
+        """
+        Print a pretty printed comparsion of the stats of this log file with one or more other log files.
+        """
+        stats = self._stats
+        other = other._stats
+        print(f"{'File name'.ljust(20)}{'min'.ljust(15)}{'max'.ljust(10)}{'avg'.ljust(10)}{'column'.ljust(10)}")
+        
+        # for arg in args:
+        #     if isinstance(arg, LogFile):
+        #         other = arg._stats
+        #         for col in other:
+        #             print(f"{self.basename.ljust(20)} {str(col[0]).ljust(10)}{str(col[1]).ljust(10)}{str(col[2]).ljust(10)}")
+        pass
+
+    def save(self):
+        """
+        Save the (updated) content to the log file (overwrites original content).
+        """
+        with open(self.path, 'w') as f:
+            f.write(self._content)
+
 def obj(path):
     if not os.path.exists(path):
         raise FileNotFoundError("Path does not exist")
@@ -1055,13 +1110,19 @@ def obj(path):
 
 
 if __name__ == "__main__":
-    img = ImageObject("/home/joona/Pictures/PEGBOARD.jpg")
-    video = VideoObject("/mnt/ssd/compressed_obs/Dayz/blaze kill CQC.mp4")
-    txtfile = FileObject("/home/joona/python/Projects/dir_oraganizer/getinfo.py")
-
-    print(img)
-    print(video)
-    print(txtfile)
+    csv = LogFile('/mnt/hdd-red/HWLOGGING/0.925v_1920mhz.CSV')
+    print(csv.compare(LogFile('/mnt/hdd-red/HWLOGGING/0.950v_1965mhz.CSV')))
+    
+    print('\n------------------\n')
+    for col in csv._stats():
+        print(col)
+    # img = ImageObject("/home/joona/Pictures/PEGBOARD.jpg")
+    # video = VideoObject("/mnt/ssd/compressed_obs/Dayz/blaze kill CQC.mp4")
+    # txtfile = FileObject("/home/joona/python/Projects/dir_oraganizer/getinfo.py")
+    
+    # print(img)
+    # print(video)
+    # print(txtfile)
 
 
 # f = len([f for folder in os.walk('/mnt/ssd/compressed_obs/CSGO/')
