@@ -12,9 +12,8 @@ from PIL.ExifTags import TAGS
 
 
 class ExifData():
-    def __init__(self, path, recursive):
+    def __init__(self, path):
         self.path = path
-        self.recursive = recursive
 
     @property
     def exif(self):

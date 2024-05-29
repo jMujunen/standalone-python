@@ -7,6 +7,7 @@ import sys
 import re
 import json
 import subprocess
+import datetime
 
 from PIL import Image, UnidentifiedImageError
 from PIL.ExifTags import TAGS
@@ -202,12 +203,11 @@ class FileObject:
         ----------
             str: The first n lines of the file
         """
-        lines = []
-        if isinstance(self, (FileObject, ExecutableObject)):
-            with open(self.path, 'r', encoding = self.encoding) as f:
-                lines = [next(f) for _ in range(n)]
-        return ''.join(lines)
-
+        if isinstance(self, (FileObject, ExecutableObject, LogFile)):
+            return '\n'.join(self.content.split('\n')[:n])
+        else:
+            raise TypeError("The object must be a FileObject or an ExecutableObject")
+    
     def tail(self, n=5):
         """
         Return the last n lines of the file
@@ -220,11 +220,10 @@ class FileObject:
         ----------
             str: The last n lines of the file
         """
-        lines = []
         if isinstance(self, (FileObject, ExecutableObject)):
-            with open(self.path, 'r', encoding = self.encoding) as f:
-                lines = f.readlines()[-n:]
-        return ''.join(lines)
+            return '\n'.join(self.content.split('\n')[-n:])
+        else:
+            raise TypeError("The object must be a FileObject or an ExecutableObject")
 
     @property
     def size(self):
@@ -281,11 +280,13 @@ class FileObject:
     def content(self):
         if not self._content:
             self._content = self.read()
-        return self._content
-    def read(self):
+        return self._content.strip()
+    def read(self, *args):
         """
         Method for reading the content of a file. This method should overridden for VideoObjects
 
+        Parameters:
+            a, b (optional): Return content[a:b]
         Returns:
         ----------
             str: The content of the file
@@ -301,7 +302,7 @@ class FileObject:
         except (UnicodeDecodeError, AttributeError):
             content = content
         finally:
-            return content
+            return content.split('\n')[args[0]:args[1]] if args else content
 
     @property
     def is_file(self):
@@ -371,6 +372,45 @@ class FileObject:
         """
         return self.extension.lower() in FILE_TYPES["img"]
 
+    def __iter__(self):
+        """
+        Iterate over the lines of a file.
+        
+        Yields:
+            str: A line from the file
+        """
+        if isinstance(self, (FileObject, ExecutableObject, LogFile)):
+            for line in self.content.split('\n'):
+                yield line.strip()
+        else:
+            raise TypeError(f"Object of type {type(self)} is not iterable")
+    def __len__(self):
+        """
+        Get the number of lines in a file.
+        
+        Returns:
+        -------
+            int: The number of lines in the file
+        """
+        if isinstance(self, (FileObject, ExecutableObject, LogFile)):
+            return len(list(iter(self)))
+        else:
+            raise TypeError(f"Object of type {type(self)} does not support length operation")
+    
+    def __contains__(self, item):
+         """
+         Check if a line exists in the file.
+         
+         Parameters:
+         ----------
+             item (str): The line to check for
+             
+         Returns:
+         -------
+             bool: True if the line is found, False otherwise
+         """
+         return any(item in line for line in self)
+    
     def __eq__(self, other):
         """
         Compare two FileObjects
@@ -681,16 +721,15 @@ class ImageObject(FileObject):
     
     Properties:
     ----------
-        dimensions (tuple): The dimensions of the image in pixels.
-        is_corrupt (bool): Check integrity of the image
-        exif (dict): Extract the EXIF data from the image
-        capture_date (str or None): Return the capture date of the image if it exists in the EXIF data
+        capture_date (str or None): Return the capture date of the image
+        dimensions (tuple or None): Return a tuple containing the width and height of the image
+        exif (dict or None): Return a dictionary containing EXIF data about the image if available
+        is_corrupted (bool): Return True if the file is corrupted, False otherwise
     """
     def __init__(self, path):
         self._exif = None
         super().__init__(path)
-
-    def calculate_hash(self, spec):
+    def calculate_hash(self, spec='avg'):
         """
         Calculate the hash value of the image
 
@@ -702,10 +741,6 @@ class ImageObject(FileObject):
         ----------
             hash_value (str): The calculated hash value of the image.
             None (None)     : NoneType if an error occurs while calculating the hash
-
-        Raises:
-        --------
-            UnidentifiedImageError: If the image format cannot be identified which returns None
         """
 
         specs = {
@@ -730,10 +765,9 @@ class ImageObject(FileObject):
                     return
             except Exception as e:
                 print(
-                    f'\033[1;32mError detecting corruption of "{self.path}":\033[0m\033[1;31m {e}\033[0m'
+                    f'\033[1;32mError detecting corruption of "{self.path}": {e}\033[0m'
                 )
                 return
-
             print(f"Error calculating hash: {e}")
             return
 
@@ -788,7 +822,12 @@ class ImageObject(FileObject):
             if isinstance(data, bytes):
                 data = data.decode()
             if str(tag).startswith("DateTime"):
-                return data
+                date, time = str(data).split(' ')
+                year, month, day = date.split(':')
+                hour, minute, second = time.split(':')
+                return datetime.datetime(int(year), int(month), int(day),
+                                        int(hour),int(minute), int(second[:2]))
+                # return data - Depreciated
         return None
 
     @property
@@ -836,7 +875,8 @@ class VideoObject(FileObject):
     
     Methods:
     ----------
-        metadata (dict): Extract metadata from the video including duration, dimensions, fps, and aspect ratio.
+        metadata (dict): Extract metadata from the video including duration, 
+                         dimensions, fps, and aspect ratio.
         bitrate (int): Extract the bitrate of the video from the ffprobe output.
         is_corrupt (bool): Check integrity of the video.
 
@@ -909,7 +949,81 @@ class VideoObject(FileObject):
         except Exception as e:
             print(f"Error: {e}")
 
-
+class LogFile(FileObject):
+    """
+    A class to represent a hwlog file.
+    """
+    def __init__(self, path, spec='csv', encoding='iso-8859-1'):
+        self.SANATIZE_REGEX = re.compile(
+            r'(GPU2.\w+\(.*\)|NaN|N\/A|Fan2|°|Â|\*|,,+|\s\[[^\s]+\]|\"|\+)')
+        specs = {
+            'csv': ',',
+            'tsv': '\t',
+            'custom': ', '
+        }
+        self.spec = specs[spec]
+        super().__init__(path, encoding)
+    @property
+    def header(self):
+        """
+        Get the header of the log file.
+        
+        Returns:
+        --------
+            str: The header of the log file.
+        """
+        return self.head(1).strip().strip(self.spec)
+    @property
+    def columns(self):
+        """
+        Get the columns of the log file.
+        
+        Returns:
+        --------
+            list: Each column of the log file.
+        """
+        return [col for col in self.head(1).split(self.spec) if col.split().split(self.spec)]
+    @property
+    def footer(self):
+        second_last, last = self.tail(2).strip().split('\n')
+        second_last = second_last.strip(self.spec)
+        last = last.strip(self.spec)
+        return second_last if second_last == self.header else None
+ 
+    def to_df(self):
+        """
+        Convert the log file into a pandas DataFrame.
+        
+        Returns:
+        --------
+            pd.DataFrame: The data of the log file in a DataFrame format.
+        """
+        import pandas as pd
+        return pd.DataFrame(self.content, columns=self.columns)
+    def sanatize(self):
+        """
+        Sanatize the log file by removing any empty lines, spaces, and trailing delimiters
+        from the header and footer. Also remove the footer if it equals the header (hwinfo log file)
+        
+        Returns:
+        -------
+            str: The sanatized content
+        """
+        sanatized_content = []
+        if self.footer:
+            lines = len(self)
+            for i, line in enumerate(self):
+                if i == lines - 2:
+                    break
+                sanatized_content.append(re.sub(
+                    self.SANATIZE_REGEX, '', line).strip().strip(self.spec))
+        else:
+            for line in self:
+                sanatized_content.append(re.sub(
+                    self.SANATIZE_REGEX, '', line).strip().strip(self.spec))
+        self._content = '\n'.join(sanatized_content)
+        return self._content
+    
 def obj(path):
     if not os.path.exists(path):
         raise FileNotFoundError("Path does not exist")
