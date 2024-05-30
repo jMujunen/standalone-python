@@ -15,6 +15,7 @@ from PIL.ExifTags import TAGS
 from moviepy.editor import VideoFileClip
 import cv2
 
+from Color import *
 import imagehash
 
 GIT_OBJECT_REGEX = re.compile(r"([a-f0-9]{37,41})")
@@ -1054,15 +1055,44 @@ class LogFile(FileObject):
         df = pd.read_csv(self.path)
         return df.mean()
         #return {'min': df.min(), 'max': df.max(), 'mean': df.mean()}
-    @property
-    
         
     def compare(self, other): #*args):
         """
         Print a pretty printed comparsion of the stats of this log file with one or more other log files.
         """
-        stats = self._stats
-        other = other._stats
+        def compare_numbers(line):
+            num1 = re.search(r'[^\w\n](\d+(\.\d+)?)', line).group(0)
+            num2 = re.search(r'[^\w\n](\d+(\.\d+)?)', line.split('/')[-1]).group(0)
+            if float(num1) == float(num2):
+                return f"{line.replace(
+                    num1, f'{fg.cyan}{'\u003d'.center(1)}{style.reset}{str(num1).center(2)}')}"
+            if float(num1) > float(num2):
+                return f"{line.replace(
+                    num1, f'{fg.red}{'\u002b'}{style.reset}{str(num1).center(2)}')}" 
+            else:
+                return f"{line.replace(
+                    num2, f'{fg.red}{'\u002b'}{style.reset}{str(num2).center(2)}')}"
+        def round_values(val):
+            try:
+                if float(val) < 5:
+                    return float("{:.3f}".format(float(val)))  # round to three decimal places
+                elif 5 <= float(val) < 15:
+                    return float("{:.2f}".format(float(val)))  # round to two decimal places
+                else:
+                    return int(val)  # no decimal places
+            except Exception as e:
+                print(e)
+                pass
+                    
+                for k, v in self.stats.items():
+                    pass
+        if isinstance(other, LogFile):
+            df_stats1 = self.stats
+            df_stats2 = other.stats
+            #df_concat = pd.concat([df1, df2], axis=1, keys=[self.basename, other.basename])
+            for k, v in df_stats1.items():
+                print(compare_numbers(f"{k.ljust(35)}{'|'.ljust(3)}{str(round_values(v)).rjust(5)}{'/'.center(5)}{str(round_values(df_stats2[k])).ljust(3)}"))
+    
         print(f"{'File name'.ljust(20)}{'min'.ljust(15)}{'max'.ljust(10)}{'avg'.ljust(10)}{'column'.ljust(10)}")
         
         # for arg in args:

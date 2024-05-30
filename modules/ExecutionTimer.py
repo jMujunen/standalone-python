@@ -5,8 +5,6 @@
 import os
 from time import time
 
-
-
 class ExecutionTimer:
     """
     Execution Timer: Measure and display execution time for a block of code.
@@ -19,7 +17,7 @@ class ExecutionTimer:
     -----------
         device_id (str): Device ID of the phone to send SMS messages.
         contacts (dict): Dictionary mapping contact names to phone numbers.
-
+e
     Methods:
     --------
         format_execution_time(seconds):
