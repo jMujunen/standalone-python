@@ -1060,18 +1060,20 @@ class LogFile(FileObject):
         """
         Print a pretty printed comparsion of the stats of this log file with one or more other log files.
         """
-        def compare_numbers(line):
-            num1 = re.search(r'[^\w\n](\d+(\.\d+)?)', line).group(0)
-            num2 = re.search(r'[^\w\n](\d+(\.\d+)?)', line.split('/')[-1]).group(0)
+        def compare_numbers(num1, num2):
+            DIGIT_REGEX = re.compile(r'(\d+(\.\d+)?)')
+            
+            num1 = DIGIT_REGEX.search(str(num1))[0]
+            num2 = DIGIT_REGEX.search(str(num2))[0]
+            # num2 = re.search(r'(\d+(\.\d+)?)', line.split(' ')[-1]).group(0)
             if float(num1) == float(num2):
-                return f"{line.replace(
-                    num1, f'{fg.cyan}{'\u003d'.center(1)}{style.reset}{str(num1).center(2)}')}"
+                return f"{num1.replace(num1, f'{fg.cyan}{'\u003d'}{style.reset} {str(num1)}')}", num2
             if float(num1) > float(num2):
-                return f"{line.replace(
-                    num1, f'{fg.red}{'\u002b'}{style.reset}{str(num1).center(2)}')}" 
+                return f"{num1.replace(
+                    num1, f'{fg.red}{'\u002b'}{style.reset} {str(num1)}')}", num2 
             else:
-                return f"{line.replace(
-                    num2, f'{fg.red}{'\u002b'}{style.reset}{str(num2).center(2)}')}"
+                return num1, f"{num2.replace(
+                    num2, f' {fg.red}{'\u002b'}{style.reset} {str(num2)}')}"
         def round_values(val):
             try:
                 if float(val) < 5:
@@ -1086,20 +1088,16 @@ class LogFile(FileObject):
                     
                 for k, v in self.stats.items():
                     pass
+                
+        print('{:<20} {:>15} {:>20}'.format("Sensor", self.basename, other.basename))
         if isinstance(other, LogFile):
-            df_stats1 = self.stats
-            df_stats2 = other.stats
-            #df_concat = pd.concat([df1, df2], axis=1, keys=[self.basename, other.basename])
-            for k, v in df_stats1.items():
-                print(compare_numbers(f"{k.ljust(35)}{'|'.ljust(3)}{str(round_values(v)).rjust(5)}{'/'.center(5)}{str(round_values(df_stats2[k])).ljust(3)}"))
-    
-        print(f"{'File name'.ljust(20)}{'min'.ljust(15)}{'max'.ljust(10)}{'avg'.ljust(10)}{'column'.ljust(10)}")
-        
-        # for arg in args:
-        #     if isinstance(arg, LogFile):
-        #         other = arg._stats
-        #         for col in other:
-        #             print(f"{self.basename.ljust(20)} {str(col[0]).ljust(10)}{str(col[1]).ljust(10)}{str(col[2]).ljust(10)}")
+            try:
+                df_stats1 = self.stats
+                for k, v in df_stats1.items():
+                    num1, num2 = compare_numbers(round_values(v), round_values(other.stats[k]))
+                    print('{:<32} {:<15} {:>20}'.format(k, num1, num2))
+            except KeyError:
+                print('KeyError: Key from self.stats is missing in other.stats')
         pass
 
     def save(self):
