@@ -975,8 +975,6 @@ class Log(File):
     """
     def __init__(self, path, spec='csv', encoding='iso-8859-1'):
         self.DIGIT_REGEX = re.compile(r"(\d+(\.\d+)?)")
-        self.SANATIZE_REGEX = re.compile(
-            )
         specs = {
             'csv': ',',
             'tsv': '\t',
@@ -1021,35 +1019,32 @@ class Log(File):
         """
         import pandas as pd
         return pd.DataFrame(self.content, columns=self.columns)
-    def sanatize(self, **args):
+    def sanatize(self):
         """
         Sanatize the log file by removing any empty lines, spaces, and trailing delimiters
-        from the header and footer. Also remove the footer if it equals the header (hwinfo log file)
-        
-        Paramters:
-        --------
-            regex pattern (optional): The regular expression(s) to use when sanatizing.
-            Default: r'(GPU2.\w+\(.*\)|NaN|N\/A|Fan2|°|Â|\*|,,+|\s\[[^\s]+\]|\"|\+)'
+        from the header and footer. Also remove the last 2 lines
 
         Returns:
         -------
             str: The sanatized content
         """
-        sanatized_content = []
-        if self.footer:
-            lines = len(self)
-            for i, line in enumerate(self):
-                if i == lines - 2:
-                    break
-                sanatized_line = re.sub(self.SANATIZE_REGEX, '', line).strip().strip(self.spec)
-                if sanatized_line:
-                    sanatized_content.append(sanatized_line.replace(' ', '_'))
+        SANATIZE_REGEX = re.compile(
+                r'(GPU2.\w+\(.*\)|NaN|N\/A|Fan2|°|Â|\*|,,+|\s\[[^\s]+\]|\"|\+|\s\[..TDP\]|\s\[\]|\s\([^\s]\))')
+        SUBSTITUTE_REGEX = re.compile(r'(,\s+|\s+,)')
+        
 
-        else:
-            for line in self:
-                sanatized_line = re.sub(self.SANATIZE_REGEX, '', line).strip().strip(self.spec)
-                if sanatized_line:
-                    sanatized_content.append(sanatized_line.replace(' ', '_'))
+        sanatized_content = []
+        lines = len(self)
+        for i, line in enumerate(self):
+            if i == lines - 2:
+                break
+            sanatized_line = re.sub(SANATIZE_REGEX, '', line).strip().strip(self.spec)
+            if sanatized_line:
+                sanatized_line = re.sub(SUBSTITUTE_REGEX, ',', sanatized_line)
+                sanatized_line = re.sub(r'(\w+)\s+(\w+)', r'\1_\2', sanatized_line)
+                sanatized_content.append(sanatized_line)
+                
+
         self._content = '\n'.join(sanatized_content)
         return self._content
     
