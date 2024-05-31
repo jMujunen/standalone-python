@@ -3,7 +3,11 @@
 import os
 import subprocess
 import re
+import glob
+
 import argparse
+from MetaData import DirectoryObject, FileObject
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description = "This script is used as a redneck way to hardlink a directory and its subdirectories", 
@@ -20,7 +24,14 @@ def main(dir, pattern):
     This script is used as a redneck way to hardlink a directory and its subdirectories.
     It recreates the directory tree of the input directory and then hardlinks all files that       match a given pattern in it to the recreated tree.
     """
-
+    path = DirectoryObject(dir)
+    
+    for folder in dir.rel_directories:
+        os.makedirs(folder, exist_ok = True)
+        
+    for file in dir.rel_files:
+        if re.match(pattern, file):
+            subprocess.run(['ln', '--hard', f'{dir}/{file}', f'./{file}'])
 
 # Example
 if __name__ == "__main__":

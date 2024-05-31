@@ -532,7 +532,7 @@ class DirectoryObject(FileObject):
         self._files = None
         self._directories = None
         self._objects = None
-        super().__init__(self.path)
+        super().__init__(path)
 
     @property
     def files(self):
