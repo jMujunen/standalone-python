@@ -190,7 +190,7 @@ class FileObject:
             encoding (str): Encoding type of the file (default is utf-8)
         """
         self.encoding = encoding
-        self.path = path
+        self.path = os.path.abspath(path)
         self._content = None
 
     def head(self, n=5):
@@ -529,7 +529,6 @@ class DirectoryObject(FileObject):
     
     """
     def __init__(self, path):
-        self.path = path
         self._files = None
         self._directories = None
         self._objects = None
