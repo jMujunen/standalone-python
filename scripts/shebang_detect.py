@@ -8,7 +8,7 @@ import os
 import re
 import argparse
 
-from MetaData import ExecutableObject, DirectoryObject
+from MetaData import Exe, Dir
 from ProgressBar import ProgressBar
 from Color import *
 
@@ -62,7 +62,7 @@ def parse_args():
 
 
 def main(args):
-    directory = DirectoryObject(args.directory)
+    directory = Dir(args.directory)
     for item in directory:
         if (
             item.is_file

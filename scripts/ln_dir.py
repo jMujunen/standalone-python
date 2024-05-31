@@ -6,7 +6,7 @@ import re
 import glob
 
 import argparse
-from MetaData import DirectoryObject, FileObject
+from MetaData import Dir, File
 
 
 def parse_args():
@@ -24,7 +24,7 @@ def main(dir, pattern):
     This script is used as a redneck way to hardlink a directory and its subdirectories.
     It recreates the directory tree of the input directory and then hardlinks all files that       match a given pattern in it to the recreated tree.
     """
-    path = DirectoryObject(dir)
+    path = Dir(dir)
     
     for folder in dir.rel_directories:
         os.makedirs(folder, exist_ok = True)

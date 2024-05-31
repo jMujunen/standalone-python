@@ -146,7 +146,7 @@ FILE_TYPES = {
 }
 
 
-class FileObject:
+class File:
     """
     This is the base class for all of the following objects. 
     It represents a generic file and defines the common methods that are used by all of them.
@@ -205,7 +205,7 @@ class FileObject:
         ----------
             str: The first n lines of the file
         """
-        if isinstance(self, (FileObject, ExecutableObject, LogFile)):
+        if isinstance(self, (File, Exe, Log)):
             return '\n'.join(self.content.split('\n')[:n])
         else:
             raise TypeError("The object must be a FileObject or an ExecutableObject")
@@ -222,7 +222,7 @@ class FileObject:
         ----------
             str: The last n lines of the file
         """
-        if isinstance(self, (FileObject, ExecutableObject)):
+        if isinstance(self, (File, Exe)):
             return '\n'.join(self.content.split('\n')[-n:])
         else:
             raise TypeError("The object must be a FileObject or an ExecutableObject")
@@ -293,10 +293,10 @@ class FileObject:
         ----------
             str: The content of the file
         """
-        if isinstance(self, ImageObject):
+        if isinstance(self, Image):
             with open(self.path, "rb") as f:
                 content = f.read()
-        elif isinstance(self, (FileObject, ExecutableObject)):
+        elif isinstance(self, (File, Exe)):
             with open(self.path, "r", encoding=self.encoding) as f:
                 content = f.read()
         try:
@@ -381,7 +381,7 @@ class FileObject:
         Yields:
             str: A line from the file
         """
-        if isinstance(self, (FileObject, ExecutableObject, LogFile)):
+        if isinstance(self, (File, Exe, Log)):
             for line in self.content.split('\n'):
                 yield line.strip()
         else:
@@ -394,7 +394,7 @@ class FileObject:
         -------
             int: The number of lines in the file
         """
-        if isinstance(self, (FileObject, ExecutableObject, LogFile)):
+        if isinstance(self, (File, Exe, Log)):
             return len(list(iter(self)))
         else:
             raise TypeError(f"Object of type {type(self)} does not support length operation")
@@ -425,9 +425,9 @@ class FileObject:
         ----------
             bool: True if the two Objects are equal, False otherwise
         """
-        if not isinstance(other, FileObject):
+        if not isinstance(other, File):
             return False
-        elif isinstance(other, VideoObject):
+        elif isinstance(other, Video):
             return self.size == other.size
         elif not self._content:
             self._content = self.read()
@@ -443,7 +443,7 @@ class FileObject:
         """
         return str(self.__dict__)
 
-class ExecutableObject(FileObject):
+class Exe(File):
     """
     A class representing information about an executable file
     
@@ -500,8 +500,7 @@ class ExecutableObject(FileObject):
             print(f"Permission denied: {self.path}")
             pass
 
-
-class DirectoryObject(FileObject):
+class Dir(File):
     """
     A class representing information about a directory.
     
@@ -620,7 +619,7 @@ class DirectoryObject(FileObject):
         --------
             List[ImageObject]: A list of ImageObject instances
         """
-        return [item for item in self if isinstance(item, ImageObject)]
+        return [item for item in self if isinstance(item, Image)]
     def videos(self):
         """
         Return a list of VideoObject instances found in the directory.
@@ -628,7 +627,7 @@ class DirectoryObject(FileObject):
         Returns:
             List[VideoObject]: A list of VideoObject instances
         """
-        return [item for item in self if isinstance(item, VideoObject)]
+        return [item for item in self if isinstance(item, Video)]
     @property
     def dirs(self):
         """
@@ -637,7 +636,7 @@ class DirectoryObject(FileObject):
         Returns:
             List[DirectoryObject]: A list of DirectoryObject instances
         """
-        return [item for item in self if isinstance(item, DirectoryObject)]
+        return [item for item in self if isinstance(item, Dir)]
     
     def __contains__(self, item):
         """
@@ -652,11 +651,11 @@ class DirectoryObject(FileObject):
             bool: True if the item is present, False otherwise.
         """
         if (
-            isinstance(item, FileObject)
-            or isinstance(item, VideoObject)
-            or isinstance(item, ImageObject)
-            or isinstance(item, ExecutableObject)
-            or isinstance(item, DirectoryObject)
+            isinstance(item, File)
+            or isinstance(item, Video)
+            or isinstance(item, Image)
+            or isinstance(item, Exe)
+            or isinstance(item, Dir)
         ):
             return item.basename in self.files
         return item in self.files
@@ -682,15 +681,15 @@ class DirectoryObject(FileObject):
         for root, dirs, files in os.walk(self.path):
             for file in files:
                 if os.path.splitext(file)[1].lower() in FILE_TYPES["video"]:
-                    yield VideoObject(os.path.join(root, file))
+                    yield Video(os.path.join(root, file))
                 elif os.path.splitext(file)[1].lower() in FILE_TYPES["img"]:
-                    yield ImageObject(os.path.join(root, file))
+                    yield Image(os.path.join(root, file))
                 elif os.path.splitext(file)[1].lower() in FILE_TYPES["code"]:
-                    yield ExecutableObject(os.path.join(root, file))
+                    yield Exe(os.path.join(root, file))
                 else:
-                    yield FileObject(os.path.join(root, file))
+                    yield File(os.path.join(root, file))
             for directory in dirs:
-                yield DirectoryObject(os.path.join(self.path, directory))
+                yield Dir(os.path.join(self.path, directory))
     def __eq__(self, other):
         """
         Compare two DirectoryObjects
@@ -703,12 +702,12 @@ class DirectoryObject(FileObject):
         ----------
             bool: True if the path of the two DirectoryObject instances are equal, False otherwise.
         """
-        if not isinstance(other, DirectoryObject):
+        if not isinstance(other, Dir):
             return False
         return self.path == other.path
 
 
-class ImageObject(FileObject):
+class Image(File):
     """
     A class representing information about an image
     
@@ -886,7 +885,7 @@ class ImageObject(FileObject):
     #         Capture Date: {self.capture_date}"""
 
 
-class VideoObject(FileObject):
+class Video(File):
     """
     A class representing information about a video.
 
@@ -970,14 +969,14 @@ class VideoObject(FileObject):
         except Exception as e:
             print(f"Error: {e}")
 
-class LogFile(FileObject):
+class Log(File):
     """
     A class to represent a hwlog file.
     """
     def __init__(self, path, spec='csv', encoding='iso-8859-1'):
         self.DIGIT_REGEX = re.compile(r"(\d+(\.\d+)?)")
         self.SANATIZE_REGEX = re.compile(
-            r'(GPU2.\w+\(.*\)|NaN|N\/A|Fan2|°|Â|\*|,,+|\s\[[^\s]+\]|\"|\+)')
+            )
         specs = {
             'csv': ',',
             'tsv': '\t',
@@ -1022,11 +1021,16 @@ class LogFile(FileObject):
         """
         import pandas as pd
         return pd.DataFrame(self.content, columns=self.columns)
-    def sanatize(self):
+    def sanatize(self, **args):
         """
         Sanatize the log file by removing any empty lines, spaces, and trailing delimiters
         from the header and footer. Also remove the footer if it equals the header (hwinfo log file)
         
+        Paramters:
+        --------
+            regex pattern (optional): The regular expression(s) to use when sanatizing.
+            Default: r'(GPU2.\w+\(.*\)|NaN|N\/A|Fan2|°|Â|\*|,,+|\s\[[^\s]+\]|\"|\+)'
+
         Returns:
         -------
             str: The sanatized content
@@ -1089,7 +1093,7 @@ class LogFile(FileObject):
                     pass
                 
         print('{:<20} {:>15} {:>20}'.format("Sensor", self.basename, other.basename))
-        if isinstance(other, LogFile):
+        if isinstance(other, Log):
             try:
                 df_stats1 = self.stats
                 for k, v in df_stats1.items():
@@ -1112,33 +1116,33 @@ def obj(path):
 
     ext = os.path.splitext(path)[1].lower()
     classes = {
-        ".jpg": ImageObject,  # Images
-        ".jpeg": ImageObject,
-        ".png": ImageObject,
-        ".nef": ImageObject,
-        ".mp4": VideoObject,  # Videos
-        ".avi": VideoObject,
-        ".mkv": VideoObject,
-        ".wmv": VideoObject,
-        ".webm": VideoObject,
-        ".mov": VideoObject,
-        ".py": ExecutableObject,  # Code files
-        ".bat": ExecutableObject,
-        ".sh": ExecutableObject,
-        "": DirectoryObject,  # Directories,
+        ".jpg": Image,  # Images
+        ".jpeg": Image,
+        ".png": Image,
+        ".nef": Image,
+        ".mp4": Video,  # Videos
+        ".avi": Video,
+        ".mkv": Video,
+        ".wmv": Video,
+        ".webm": Video,
+        ".mov": Video,
+        ".py": Exe,  # Code files
+        ".bat": Exe,
+        ".sh": Exe,
+        "": Dir,  # Directories,
 
     }
     
     cls = classes.get(ext)
     if not cls:
-        return FileObject(path)
+        return File(path)
     else:
         return cls(path)
 
 
 if __name__ == "__main__":
-    csv = LogFile('/mnt/hdd-red/HWLOGGING/0.925v_1920mhz.CSV')
-    print(csv.compare(LogFile('/mnt/hdd-red/HWLOGGING/0.950v_1965mhz.CSV')))
+    csv = Log('/mnt/hdd-red/HWLOGGING/0.925v_1920mhz.CSV')
+    print(csv.compare(Log('/mnt/hdd-red/HWLOGGING/0.950v_1965mhz.CSV')))
     
     print('\n------------------\n')
     for col in csv._stats():
