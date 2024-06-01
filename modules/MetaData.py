@@ -565,7 +565,7 @@ class Dir(File):
         Returns:
             list: A list of subdirectory paths relative to the directory represented by this object
         """
-        return [folder.replace(self.path, "") for folder in self.directories]
+        return [f".{folder.replace(self.path, "")}" for folder in self.directories]
 
     def objects(self):
         """
@@ -638,6 +638,21 @@ class Dir(File):
         """
         return [item for item in self if isinstance(item, Dir)]
     
+    def sort(self):                                                       
+        files = []
+        for item in self:
+            if item.is_file:
+                file_stats = os.stat(item.path)
+                atime = datetime.datetime.fromtimestamp(file_stats.st_atime).strftime("%Y-%m-%d %H:%M:%S")
+                files.append((item.path, atime))
+                
+        files.sort(key=lambda x: x[1])
+        files.reverse()
+        # Print the table
+        print(("{:<20}{:<40}").format('atime', 'File'))
+        for filepath, atime in files:
+            print(("{:<20}{:<40}").format(atime, filepath.replace(self.path, '')))
+
     def __contains__(self, item):
         """
         Compare items in two DirecoryObjects

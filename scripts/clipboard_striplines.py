@@ -18,7 +18,7 @@ PRESETS = {
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Strips a character or string from each line, using the clipboard as I/O",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""Examples:
         python3 clipboard_striplines.py --preset=multiline
 
@@ -39,10 +39,6 @@ def parse_args():
         wlan0: associated          ->  wlan1: associated
 """,
     )
-
-    parser.add_argument(
-        "-c", "--char", type=str, help="Character string or regex pattern to strip"
-    )
     parser.add_argument(
         "-r",
         "--replace",
@@ -50,9 +46,8 @@ def parse_args():
         default="",
     )
     parser.add_argument(
-        "-p",
         "--pattern",
-        help="PCRE - Perl compatiable regex patterns",
+        help="PCRE - Perl compatiable regex patterns to search for",
         default=" ",
     )
 
@@ -67,10 +62,11 @@ def parse_args():
     parser.add_argument(
         "-p",
         "--preset",
-        choices=["multiline"],
+        choices=["multiline", "ipy"],
         required=False,
         help="""Presets for common patterns:
         Multiline: Turn a multiline string into a single line""",
+        default=["multiline"]
         # Example:
         # -----------------
         #  pyside6-tools-wrappers
@@ -86,11 +82,13 @@ def parse_args():
 
 def main(char, replacement):
     try:
+        pattern = re.compile(char)
         text = pyperclip.paste()
         lines = text.split("\n")
-        for i in range(len(lines)):
-            lines[i] = lines[i].replace(char, "")
-        text = "\n".join(lines)
+        output = []
+        for line in lines:
+            output.append(re.sub(pattern, replacement, line))
+        text = "\n".join(output)
         pyperclip.copy(text)
         print(text)
         return 0
@@ -102,7 +100,7 @@ def main(char, replacement):
 # Example usage:
 if __name__ == "__main__":
     args = parse_args()
-    main(args.char)
+    main(args.pattern, args.replace)
 
 #     # With preset
 #     input = """alsa-card-profiles
