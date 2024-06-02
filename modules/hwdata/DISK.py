@@ -34,3 +34,4 @@ if __name__ == '__main__':
     print(ROOTFS)
     print(WD40_external)
     print(HOME)
+    

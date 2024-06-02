@@ -9,81 +9,150 @@ import datetime
 
 class CpuData:
     def __init__(self):
+        """
+        Initializes an instance of `CpuData`. 
+        The object contains information about the CPU, including its clock speed, voltage, temperature and name.
+        
+        Returns
+        ------
+            CpuData: An instance of a class containing data about the CPU.
+        """
         self.type = 'CPU'
+        # Regex patterns for parsing output from 'lscpu' and 'sensors' commands
+        # Regex patterns for parsing output from 
+        # 'lscpu' and 'sensors' commands
         self.clock_speed_regex = re.compile(r'(cpu MHz)\s+:\s+([\d.]+)')
         self.cpu_voltage_regex = re.compile(r'([^+]\d{1,3}\.\d{2,})')
         self.cpu_temp_regex = re.compile(r'(Core \d+).*(\d\d\.\d).*\(high.*\)')
         self.name_regex = re.compile(r'Model name:\s+(.*)')
+        
+        # Initialization of properties for CPU data
         self.name = self.cpu_name(short=True)
         self.temp = self.average_temp
+    
     def query_cpu_clocks(self):
+        """
+        Queries the clock speeds of all cores and returns them in a dictionary.
+        The keys are core numbers starting from 1 and the values are their corresponding clock frequencies.
+        
+        Returns
+        ------
+            dict: A dictionary where keys are core numbers (ints) and values are clock frequencies (floats).
+        """
         clock_dict = {}
-        # Read the contents of /proc/cpuinfo
-        with open ('/proc/cpuinfo', 'r') as f:
+        with open('/proc/cpuinfo', 'r') as f:
             raw_output = f.read()
-            f.close()
-        # Find all matches in the text
+        
         matches = re.findall(self.clock_speed_regex, raw_output)
-
-        # Process the matches into dictionary format
         count = 1
         for match in matches:
             clock_dict[count] = match[1]
             count += 1
+            
         return clock_dict
+    
     def query_cpu_temp(self):
+        """
+        Queries the temperature of all cores and returns them in a dictionary.
+        The keys are core numbers starting from 1 and the values are their corresponding temperatures.
+        
+        Returns
+        ------
+            dict: A dictionary where keys are core numbers (ints) and values are temperatures (floats).
+        """
         temp_dict = {}
-        cpu_temperatures = subprocess.run(
-            'sensors | grep Core',
-            shell=True,
-            capture_output=True,
-            text=True
-        ).stdout.strip()
+        cpu_temperatures = subprocess.run('sensors | grep Core', shell=True, capture_output=True, text=True).stdout.strip()
+        
         matches = re.findall(self.cpu_temp_regex, cpu_temperatures)
-
-        # Process the matches into dictionary format
         count = 1
         for match in matches:
             temp_dict[count] = match[1]
             count += 1
         return temp_dict
+    
     @property
     def voltage(self):
-        cpu_voltage_subproccess = subprocess.run([
-                "echo $(sensors | grep VIN3)"
-                ],
-                shell=True,
-                stdout=subprocess.PIPE 
-            ).stdout.decode("utf-8")
+        """
+        Queries the voltage of the CPU and returns it. 
+        The voltage is rounded to three decimal places.
+        """
+        cpu_voltage_subproccess = subprocess.run(['echo $(sensors | grep VIN3)'], shell=True, stdout=subprocess.PIPE).stdout.decode("utf-8")
         raw_value = self.cpu_voltage_regex.search(cpu_voltage_subproccess).group(1)
         cpu_voltage = raw_value.strip()
-
         if len(cpu_voltage) == 4: 
             return round(float(cpu_voltage.strip()), 3)
         elif len(cpu_voltage) == 6:
             return round((float(cpu_voltage)/1000), 3)
         else:
-            # Raise custom error
             raise Exception("Error: Voltage not found (requires a 4 or 6 digit number eg 1.25v or 600.00mV)")
-
+        
     def cpu_clocks_list(self):
+        """
+        Queries the clock speeds of all cores and returns them in a list.
+        The elements are core numbers starting from 1 and their corresponding clock frequencies.
+        
+        Returns
+        ------
+            List[float]: A list where each element is a core number (int) and its corresponding clock frequency (float).
+        """
         self.query_clocks = self.query_cpu_clocks()
-        return ([round(float(clock)) for clock in self.query_clocks.values()])
+        return   ([round(float(clock)) for clock in self.query_clocks.values()])
+    
     def cpu_temp_list(self):
+        """
+        Queries the temperature of all cores and returns them in a list.
+        The elements are core numbers starting from 1 and their corresponding temperatures.
+        
+        Returns
+        ------
+            List[float]: A list where each element is a core number (int) and its corresponding temperature (float).
+        """
         self.query_temp = self.query_cpu_temp()
-        return ([round(float(temp)) for temp in self.query_temp.values()])
+        return   ([round(float(temp)) for temp in self.query_temp.values()])
+    
     @property
     def average_temp(self):
-        return round(sum(self.cpu_temp_list()) / len(self.cpu_temp_list()))
+        """
+        Calculates and returns the average CPU temperature as a floating-point number, rounded to three decimal places.
+        
+        Returns
+        ------
+            float: The average CPU temperature in degrees Celsius (float).
+        """
+        return round(sum(self.cpu_temp_list())   / len(self.cpu_temp_list()))
+    
     @property
     def max_temp(self):
+        """
+        Returns the maximum CPU temperature as a floating-point number found in all cores.
+        
+        Returns
+        ------
+            float: The maximum CPU temperature in degrees Celsius (float).
+        """
         return max(self.cpu_temp_list())
+    
     @property
     def max_clock(self):
+        """
+        Calculates and returns the highest clock speed among all CPU cores, as a floating-point number.
+        
+        Returns
+        ------
+            float: The maximum clock speed (float).
+        """
         return max(self.cpu_clocks_list())
+    
     @property
     def average_clock(self):
-        return round(sum(self.cpu_clocks_list()) / len(self.cpu_clocks_list()))
+        """
+        Calculates and returns the average clock frequency of all CPU cores, rounded to three decimal places.
+        
+        Returns
+        ------
+            float: The average clock frequency (float).
+        """
+        return round(sum(self.cpu_clocks_list())   / len(self.cpu_clocks_list()))
     def cpu_name(self, short=False):
         output = subprocess.run(
             'lscpu | grep "Model name"',
@@ -107,6 +176,20 @@ class CpuData:
         return full_name
 
     def csv(self, header=False, units=False, timestamp=False):
+        """
+        Generates a CSV string representation of the current CPU status. The result can include an optional header row, units in the output and/or timestamps.
+        
+        Args
+        ------
+            header (bool, optional): If True, includes a header line at the beginning of the returned CSV string. Defaults to False.
+            units (bool, optional): If True, appends the units (volts for voltage and MHz for clocks) in the output. 
+                Defaults to False.
+            timestamp (bool, optional): If True, prepends a timestamp to each line of the CSV string. Defaults to False.
+        
+        Returns
+        ------
+            str: A CSV formatted string representation of the current CPU status.
+        """
         values = ''
         header_line = ''
         if header:
@@ -124,8 +207,15 @@ class CpuData:
         return header_line + values
 
     def __str__(self):
-        voltage = self.voltage
-        average_clock = self.average_clock
+        """
+        Provides a human-readable representation of the CPU status. This includes the current voltage, average clock speed, maximum clock speed, maximum temperature and average temperature.
+        
+        Returns
+        -------
+            str: A string representing the current state of the CPU in a readable format.
+        """
+        voltage 		  = self.voltage
+        average_clock	  = self.average_clock
         maxiumum_clock = self.max_clock
 
         maxiumum_temp = self.max_temp
@@ -139,29 +229,6 @@ class CpuData:
             f'Avg temp: {average_temp}°C'
         ).strip()
 
-    # Format to csv, optionally with units
-    def __format__(self, format_spec):
-        formats = {
-            'csv': self.csv,
-            'csv_header': self.csv(header=True),
-            'csv_units': self.csv(units=True),
-            'csv_timestamp_units': self.csv(units=True, timestamp=True),
-            'csv_timestamp': self.csv(timestamp=True)
-        }
-
-        if format_spec in formats:
-            return formats[format_spec]
-"""         if format_spec ==:
-            return self.csv()
-        elif format_spec == 'csv_header':
-            return self.csv(header=True)
-        elif format_spec == 'csv_units':
-            return self.csv(units=True)
-        elif format_spec == 'csv_timestamp_units':
-            return self.csv(units=True, timestamp=True)
-        else:
-            return self.csv(header=True, units=True)
- """
 # Example usage
 if __name__ == '__main__':
     cpu_data= CpuData()

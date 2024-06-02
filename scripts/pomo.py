@@ -3,13 +3,16 @@
 # pomo.py - Simple GUI pomodoro timer
 
 import threading
+import sys
+import datetime
+import time
+import subprocess
+
 import PySimpleGUI as sg
 import datetime
 import time
 
-from Notification import Notification
-#from kde_sms import SMS
-import sys
+from kdeConnect import SMS
 
 GRAPH_SIZE = (300 , 300)          # this one setting drives the other settings
 CIRCLE_LINE_WIDTH, LINE_COLOR = 20, 'orange'
