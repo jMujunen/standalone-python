@@ -8,20 +8,15 @@ import os
 import sys
 
 class Disk:
-    def __init__(self, mountpoint='/', friendly_name=None):
+    def __init__(self, mountpoint, friendly_name=None):
         self.mountpoint = mountpoint
-
-        # Set friendly name 
-        if friendly_name:
-            self.name = friendly_name
-        else:
-            self.name = os.path.split(mountpoint)[0]
+        self.friendly_name = friendly_name
     def percent_used(self):
         return psutil.disk_usage(self.mountpoint).percent
 
     def __str__(self):
         return str(
-            f'Name: {self.name}\n'
+            f'{self.mountpoint} {self.friendly_name if self.friendly_name else ""}:\n'
             f'Percent used: {self.percent_used()}%\n'
         )
 

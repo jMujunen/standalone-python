@@ -78,9 +78,9 @@ class NetworkInterface:
         if ping.stderr:
             return ping.stderr.strip()
         try:
-            return float(ping.stdout.strip())
+            return round(float(ping.stdout.strip()))
         except ValueError:
-            return 0.0
+            return 0
     @property
     def online(self):
         return 'online' if psutil.net_if_stats()[self.interface].isup else 'offline'

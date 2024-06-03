@@ -190,6 +190,51 @@ class CpuData:
         ------
             str: A CSV formatted string representation of the current CPU status.
         """
+        
+        DATETIME_REGEX = re.compile(r'\d+(-|/)\d+(-|/)\d+\s\d+:\d+:\d+(\.\d+)?')
+        header_ = ''
+        
+        unit_definitions = [' V',' MHz', ' MHz', ' °C', ' °C']
+        template = f"{self.voltage},{self.average_clock},{self.max_clock},{self.average_temp},{self.max_temp}"
+        
+        if timestamp:
+            timestamp = str(datetime.datetime.now()).replace('-', '/')
+            template = f"{timestamp},{template}"
+        if header:
+            if timestamp:
+                keys = ['Time', 'Voltage','Average Clock', 'Max Clock', 'Average Temp', 'Max Temp']
+            else:
+                keys = ['Voltage','Average Clock', 'Max Clock', 'AVerage Temp', 'Max Temp']
+            header_ = ",".join(keys)
+            template  = header_ + "\n"+template
+            
+        # Append units to the end of each field
+        if units:
+            # The offset is used to account for the fact that we are adding units after each field
+            # rather than at the end of each field. Time allows us to skip the timestamp field when adding units.
+            offset = 0
+            # Ignore header when adding units
+            if header_:
+                values = template.replace(header_, '').lstrip().split(',')
+            else:
+                values = template.lstrip().split(',')
+            for i, value in enumerate(values):
+                try:
+                    if not DATETIME_REGEX.match(value):
+                        values[i] = f"{value}{unit_definitions[i-offset]}"
+                    else:
+                        # Dont assign a unit to the timestamp, so we subtract one from the unit index.
+                        offset = 1
+                except IndexError as e:
+                    pass
+            # Join back together with commas and add the header back in.
+            template = f'{header_}\n{", ".join(values)}' if header else ", ".join(values)
+            
+        # Format the template with the data from this instance of the class.
+        formatted =  template.format(voltage=self.voltage, average_clock=self.average_clock, max_clock=self.max_clock, average_temp=self.average_temp, max_temp=self.max_temp)
+        return formatted
+        
+        
         values = ''
         header_line = ''
         if header:
