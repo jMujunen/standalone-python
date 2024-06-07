@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-
-# kde_sms.py - Send dad jokes on a somewhat regular basis
-
+""""""
 import re
 import subprocess
 import sys
@@ -12,17 +10,20 @@ RED, GREEN, BLUE, YELLOW = "\033[31m", "\033[32m", "\033[36m", "\033[33m"
 
 class SMS:
     """
-    SMS - Send SMS messages using KDE Connect CLI
+    Send SMS messages using KDE Connect CLI
 
     Attributes:
+    -----------
         _device_id (str): Device ID of the phone to send SMS messages.
         _contacts (dict): Dictionary mapping contact names to phone numbers.
 
     Properties:
+    ------------
         device_id (str): Device ID of the phone to send SMS messages.
         contacts (dict): Dictionary mapping contact names to phone numbers.
 
     Methods:
+    --------
         send(str, str): Send an SMS message to a contact.
     """
 
@@ -31,15 +32,20 @@ class SMS:
         Initialize SMS object with device ID (optional).
 
         Args:
+        -----
             dev_id (str): Device ID of the phone according to kdeconnect.
         """
         self._device_id = dev_id
         self._contacts = {}
 
     @property
-    def device_id(self):
+    def device_id(self) -> str:
         """
         Device ID of the phone according to kdeconnect.
+
+        Returns:
+        -------
+            str: Device ID of the phone according to kde
         """
         if not self._device_id:
             dev_id_process = subprocess.run(
@@ -54,14 +60,17 @@ class SMS:
                 raise Exception(dev_id_process.stderr.strip())
         return self._device_id
 
-    def send(self, msg, destination):
+    def send(self, msg: str, destination: str) -> int:
         """
         Send an SMS message to a contact.
 
         Args:
+        -----
             msg (str): SMS message to send.
             destination (str): Contact name or number to send SMS message to.
+
         Returns:
+        --------
             int: Return code of the subprocess.
         """
         if destination in self._contacts:
@@ -71,9 +80,7 @@ class SMS:
         else:
             raise ValueError(f"Invalid destination: {destination}")
 
-        print(
-            f"\033[33mAttempting send {RESET} {BLUE}{msg}{RESET}] to {RESET} {BLUE}{destination}{RESET}..."
-        )
+        print(f"\033[33mAttempting send {RESET} {BLUE}{msg}{RESET}] to {RESET} {BLUE}{destination}{RESET}...")
         send_sms_process = subprocess.run(
             f'kdeconnect-cli --send-sms "{msg}" --destination {destination} -d {self.device_id}',
             shell=True,
@@ -83,26 +90,28 @@ class SMS:
         return send_sms_process.returncode
 
     @property
-    def contacts(self):
-        """
-        Dictionary mapping contact names to phone numbers.
+    def contacts(self) -> dict:
+        """Dictionary mapping contact names to phone numbers.
+
+        Returns:
+        --------
+            dict: Dictionary of contact name (str) -> phone number (str).
         """
         return self._contacts
 
     @contacts.setter
-    def contacts(self, contacts):
+    def contacts(self, contacts: dict) -> None:
         """
         Set the contacts dictionary.
 
         Args:
+        ------
             contacts (dict): Dictionary mapping contact names to phone numbers.
         """
         self._contacts = contacts
 
-    def __str__(self):
-        """
-        Return string representation of SMS object.
-        """
+    def __str__(self) -> str:
+        """String representation of SMS object."""
         return str(self.__dict__)
 
 
@@ -110,6 +119,7 @@ class SMS:
 def main(dest):
     def joke():
         return subprocess.run(f"curl {url}", shell=True, capture_output=True, text=True)
+
     com = SMS("d847bc89_cacd_4cb7_855b_9570dba7d6fa")
     url = "https://icanhazdadjoke.com"
 
