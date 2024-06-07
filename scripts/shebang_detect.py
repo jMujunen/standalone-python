@@ -3,17 +3,13 @@
 # shebang_detect.py - Detect and modify shebangs
 # Usage: python3 shebang_detect.py <directory>
 
-import sys
-import os
-import re
 import argparse
+import re
 
-from MetaData import Exe, Dir
-from ProgressBar import ProgressBar
-from Color import *
+from Color import cprint, fg
+from MetaData import Dir
 
 SHEBANG_REGEX = re.compile(r"#!.*")
-
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -46,7 +42,8 @@ def parse_args():
         default=False,
         required=False,
     )
-    # Options for modifying shebangs
+    
+    # TODO: Options for modifying shebangs
     # 1. Add shebangs to files with missing shebangs
     # 2. Mofidy python to python3
     # 3. Modify bash to sh

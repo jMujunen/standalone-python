@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-
+"""Strips <pattern> from clipboard"""
 # clipboard_striplines.py - strips a character from each line,
 # using the clipboard as I/O source
 
-import re
-import sys
-import pyperclip
 import argparse
+import re
 
+import pyperclip
+
+# TODO - add more presets for common patterns
 PRESETS = {
+    # Concatenate a multiline string into a single line separated a space
     "multiline": lambda x: " ".join(i.strip() for i in x.split("\n")),
-    "whitespace": None,
-    # TODO - add presets for common patterns
+    "trailing": None,
+    # Remove REPL prompt chars "...:"
+    "ipy": lambda x: re.sub(r"\.\.\.:", "", x, flags=re.MULTILINE),
 }
 
 
@@ -19,15 +22,23 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Strips a character or string from each line, using the clipboard as I/O",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""Examples:
+        epilog="""
+        Example 1:
+        ---------
+
         python3 clipboard_striplines.py --preset=multiline
 
             alsa-card-profiles      |
             ca-certificates-mozilla |
-            dict                   |-> alsa-card-profiles ca-certificates-mozilla dict filesystem geoclue
+            dict                    |
             filesystem              |
             geoclue                 |
-            
+            -----------------------------------------------------------------
+                -> alsa-card-profiles ca-certificates-mozilla dict filesystem geoclue
+            ------------------------------------------------------------------
+
+        Example 2:
+        -----------
 
         python3 clipboard_striplines.py --pattern=wlan0 --replace=wlan1
 
@@ -37,7 +48,7 @@ def parse_args():
         wlan0: associate with      ->  wlan1: associate with
         wlan0: RX AssocResp from   ->  wlan1: RX AssocResp from
         wlan0: associated          ->  wlan1: associated
-""",
+        """,
     )
     parser.add_argument(
         "-r",
@@ -51,13 +62,9 @@ def parse_args():
         default=" ",
     )
 
-    parser.add_argument(
-        "--lstrip", help="Only strip from the left", action="store_true"
-    )
+    parser.add_argument("--lstrip", help="Only strip from the left", action="store_true")
 
-    parser.add_argument(
-        "--rstrip", help="Only strip from the right", action="store_true"
-    )
+    parser.add_argument("--rstrip", help="Only strip from the right", action="store_true")
     parser.add_argument("-l", "--list", help="List presets", action="store_true")
     parser.add_argument(
         "-p",
@@ -66,7 +73,7 @@ def parse_args():
         required=False,
         help="""Presets for common patterns:
         Multiline: Turn a multiline string into a single line""",
-        default=["multiline"]
+        default=["multiline"],
         # Example:
         # -----------------
         #  pyside6-tools-wrappers
@@ -81,15 +88,29 @@ def parse_args():
 
 
 def main(char, replacement):
+    """
+    Strips a character from each line in the clipboard content.
+
+    Paramters:
+    ---------
+        char(str): Character or pattern to strip. Can be any valid PCRE.
+        replacement(str): Optional replacement string.
+    """
     try:
         pattern = re.compile(char)
         text = pyperclip.paste()
+        # Split the text into individual lines
         lines = text.split("\n")
+        # Initialize an empty list to hold the processed lines
         output = []
         for line in lines:
+            # Strip the character or pattern from each line
             output.append(re.sub(pattern, replacement, line))
+        # Join the output list back into a single text string
         text = "\n".join(output)
+        # Update the clipboard with the processed text
         pyperclip.copy(text)
+        # Print the processed text for debugging purposes
         print(text)
         return 0
     except Exception as e:
@@ -101,48 +122,3 @@ def main(char, replacement):
 if __name__ == "__main__":
     args = parse_args()
     main(args.pattern, args.replace)
-
-#     # With preset
-#     input = """alsa-card-profiles
-# ca-certificates-mozilla
-# dict
-# filesystem
-# geoclue
-# ghc-libs
-# gssproxy
-# gst-plugin-pipewire
-# haskell-aeson-pretty
-# haskell-bitvec
-# haskell-bsb-http-chunked
-# haskell-comonad
-# haskell-fast-logger
-# haskell-haddock-library
-# haskell-hslua-repl
-# haskell-http-types
-# haskell-indexed-traversable
-# haskell-ipynb
-# haskell-pandoc-types
-# haskell-regex-tdfa
-# haskell-semigroupoids
-# haskell-servant
-# haskell-time-manager
-# haskell-toml-parser
-# haskell-unordered-containers
-# haskell-vault
-# haskell-wai
-# intel-ucode
-# lib32-nss
-# libpipewire
-# libutempter
-# nmap
-# nss
-# ollama-cuda
-# pacman-contrib
-# pipewire-jack
-# warning: python-pdfrw: mtree data not available (Success)
-# warning: python-pybtex: mtree data not available (Success)
-# warning: python-pynvim: mtree data not available (Success)
-# shadow
-# systemd
-# vlc"""
-#     print(PRESETS["multiline"](input))

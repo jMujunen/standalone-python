@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-
+"""Convert a hex color code to a tuple of RGB color values."""
 import sys
+
 
 def hex_to_rgb(hex_code):
     """

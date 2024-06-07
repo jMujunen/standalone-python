@@ -5,13 +5,14 @@
 import random
 import sys
 
+
 def main():
     if len(sys.argv) == 1:
         print(random.randint(0, 1000))
-    
+
     elif len(sys.argv) == 2:
         print(random.randint(int(sys.argv[1])))
-    
+
     """
     TODO: 
     * Add option for character

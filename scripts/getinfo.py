@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
+"""Get information about files in a directory"""
 
-# get_info.py - get information about files in a directory
+import os
+import sys
 
-import os, sys
 from ExecutionTimer import ExecutionTimer
-from ByteConverter import ByteConverter
 
 DIRECTORY = os.getcwd()
 
@@ -12,7 +12,7 @@ file_types = {
     'img': ['.jpg', '.jpeg', '.png', '.gif', '.heic', '.nef','.webp', 'svg', ],
 
     'doc': ['.pdf', '.doc', '.docx', '.txt', '.odt', '.pptx'],
-    
+
     'video': ['.mp4', '.avi', '.mkv', '.wmv', '.webm', '.m4v'],
 
     'audio': ['.3ga', '.aac', '.ac3', '.aif', '.aiff',

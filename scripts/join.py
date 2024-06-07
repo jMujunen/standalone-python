@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
-
-# join.py - turns a multiline string to a single line
+"""Turns a multiline string to a single line"""
 
 import clipboard
+
+# Function to replace newline characters with a space and copy the result to clipboard.
+# Parameters:
+#   text (str): The multiline string to be converted.
+# Returns:
+#   str: The single line string.
 
 def main(text):
     out = text.replace('\n', ' ')

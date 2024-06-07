@@ -39,8 +39,7 @@ def main(args):
         with open(args.FILE) as file:
             header = next(file)
             """
-            TODO:
-            ? Add support for column range including all
+            TODO: Add support for column range including all
             for column in args.column:
                 # Processes all columns if `all|-all|--all` ...  is passed
                if column in ALL_COLUMNS_KEYWORDS:
@@ -48,6 +47,7 @@ def main(args):
             if args.column:
                 for column in args.column:
                     try:
+                        # 
                         column = int(column)
                         numbers = file.readlines()
                         numbers = [(x.split(',')[column]) for x in numbers]
