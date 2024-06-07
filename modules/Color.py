@@ -1,6 +1,13 @@
-#!/usr/bin/env python\033[3m
+#!/usr/bin/env python
+""" Human readble interface for printing colored text in the terminal.
 
-# Color.py - Module for styling print output in color
+This module utilizes metaclasses to create a human readble interface for
+printing colored text in the terminal. This is a significant improvement over 
+printing raw ansi escape codes."""
+# -*- coding: utf-8 -*-
+__author__ = "Joona Mujunen"
+
+
 
 class ColorMeta(type):
     def __getattr__(self, item):
@@ -160,32 +167,40 @@ class Attributes(metaclass=ColorMeta):
 
 class style(Attributes):
     pass
-    def listall():
+    
+    def listall(self):
         print(' '.join([k for k in style.STYLE.keys()]))
-    def showall():
+    
+    def showall(self):
         for k, v in style.STYLE.items():
             print(f'{v}{k}', end=f'{style.reset}\t')
         print("")
 class fg(ForegroundColor):
     pass
-    def listall():
+    
+    def listall(self):
         print(' '.join([k for k in fg.STYLE.keys()]))
-    def showall():
+    
+    def showall(self):
         for k, v in fg.STYLE.items():
             print(f'{v}{k}', end=f'{style.reset}\t')
         print("")
 class bg(BackgroundColor):
     pass
-    def listall():
+    
+    def listall(self):
         print(' '.join([k for k in bg.STYLE.keys()]))
-    def showall():
+    
+    def showall(self):
         for k, v in bg.STYLE.items():
             print(f'{v}{k}', end=f'{style.reset}\t')
         print("")
 class Parse:
+    
     def __init__(self, text, *styles):
         self.text = text
         self.styles = styles
+    
     def __str__(self):
         styled_text = self.text
         for s in self.styles:

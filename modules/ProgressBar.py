@@ -24,7 +24,7 @@ class ProgressBar:
         Increments the current value of the progress bar by the given amount
     value(value)
         Sets the current value of the progress bar to the given value
-    
+
     len()
         Returns the value of the progress bar for use in a for loop
     """
@@ -92,4 +92,3 @@ if __name__ == '__main__':
     for i in range(100):
         pb.increment()
         sleep(0.1)
-    

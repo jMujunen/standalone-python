@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-
+"""Generates a random RGB color as a tuple"""
 # rng_rgb.py - Random RGB color generator
 
 import random
+
 
 def generate_rgb():
     red = random.randint(0, 255)

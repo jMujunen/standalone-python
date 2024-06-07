@@ -2,8 +2,9 @@
 
 # kde_sms.py - Send dad jokes on a somewhat regular basis
 
+import re
 import subprocess
-import sys, re
+import sys
 
 RESET = "\033[0m"
 RED, GREEN, BLUE, YELLOW = "\033[31m", "\033[32m", "\033[36m", "\033[33m"
@@ -27,11 +28,10 @@ class SMS:
 
     def __init__(self, dev_id=None):
         """
-        Initialize SMS object with device ID and contacts dictionary.
+        Initialize SMS object with device ID (optional).
 
         Args:
             dev_id (str): Device ID of the phone according to kdeconnect.
-            contacts (dict): Dictionary mapping contact names to phone numbers.
         """
         self._device_id = dev_id
         self._contacts = {}
@@ -110,7 +110,6 @@ class SMS:
 def main(dest):
     def joke():
         return subprocess.run(f"curl {url}", shell=True, capture_output=True, text=True)
-
     com = SMS("d847bc89_cacd_4cb7_855b_9570dba7d6fa")
     url = "https://icanhazdadjoke.com"
 
