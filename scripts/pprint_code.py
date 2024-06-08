@@ -5,6 +5,7 @@
 import sys
 import pyperclip
 
+
 def format_code(code, language):
     # TODO Implement formatting logic for each language
     if language == "html":
@@ -15,12 +16,14 @@ def format_code(code, language):
         pass
     elif language == "javascript":
         # TODO Format JavaScript code
+        # [ ] pasksa
         pass
     else:
         # TODO Default formatting for unknown languages
         pass
 
     return formatted_code
+
 
 def main():
     # Get the code from the user's clipboard
@@ -34,6 +37,7 @@ def main():
 
     # Output the formatted code to the user's clipboard
     pyperclip.copy(formatted_code)
+
 
 if __name__ == "__main__":
     main()

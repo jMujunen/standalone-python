@@ -10,11 +10,13 @@ class Weather:
     It fetches and processes weather data for a given location.
 
     Attributes:
+    -----------
         api_key (str): The API key from OpenWeatherMap.
         latitude (float): Latitude of the location to fetch weather data for.
         longitude (float): Longitude of the location to fetch weather data for.
 
     Properties:
+    -----------
         data (dict): Fetches weather data from OpenWeatherMap API and stores it.
         max_temperature (int): The maximum temperature in Celsius.
         humidity (int): The relative humidity as a percentage.
@@ -27,6 +29,7 @@ class Weather:
         wind_deg (int): The direction of the wind in degrees.
 
     Methods:
+    --------
         kelvin2celsius(float) -> float: Converts temperature from Kelvin to Celsius.
         __str__() -> str: Returns a string representation of the weather data for the location.
     """
@@ -39,12 +42,12 @@ class Weather:
     ):
         """
         Initializes a Weather object.
+
         Args:
+        ------
             api_key (str): The API key from OpenWeatherMap.
             latitude (float): Latitude of the location to fetch weather data for.
             longitude (float): Longitude of the location to fetch weather data for.
-        Returns:
-            None
         """
         self.api_key = api_key
         self.latitude = latitude
@@ -56,7 +59,9 @@ class Weather:
         Fetches and processes weather data from OpenWeatherMap API.
 
         If no data is available, it will fetch the data. Otherwise, it will return the stored data.
+
         Returns:
+        --------
             dict: Weather data for the location.
         """
         if not hasattr(self, "_data"):
@@ -72,6 +77,7 @@ class Weather:
         This is achieved by calling the kelvin2celsius method on the current max temperature.
 
         Returns:
+        --------
             int: The maximum temperature in Celsius.
         """
         return self.kelvin2celsius(self.data["main"]["temp_max"])
@@ -84,6 +90,7 @@ class Weather:
         This is fetched directly from OpenWeatherMap API data.
 
         Returns:
+        -------
             int: The relative humidity as a percentage.
         """
         return self.data["main"]["humidity"]
@@ -96,6 +103,7 @@ class Weather:
         This is fetched directly from OpenWeatherMap API data.
 
         Returns:
+        --------
             int: The atmospheric pressure in hectopascals.
         """
         return self.data["main"]["pressure"]
@@ -108,6 +116,7 @@ class Weather:
         This is fetched directly from OpenWeatherMap API data.
 
         Returns:
+        ---------
             float: The speed of the wind in meters per second.
         """
         return self.data["wind"]["speed"]
@@ -120,6 +129,7 @@ class Weather:
         This is fetched directly from OpenWeatherMap API data.
 
         Returns:
+        ---------
             int: The visibility in kilometers.
         """
         return self.data["sys"]["visibility"]
@@ -132,6 +142,7 @@ class Weather:
         This is fetched directly from OpenWeatherMap API data.
 
         Returns:
+        --------
             int: The time of sunset in seconds since the Unix epoch.
         """
         return f"Current Temperature in {self.location}: {self.kelvin2celsius(self.max_temperature)}°C\nDescription: {self.data['weather'][0]['description'].capitalize()}"

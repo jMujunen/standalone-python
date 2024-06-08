@@ -1,19 +1,45 @@
 #!/usr/bin/env python
-""" Human readble interface for printing colored text in the terminal.
+""" Higher level interface for printing colored text in the terminal.
 
-This module utilizes metaclasses to create a human readble interface for
-printing colored text in the terminal. This is a significant improvement over 
-printing raw ansi escape codes."""
-# -*- coding: utf-8 -*-
-__author__ = "Joona Mujunen"
+This module utilizes metaclasses to create a higher level (and therefor) human readble interface for
+printing colored text in the terminal. This is a significant improvement over printing raw escape codes.
 
+Classes:
+-------
+    ColorMeta: The base metaclass for all color classes
+    Style: Responsible for style changes
+    BackgroundColor: Resposible for backround colors
+    ForegroundColor: Resposible for foreground colors
+    Parse: Parses the color classes into a single string
+
+Functions:
+---------
+    cprint: Wrapper arond `print()` which provides a cleaner way of interfacing with this module.
+    The alternative is to use print with f-strings or string concatenation which can be tedious to read.
+
+Examples:
+---------
+    >>> print(f"{bg.red}Hello World{style.reset}")
+    >>> cprint("This is bold and cyan", fg.cyan, style.bold)
+"""
 
 
 class ColorMeta(type):
+    """Metaclass base for creating the interface for printing colored text in the terminal."""
+
     def __getattr__(self, item):
         return f'{self.STYLE[item]}'
 
+
 class BackgroundColor(metaclass=ColorMeta):
+    """
+    Background color styler.
+
+    Attributes:
+    ----------
+        STYLE (dict): Key, values where each key represents the corresponding escape code.
+    """
+
     STYLE = {
         "black": '\033[40m',
         "red": '\033[41m',
@@ -33,7 +59,16 @@ class BackgroundColor(metaclass=ColorMeta):
         "white": '\033[107m',
     }
 
+
 class ForegroundColor(metaclass=ColorMeta):
+    """
+    Foreground color styler.
+
+    Attributes:
+    -----------
+        STYLE (dict): Key, values where each key represents the corresponding escape code.
+    """
+
     STYLE = {
         'aliceblue': '\033[38;2;240;248;255m',
         'antiquewhite': '\033[38;2;250;235;215m',
@@ -44,7 +79,7 @@ class ForegroundColor(metaclass=ColorMeta):
         'bisque': '\033[38;2;255;228;196m',
         'black': '\033[38;2;0;0;0m',
         'blanchedalmond': '\033[38;2;255;235;205m',
-        'blue':  '\033[34m',
+        'blue': '\033[34m',
         'blueviolet': '\033[38;2;138;43;226m',
         'brown': '\033[38;2;165;42;42m',
         'burlywood': '\033[38;2;222;184;135m',
@@ -55,7 +90,7 @@ class ForegroundColor(metaclass=ColorMeta):
         'cornflowerblue': '\033[38;2;100;149;237m',
         'cornsilk': '\033[38;2;255;248;220m',
         'crimson': '\033[38;2;220;20;60m',
-        'cyan':  '\033[36m',
+        'cyan': '\033[36m',
         'darkblue': '\033[38;2;0;0;139m',
         'darkcyan': '\033[38;2;0;139;139m',
         'darkgoldenrod': '\033[38;2;184;134;11m',
@@ -86,7 +121,7 @@ class ForegroundColor(metaclass=ColorMeta):
         'gold': '\033[38;2;255;215;0m',
         'goldenrod': '\033[38;2;218;165;32m',
         'gray': '\033[97m',
-        'green':  '\033[32m',
+        'green': '\033[32m',
         'greenyellow': '\033[38;2;173;255;47m',
         'honeydew': '\033[38;2;240;255;240m',
         'hotpink': '\033[38;2;255;105;180m',
@@ -111,7 +146,7 @@ class ForegroundColor(metaclass=ColorMeta):
         'lightyellow': '\033[38;2;255;255;224m',
         'lime': '\033[38;2;0;255;0m',
         'linen': '\033[38;2;250;240;230m',
-        'magenta':  '\033[35m',
+        'magenta': '\033[35m',
         'maroon': '\033[38;2;128;0;0m',
         'mediumaquamarine': '\033[38;2;102;205;170m',
         'mediumorchid': '\033[38;2;186;85;211m',
@@ -133,7 +168,7 @@ class ForegroundColor(metaclass=ColorMeta):
         'plu': '\033[38;2;221;160;221m',
         'powderblue': '\033[38;2;176;224;230m',
         'purple': '\033[38;2;128;0;128m',
-        'red':  '\033[31m',
+        'red': '\033[31m',
         'rosybrown': '\033[38;2;188;143;143m',
         'saddlebrown': '\033[38;2;139;69;19m',
         'salmon': '\033[38;2;250;128;114m',
@@ -148,11 +183,21 @@ class ForegroundColor(metaclass=ColorMeta):
         'teal': '\033[38;2;0;128;128m',
         'thistle': '\033[38;2;216;191;216m',
         'wheat': '\033[38;2;245;222;179m',
-        'white':  '\033[77m',
-        'yellow':  '\033[33m',
+        'white': '\033[77m',
+        'yellow': '\033[33m',
         'yellowgreen': '\033[38;2;154;205;50m',
     }
+
+
 class Attributes(metaclass=ColorMeta):
+    """
+    Attribute styler.
+
+    Attributes:
+    ----------
+        STYLE (dict): Key, values where each key represents the corresponding escape code.
+    """
+
     STYLE = {
         'bold': '\033[1m',
         'faint': '\033[2m',
@@ -165,51 +210,143 @@ class Attributes(metaclass=ColorMeta):
         'reset': '\033[0m',
     }
 
+
 class style(Attributes):
+    """
+    Applys `style` text formatting.
+
+    Methods:
+    --------
+        listall(): Prints all available attributes.
+        showall(): Similar to listall() but it renders the style as well.
+
+    Examples:
+    -------
+        >>> style.bold -> '\\033[1m'
+        >>> style.underline -> '\\033[4m'
+        >>> style.reset -> '\\033[0m'
+        >>> print(f"{style.bold}This is bold text{style.reset}")
+
+    """
+
     pass
-    
+
     def listall(self):
+        """Prints all available attributes."""
         print(' '.join([k for k in style.STYLE.keys()]))
-    
+
     def showall(self):
+        """Similar to listall() but it renders the style as well."""
         for k, v in style.STYLE.items():
             print(f'{v}{k}', end=f'{style.reset}\t')
         print("")
+
+
 class fg(ForegroundColor):
+    """
+    Applys `fg` foreground formatting.
+
+    Methods:
+    --------
+        listall(): Prints all available attributes.
+        showall(): Similar to listall() but it renders the style as well.
+
+    Examples:
+    ---------
+        >>> fg.red -> '\\033[31m'
+        >>> fg.green -> '\\033[32m'
+        >>> print(f"{fg.red}This is red text{style.reset}")
+    """
+
     pass
-    
+
     def listall(self):
         print(' '.join([k for k in fg.STYLE.keys()]))
-    
+
     def showall(self):
         for k, v in fg.STYLE.items():
             print(f'{v}{k}', end=f'{style.reset}\t')
         print("")
+
+
 class bg(BackgroundColor):
+    """
+    Applys `bg` foreground formatting.
+
+    Methods:
+    --------
+        listall(): Prints all available attributes.
+        showall(): Similar to listall() it renders the style as well.
+
+    Examples:
+    ---------
+        >>> bg.red -> '\\033[41m'
+        >>> bg.green -> '\\033[42m'
+        >>> print(f"{bg.red}This is red text{style.reset}")
+    """
+
     pass
-    
+
     def listall(self):
         print(' '.join([k for k in bg.STYLE.keys()]))
-    
+
     def showall(self):
         for k, v in bg.STYLE.items():
             print(f'{v}{k}', end=f'{style.reset}\t')
         print("")
+
+
 class Parse:
-    
+    """
+    Parses text with given styles.
+
+    Methods:
+    -------
+        __init__(): Initializes the class with text and styles.
+        __str__(): Returns the text with applied styles.
+    """
+
     def __init__(self, text, *styles):
+        """
+        Initializes the class with text and styles.
+
+        Parameters:
+        -----------
+            text (str): The text to be parsed with styles.
+            styles (list): The styles to be applied to the text
+        """
         self.text = text
         self.styles = styles
-    
+
     def __str__(self):
+        """
+        Returns the text with applied styles.
+
+        Returns:
+        --------
+            str: The text with applied styles.
+        """
         styled_text = self.text
         for s in self.styles:
             styled_text = f'{s}{styled_text}{style.reset}'
         return styled_text
 
+
 def cprint(text, *styles, end='\n'):
+    """
+    Prints the text with given styles.
+
+    Parameters:
+    ----------
+        text (str): The text to be printed with styles.
+        styles: The styles to be applied to the
+
+    Example:
+    -------
+        >>> cprint('Hello, World!', fg.orange, style.bold)
+    """
     print(str(Parse(text, *styles)), end=end)
-    
+
 
 # Example usage
 if __name__ == '__main__':
@@ -217,37 +354,3 @@ if __name__ == '__main__':
 
     cprint('Hello, World!', bg.red, style.italic)
     print(dir(fg))
-
-
-# class StyleMeta(type):
-#     def __getattr__(self, item):
-#         return f'\033[{self.STYLE[item]}m'
-
-# class ForegroundColor(metaclass=StyleMeta):
-#     STYLE = {color: str(40 + i) for i, color in enumerate(['black', 'red', 'green', 
-#                                                             'yellow', 'blue', 'magenta', 
-#                                                             'cyan', 'light_grey'])}
-
-# class BackgroundColor(metaclass=StyleMeta):
-#     STYLE = {color: str(100 + i) for i, color in enumerate(['black', 'red', 'green', 
-#                                                              'yellow', 'blue', 'magenta', 
-#                                                              'cyan', 'light_grey'])}
-
-# class Attributes(metaclass=StyleMeta):
-#     STYLE = {'bold': '1', 'faint': '2', 'italic': '3', 'underline': '4', 
-#              'blink': '5', 'negative': '7', 'strike': '9', 'overline': '53'}
-    
-# class Fg(ForegroundColor): pass
-# class Bg(BackgroundColor): pass
-# class Attrs(Attributes): pass
-
-# def cprint(text, *args, **kwargs):
-#     text = text
-#     styles = [getattr(Attrs, s) for s in args 
-#               if any((hasattr(Attrs, s), print(f'Unknown style: {s}'), False))]
-    
-#     styled_text = text
-#     for style in styles[::-1]: # Reverse order to maintain precedence (last style prevails)
-#         styled_text = f'{style}{styled_text}{Attrs.strike}'
-        
-#     print(styled_text, **kwargs)  # Forward any other kwargs to print() function

@@ -12,7 +12,6 @@ import pyperclip
 PRESETS = {
     # Concatenate a multiline string into a single line separated a space
     "multiline": lambda x: " ".join(i.strip() for i in x.split("\n")),
-    "trailing": None,
     # Remove REPL prompt chars "...:"
     "ipy": lambda x: re.sub(r"\.\.\.:", "", x, flags=re.MULTILINE),
 }

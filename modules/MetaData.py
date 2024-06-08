@@ -323,6 +323,7 @@ class File:
         practice to override this method in subclasses that deal with binary files.
 
         Parameters:
+        ------------
             a, b (optional): Return content[a:b]
         Returns:
         ----------
@@ -429,6 +430,7 @@ class File:
         Iterate over the lines of a file.
 
         Yields:
+        --------
             str: A line from the file
         """
         if isinstance(self, (File, Exe, Log)):
@@ -703,6 +705,7 @@ class Dir(File):
         Return a list of VideoObject instances found in the directory.
 
         Returns:
+        --------
             List[VideoObject]: A list of VideoObject instances
         """
         return [item for item in self if isinstance(item, Video)]
@@ -713,6 +716,7 @@ class Dir(File):
         Return a list of DirectoryObject instances found in the directory.
 
         Returns:
+        ----------
             List[DirectoryObject]: A list of DirectoryObject instances
         """
         return [item for item in self if isinstance(item, Dir)]

@@ -11,6 +11,7 @@ import os
 import re
 from datetime import datetime
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Measure CPU clocks')
     parser.add_argument('-d', '--duration', type=int, default=80, help='Measurement duration in seconds')
@@ -22,18 +23,19 @@ def parse_args():
 def write_data_to_file(csv_data, output_file):
     while True:
         try:
-            with open (output_file, 'a') as f:
+            with open(output_file, 'a') as f:
                 f.writelines(csv_data)
                 f.close()
         except KeyboardInterrupt:
             break
+
 
 def query_cpu_clocks():
     processors = []
     clocks = []
     line = []
     # Read the contents of /proc/cpuinfo
-    with open ('/proc/cpuinfo', 'r') as f:
+    with open('/proc/cpuinfo', 'r') as f:
         raw_output = f.read()
         f.close()
 
@@ -42,13 +44,13 @@ def query_cpu_clocks():
     # Find all matches in the text
     matches = re.findall(regex_pattern, raw_output)
 
-    dt = str(datetime.now())[:-7]  
+    dt = str(datetime.now())[:-7]
 
     # Process the matches
     for match in matches:
-        processors.append(match[0])      # Processor number
-        clocks.append(match[1])          # CPU MHz
-        
+        processors.append(match[0])  # Processor number
+        clocks.append(match[1])  # CPU MHz
+
     # query = zip(processors, clocks)
     # data = list(query)
 
@@ -58,13 +60,33 @@ def query_cpu_clocks():
         line.append(str(round(float(clock))))
     return line
 
+
 def main():
+
     # Define headers
     header = [
-        'datetime', 'cpu1', 'cpu2', 'cpu3', 'cpu4', 'cpu5', 'cpu6', 
-        'cpu7', 'cpu8', 'cpu9', 'cpu10', 'cpu11', 'cpu12', 'cpu13', 
-        'cpu14', 'cpu15', 'cpu16', 'cpu17', 'cpu18', 'cpu19', 'cpu20'
-        ]
+        'datetime',
+        'cpu1',
+        'cpu2',
+        'cpu3',
+        'cpu4',
+        'cpu5',
+        'cpu6',
+        'cpu7',
+        'cpu8',
+        'cpu9',
+        'cpu10',
+        'cpu11',
+        'cpu12',
+        'cpu13',
+        'cpu14',
+        'cpu15',
+        'cpu16',
+        'cpu17',
+        'cpu18',
+        'cpu19',
+        'cpu20',
+    ]
 
     data = []
     data.append(','.join(header))
@@ -83,7 +105,7 @@ def main():
         if overwrite_answer.lower() == 'n':
             print('Exiting...')
             sys.exit(1)
-    
+
     with open(args.output, 'w') as f:
         f.write(f"{','.join(header)}\n")
         f.close()
@@ -96,10 +118,11 @@ def main():
         data.append(','.join(query_cpu_clocks()))
         sleep(args.interval)
 
-    #write_data_to_file(data, args.output)
+    # write_data_to_file(data, args.output)
+
 
 if __name__ == '__main__':
-    main() 
+    main()
     ''' 
     Defaults:
         python3 cpu_clocks.py
@@ -107,4 +130,3 @@ if __name__ == '__main__':
             --interval=0.2 
             --output=/home/joona/Logs/cpu_clocks.csv
     '''
-
