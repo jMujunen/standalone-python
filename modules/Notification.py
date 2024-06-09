@@ -3,8 +3,10 @@
 # Notification.py - Resuable notification class
 
 import gi.repository
-gi.require_version('Notify', '0.7')
+
+gi.require_version("Notify", "0.7")
 from gi.repository import Notify
+
 
 class Notification:
     def __init__(self, title, msg):
@@ -15,6 +17,7 @@ class Notification:
 
     def show(self):
         self.notification.show()
+
 
 if __name__ == "__main__":
     n = Notification("Your Title Here", "Your Message Here")

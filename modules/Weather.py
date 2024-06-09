@@ -1,7 +1,18 @@
 #!/usr/bin/env python3
+"""This module defines a Weather class which interacts with OpenWeatherMap API to fetch and process weather data.
+
+Classes:
+--------
+    Weather: Fetches and processes weather data from OpenWeatherMap API.
+
+Examples:
+--------
+    some_city = Weather(api_key, lat, log)
+
+
+"""
 
 import requests
-from pprint import pprint
 
 
 class Weather:
@@ -59,6 +70,7 @@ class Weather:
         Fetches and processes weather data from OpenWeatherMap API.
 
         If no data is available, it will fetch the data. Otherwise, it will return the stored data.
+        This is done to prevent multiple API calls when the weather data is not needed for other purposes.
 
         Returns:
         --------
@@ -71,81 +83,52 @@ class Weather:
 
     @property
     def max_temperature(self):
-        """
-        Returns the maximum temperature in Celsius.
-
-        This is achieved by calling the kelvin2celsius method on the current max temperature.
-
-        Returns:
-        --------
-            int: The maximum temperature in Celsius.
-        """
+        """Returns the maximum temperature in Celsius."""
         return self.kelvin2celsius(self.data["main"]["temp_max"])
 
     @property
     def humidity(self):
-        """
-        Returns the relative humidity as a percentage.
-
-        This is fetched directly from OpenWeatherMap API data.
-
-        Returns:
-        -------
-            int: The relative humidity as a percentage.
-        """
+        """Returns the relative humidity as a percentage"""
         return self.data["main"]["humidity"]
 
     @property
     def pressure(self):
-        """
-        Returns the atmospheric pressure in hectopascals.
-
-        This is fetched directly from OpenWeatherMap API data.
-
-        Returns:
-        --------
-            int: The atmospheric pressure in hectopascals.
-        """
+        """Returns the atmospheric pressure in hectopascals"""
         return self.data["main"]["pressure"]
 
     @property
     def wind_speed(self):
-        """
-        Returns the speed of the wind in meters per second.
-
-        This is fetched directly from OpenWeatherMap API data.
-
-        Returns:
-        ---------
-            float: The speed of the wind in meters per second.
-        """
+        """Returns the speed of the wind in meters per second"""
         return self.data["wind"]["speed"]
 
     @property
     def visibility(self):
-        """
-        Returns the visibility in kilometers.
-
-        This is fetched directly from OpenWeatherMap API data.
-
-        Returns:
-        ---------
-            int: The visibility in kilometers.
-        """
+        """Returns the visibility in kilometers."""
         return self.data["sys"]["visibility"]
 
     @property
-    def sunset(self):
-        """
-        Returns the time of sunset in seconds since the Unix epoch.
+    def location(self):
+        """Returns the name of the location."""
+        return self.data["name"]
 
-        This is fetched directly from OpenWeatherMap API data.
+    @property
+    def sunset(self):
+        """Returns the time of sunset in seconds since the Unix epoch."""
+        return f"Current Temperature in {self.location}: {self.kelvin2celsius(self.max_temperature)}°C\nDescription: {self.data['weather'][0]['description'].capitalize()}"
+
+    def kelvin2celsius(self, kelvin):
+        """Converts Kelvin to Celsius
+
+        Parameters:
+        -----------
+            kelvin (float): Temperature in Kelvin
 
         Returns:
         --------
-            int: The time of sunset in seconds since the Unix epoch.
+            int: Temperature in Celsius
         """
-        return f"Current Temperature in {self.location}: {self.kelvin2celsius(self.max_temperature)}°C\nDescription: {self.data['weather'][0]['description'].capitalize()}"
+
+        return round((kelvin - 273.15), 0)
 
 
 if __name__ == "__main__":

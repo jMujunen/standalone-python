@@ -3,6 +3,7 @@ import subprocess
 
 ESCAPE_REGEX = re.compile(r"(\d+;?)+")
 
+
 class Styler:
     """
     Class for colorizing command output using regular expressions.
@@ -15,11 +16,11 @@ class Styler:
 
     Methods:
     ----------
-        __init__(command, **kwargs)
-        styles()
-        body_style(pattern, color)
-        run_command()
-        colorized_command_output(style)
+        __init__(command, **kwargs): Init object
+        styles(): Applies styles to the command
+        body_style(pattern, color): Applies a style (color) to all instances of a specific pattern in the command
+        run_command(): Runs the command and captures its output
+        colorized_command_output(style): Returns the colorized command output
     """
 
     def __init__(self, command, **kwargs):
@@ -28,15 +29,16 @@ class Styler:
         self._styles = []
 
         if not kwargs:
-            self.positional_arguments = ''
-            self.flags = ''
+            self.positional_arguments = ""
+            self.flags = ""
         else:
             for arg in kwargs.items():
-                if arg[0] == 'positional':
-                    self.positional_arguments = '  '.join(arg[1])
-                if arg[0] == 'flags':
-                    self.flags = '  '.join(arg[1])
+                if arg[0] == "positional":
+                    self.positional_arguments = "  ".join(arg[1])
+                if arg[0] == "flags":
+                    self.flags = "  ".join(arg[1])
         self.command_output = self.run_command()
+
     @property
     def styles(self):
         # Property for getting the list of styles applied to the command output.
@@ -60,7 +62,7 @@ class Styler:
 
         if ESCAPE_REGEX.match(str(color)):
             color_prefix = f"\033[{color}m"
-        else:    # Option for using Color object and specifying color with plain text
+        else:  # Option for using Color object and specifying color with plain text
             color_prefix = color
 
         color_suffix = "\033[0m"
@@ -78,13 +80,19 @@ class Styler:
             str: The stdout of the command as a string. If stderr is not empty, it prints the error and exits with status 1.
         """
 
-        command_output = subprocess.run(f'{self.command} {self.flags} {self.positional_arguments}', shell=True, capture_output=True, text=True)
+        command_output = subprocess.run(
+            f"{self.command} {self.flags} {self.positional_arguments}",
+            shell=True,
+            capture_output=True,
+            text=True,
+        )
         if command_output.stderr:
-            #print(command_output.stderr)
-            #sys.exit(1)
+            # print(command_output.stderr)
+            # sys.exit(1)
             return self.command
 
         return command_output.stdout
+
     def sort(self, ignore_header=True):
         """
         Sorts the output of the command. Ignores the header during sorting and prepends it unless specified.
@@ -97,17 +105,17 @@ class Styler:
         --------
             str: The sorted command output as a string.
         """
-        rows = self.command_output.split('\n')
+        rows = self.command_output.split("\n")
         # If specified, ignore the header during sorting, and prepend the header
         if ignore_header and len(rows) > 1:
             header = rows[0]
             rows = rows[1:]
             rows = sorted(rows)
-            sorted_rows = ([header] + rows)
+            sorted_rows = [header] + rows
 
         else:
             sorted_rows = sorted(rows)
-        return '\n'.join(sorted_rows).replace('\n\n', '\n')
+        return "\n".join(sorted_rows).replace("\n\n", "\n")
 
     def colorized_command_output(self, style):
         """
@@ -121,7 +129,6 @@ class Styler:
         ----------
             str: The colorized version of the command's stdout. Each instance of the patterns in the style tuples are replaced with the corresponding color codes.
         """
-        rows = self.command_output.split('\n')
 
         if not isinstance(style, list):
             style = [style]
@@ -131,7 +138,8 @@ class Styler:
             matches = re.findall(regex, self.command_output)
 
             for match in matches:
-                self.command_output = self.command_output.replace(match, f'{color_prefix}{match}{color_suffix}')
+                self.command_output = self.command_output.replace(
+                    match, f"{color_prefix}{match}{color_suffix}"
+                )
 
         return self.command_output
-

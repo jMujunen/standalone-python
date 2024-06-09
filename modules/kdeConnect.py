@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """"""
+
 import re
 import subprocess
 import sys
@@ -80,7 +81,9 @@ class SMS:
         else:
             raise ValueError(f"Invalid destination: {destination}")
 
-        print(f"\033[33mAttempting send {RESET} {BLUE}{msg}{RESET}] to {RESET} {BLUE}{destination}{RESET}...")
+        print(
+            f"\033[33mAttempting send {RESET} {BLUE}{msg}{RESET}] to {RESET} {BLUE}{destination}{RESET}..."
+        )
         send_sms_process = subprocess.run(
             f'kdeconnect-cli --send-sms "{msg}" --destination {destination} -d {self.device_id}',
             shell=True,
@@ -156,6 +159,6 @@ def main(dest):
 if __name__ == "__main__":
     try:
         main(sys.argv[1])
-    except IndexError as e:
+    except IndexError:
         print("Usage:")
         print("sms.py <destination>")

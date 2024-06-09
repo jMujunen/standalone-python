@@ -5,6 +5,7 @@ Each class inherits from the base class `File`, which defines common attributes 
 shared by each object
 
 Classes:
+-------
 
     File: The base class for all file objects
 
@@ -34,6 +35,7 @@ import pandas as pd
 from moviepy.editor import VideoFileClip
 from PIL import Image, UnidentifiedImageError
 from PIL.ExifTags import TAGS
+import ollama
 
 from Color import fg, style
 
@@ -338,7 +340,11 @@ class File:
         else:
             raise TypeError(f"Reading {type(self)} is unsupported")
         self._content = content
-        return self._content.split("\n")[args[0] : args[1]] if len(args) == 2 else self._content
+        return (
+            self._content.split("\n")[args[0] : args[1]]
+            if len(args) == 2
+            else self._content
+        )
 
     @property
     def is_file(self):
@@ -416,13 +422,13 @@ class File:
         -------
             str: Encoding of the file
         """
-        with open(self.path, 'rb') as f:
-            encoding = chardet.detect(f.read())['encoding']
+        with open(self.path, "rb") as f:
+            encoding = chardet.detect(f.read())["encoding"]
         return encoding
 
     def unixify(self):
         """Convert DOS line endings to UNIX - \\r\\n -> \\n"""
-        self._content = re.sub('\r\n', '\n', self.content)
+        self._content = re.sub("\r\n", "\n", self.content)
         return self._content
 
     def __iter__(self):
@@ -726,7 +732,9 @@ class Dir(File):
         for item in self:
             if item.is_file:
                 file_stats = os.stat(item.path)
-                atime = datetime.datetime.fromtimestamp(file_stats.st_atime).strftime("%Y-%m-%d %H:%M:%S")
+                atime = datetime.datetime.fromtimestamp(file_stats.st_atime).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
                 files.append((item.path, atime))
 
         files.sort(key=lambda x: x[1])
@@ -771,7 +779,11 @@ class Dir(File):
         # files in the root directory. As a result, calling len(directories) will return 1 even if
         # it contains nothing. Hence we need to subtract 1. This is a temporary jimmy rig
         # FIXME: Find a more elegant solution to descrepancy between len(dirs) and len(directories)
-        return (len(self.directories) + len(self.files) - 1) if os.path.exists(self.path) else 0
+        return (
+            (len(self.directories) + len(self.files) - 1)
+            if os.path.exists(self.path)
+            else 0
+        )
 
     def __iter__(self):
         """
@@ -824,6 +836,7 @@ class Img(File):
     ----------
         calculate_hash(self): Calculate the hash value of the image
         render(self, size=None): Render an image using kitty at a specified size (optional)
+        generate_title(): EXPERIMENTAL! - Generate a title for the image using ollama
 
     Properties:
     ----------
@@ -925,13 +938,40 @@ class Img(File):
                 date, time = str(data).split(" ")
                 year, month, day = date.split(":")
                 hour, minute, second = time.split(":")
-                return datetime.datetime(int(year), int(month), int(day), int(hour), int(minute), int(second[:2]))
+                return datetime.datetime(
+                    int(year),
+                    int(month),
+                    int(day),
+                    int(hour),
+                    int(minute),
+                    int(second[:2]),
+                )
         return None
+
+    def generate_title(self):
+        """Generate a title for the image using ollama"""
+        try:
+            response = ollama.chat(
+                model="llava",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": "Catagorize the image into 1 of the following based on the scene. Cat, Portrait, Car, Nature",  # Based off the scene in the image, create a filename under 5 tokens?",
+                        "images": [self.path],
+                    },
+                ],
+            )
+            return response["message"]["content"]
+        except Exception as e:
+            print(f"An error occurred while generating a title:\n{str(e)}")
 
     def render(self, width=640, height=640):
         """Render the image in the terminal using kitty terminal"""
         try:
-            subprocess.run(f'kitten icat --use-window-size {width},100,{height},100 "{self.path}"', shell=True)
+            subprocess.run(
+                f'kitten icat --use-window-size {width},100,{height},100 "{self.path}"',
+                shell=True,
+            )
         except Exception as e:
             print(f"An error occurred while rendering the image:\n{str(e)}")
 
@@ -1200,10 +1240,19 @@ class Log(File):
             num2 = digits.search(str(num2))[0]
             # num2 = re.search(r'(\d+(\.\d+)?)', line.split(' ')[-1]).group(0)
             if float(num1) == float(num2):
-                return f"{num1.replace(num1, f'{fg.cyan}{'\u003d'}{style.reset} {str(num1)}')}", num2
+                return (
+                    f"{num1.replace(num1, f'{fg.cyan}{'\u003d'}{style.reset} {str(num1)}')}",
+                    num2,
+                )
             if float(num1) > float(num2):
-                return f"{num1.replace(num1, f'{fg.red}{'\u002b'}{style.reset} {str(num1)}')}", num2
-            return num1, f"{num2.replace(num2, f' {fg.red}{'\u002b'}{style.reset} {str(num2)}')}"
+                return (
+                    f"{num1.replace(num1, f'{fg.red}{'\u002b'}{style.reset} {str(num1)}')}",
+                    num2,
+                )
+            return (
+                num1,
+                f"{num2.replace(num2, f' {fg.red}{'\u002b'}{style.reset} {str(num2)}')}",
+            )
 
         def round_values(val):
             try:
@@ -1223,7 +1272,9 @@ class Log(File):
             df_stats1 = self.stats
             for k, v in df_stats1.items():
                 try:
-                    num1, num2 = compare_values(round_values(v), round_values(other.stats[k]))
+                    num1, num2 = compare_values(
+                        round_values(v), round_values(other.stats[k])
+                    )
                     print("{:<32} {:<15} {:>20}".format(k, num1, num2))
                 except KeyError:
                     pass

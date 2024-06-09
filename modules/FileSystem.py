@@ -5,20 +5,23 @@
 #       FileTree()                                                   -> A new empty file system.
 #       FileTreeNode('file1', '/path/to/file1')                      -> Create a new file node.
 #       FileTree().add_node(FileTreeNode('file2', '/path/to/file2')) -> Add a file to the tree.
-#       FileTree().traverse()                                        -> Iterate over all nodes in the tree. 
+#       FileTree().traverse()                                        -> Iterate over all nodes in the tree.
+
 
 class FileTreeNode:
     """
     A tree node representing a file.
     """
+
     def __init__(self, name: str, path: str, parent=None):
         """
-        Initialize a new FileTreeNode instance.
+                Initialize a new FileTreeNode instance.
 
-        Args:
-            name (str): The name of the file.
-            path (str): The path to the file.
-            parent (FileTreeNode, optional): The parent node. Defaults to None.
+                Args:
+        # ?
+                    name (str): The name of the file.
+                    path (str): The path to the file.
+                    parent (FileTreeNode, optional): The parent node. Defaults to None.
         """
         self.name = name
         self.path = path
@@ -30,6 +33,7 @@ class FileTreeNode:
         Add a child node to this node.
 
         Args:
+        -----
             child (FileTreeNode): The child node to be added.
 
         Returns:
@@ -99,6 +103,7 @@ class FileTree:
         Yields:
             FileTreeNode: Each node in the file tree.
         """
+
         def recursive_traversal(node: 'FileTreeNode') -> iter:
             yield node
             for child in node.children:
@@ -122,14 +127,15 @@ def create_file_tree(directory_object, file_tree):
     for directory in directory_object.directories:
         dir_node = FileTreeNode(os.path.basename(directory), directory)
         file_tree.add_node(dir_node)
-        
+
         for root, dirs, files in os.walk(directory):
             for file in files:
                 file_name, ext = os.path.splitext(file)
-                if not ext: # ignore directories with no extension (like .git)
+                if not ext:  # ignore directories with no extension (like .git)
                     continue
-                file_node = FileTreeNode(os.path.basename(root) + '/' + file_name, 
-                                        os.path.join(root, file), parent=dir_node)
+                file_node = FileTreeNode(
+                    os.path.basename(root) + '/' + file_name, os.path.join(root, file), parent=dir_node
+                )
                 try:
                     dir_node.add_child(file_node)
                 except Exception as e:
