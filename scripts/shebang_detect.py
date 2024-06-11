@@ -11,6 +11,7 @@ from MetaData import Dir
 
 SHEBANG_REGEX = re.compile(r"#!.*")
 
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Detect and modify shebangs",
@@ -42,15 +43,15 @@ def parse_args():
         default=False,
         required=False,
     )
-    
+
     # TODO: Options for modifying shebangs
-    # 1. Add shebangs to files with missing shebangs
-    # 2. Mofidy python to python3
-    # 3. Modify bash to sh
+    # * Add shebangs to files with missing shebangs
+    # * Mofidy python to python3
+    # * Modify bash to sh
     parser.add_argument(
         "-c",
         "--convert",
-        help="Convert `#!/bin/bash to `#!/bin/sh and #!/usr/bin/python to #!/usr/bin/python3",
+        help="Convert #\!/bin/bash` to `#\!/bin/sh and #\!/usr/bin/python to #\!/usr/bin/python3",
         action="store_true",
         required=False,
     )
@@ -75,7 +76,7 @@ def main(args):
             if args.convert:
                 if SHEBANG_REGEX.match(shebang):
                     new_shebang = SHEBANG_REGEX.sub(
-                        "#!/usr/bin/env python3", shebang
+                        "#\!/usr/bin/env python3", shebang
                     )  # Convert to python3
                     item.shebang = new_shebang
 
@@ -83,17 +84,17 @@ def main(args):
                     shebang
                 ):  # Add the shebang if it's missing
                     if args.file == "sh":
-                        item.shebang = f"#!/bin/sh\n{shebang}"
+                        item.shebang = f"#\!/bin/sh\n{shebang}"
                     elif args.file == "py":
-                        item.shebang = f"#!/usr/bin/env python3\n{shebang}"
+                        item.shebang = f"#\!/usr/bin/env python3\n{shebang}"
 
             if (
                 not SHEBANG_REGEX.match(shebang) and args.missing
             ):  # Add the shebang if it's missing
                 if args.file == "sh":
-                    item.shebang = f"#!/bin/sh\n{shebang}"
+                    item.shebang = f"#\!/bin/sh\n{shebang}"
                 elif args.file == "py":
-                    item.shebang = f"#!/usr/bin/env python3\n{shebang}"
+                    item.shebang = f"#\!/usr/bin/env python3\n{shebang}"
 
 
 if __name__ == "__main__":

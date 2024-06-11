@@ -12,6 +12,7 @@ import pyperclip
 PRESETS = {
     # Concatenate a multiline string into a single line separated a space
     "multiline": lambda x: " ".join(i.strip() for i in x.split("\n")),
+    "whitespace": lambda x: re.sub(r"([^\s]\s+|\n)", "", x),
     # Remove REPL prompt chars "...:"
     "ipy": lambda x: re.sub(r"\.\.\.:", "", x, flags=re.MULTILINE),
 }
@@ -61,18 +62,22 @@ def parse_args():
         default=" ",
     )
 
-    parser.add_argument("--lstrip", help="Only strip from the left", action="store_true")
+    parser.add_argument(
+        "--lstrip", help="Only strip from the left", action="store_true"
+    )
 
-    parser.add_argument("--rstrip", help="Only strip from the right", action="store_true")
+    parser.add_argument(
+        "--rstrip", help="Only strip from the right", action="store_true"
+    )
     parser.add_argument("-l", "--list", help="List presets", action="store_true")
     parser.add_argument(
         "-p",
         "--preset",
-        choices=["multiline", "ipy"],
+        choices=["multiline", "ipy", "whitespace"],
         required=False,
         help="""Presets for common patterns:
-        Multiline: Turn a multiline string into a single line""",
-        default=["multiline"],
+        Multiline: Turn a multiline string into a single line
+        ipy: """,
         # Example:
         # -----------------
         #  pyside6-tools-wrappers
