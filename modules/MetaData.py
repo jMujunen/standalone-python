@@ -18,6 +18,7 @@ Classes:
     Dir: Represents a directory. Contains methods to list objects inside this directory.
 
 Functions:
+----------
     obj: Given a path, this function returns an approprite object defined by this module
 """
 
@@ -215,7 +216,6 @@ class File:
         self.encoding = encoding
         self.path = os.path.abspath(path)
         self._content = None
-        #
 
     def head(self, n=5):
         """
@@ -340,11 +340,7 @@ class File:
         else:
             raise TypeError(f"Reading {type(self)} is unsupported")
         self._content = content
-        return (
-            self._content.split("\n")[args[0] : args[1]]
-            if len(args) == 2
-            else self._content
-        )
+        return self._content.split("\n")[args[0] : args[1]] if len(args) == 2 else self._content
 
     @property
     def is_file(self):
@@ -732,9 +728,7 @@ class Dir(File):
         for item in self:
             if item.is_file:
                 file_stats = os.stat(item.path)
-                atime = datetime.datetime.fromtimestamp(file_stats.st_atime).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
+                atime = datetime.datetime.fromtimestamp(file_stats.st_atime).strftime("%Y-%m-%d %H:%M:%S")
                 files.append((item.path, atime))
 
         files.sort(key=lambda x: x[1])
@@ -756,13 +750,7 @@ class Dir(File):
         ----------
             bool: True if the item is present, False otherwise.
         """
-        if (
-            isinstance(item, File)
-            or isinstance(item, Video)
-            or isinstance(item, Img)
-            or isinstance(item, Exe)
-            or isinstance(item, Dir)
-        ):
+        if isinstance(item, (File, Video, Img, Exe, Dir)):
             return item.basename in self.files
         return item in self.files
 
@@ -779,11 +767,7 @@ class Dir(File):
         # files in the root directory. As a result, calling len(directories) will return 1 even if
         # it contains nothing. Hence we need to subtract 1. This is a temporary jimmy rig
         # FIXME: Find a more elegant solution to descrepancy between len(dirs) and len(directories)
-        return (
-            (len(self.directories) + len(self.files) - 1)
-            if os.path.exists(self.path)
-            else 0
-        )
+        return (len(self.directories) + len(self.files) - 1) if os.path.exists(self.path) else 0
 
     def __iter__(self):
         """
@@ -1272,9 +1256,7 @@ class Log(File):
             df_stats1 = self.stats
             for k, v in df_stats1.items():
                 try:
-                    num1, num2 = compare_values(
-                        round_values(v), round_values(other.stats[k])
-                    )
+                    num1, num2 = compare_values(round_values(v), round_values(other.stats[k]))
                     print("{:<32} {:<15} {:>20}".format(k, num1, num2))
                 except KeyError:
                     pass
@@ -1342,25 +1324,3 @@ def obj(path):
                 return v(path)
         return File(path)
     return cls(path)
-
-
-if __name__ == "__main__":
-    gpuz = Dir("/mnt/ssd/hdd-red/HWLOGGING/GPUZ/")
-    print(gpuz.objects())
-    # csv = Log('/mnt/hdd-red/HWLOGGING/0.925v_1920mhz.CSV')
-    # print(csv.compare(Log('/mnt/hdd-red/HWLOGGING/0.950v_1965mhz.CSV')))
-
-    # print('\n------------------\n')
-    # for col in csv._stats():
-    #     print(col)
-    # img = ImageObject("/home/joona/Pictures/PEGBOARD.jpg")
-    # video = VideoObject("/mnt/ssd/compressed_obs/Dayz/blaze kill CQC.mp4")
-    # txtfile = FileObject("/home/joona/python/Projects/dir_oraganizer/getinfo.py")
-
-    # print(img)
-    # print(video)
-    # print(txtfile)
-
-
-# f = len([f for folder in os.walk('/mnt/ssd/compressed_obs/CSGO/')
-#         for f in folder])

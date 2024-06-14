@@ -22,3 +22,5 @@ class Notification:
 if __name__ == "__main__":
     n = Notification("Your Title Here", "Your Message Here")
     n.show()
+
+    dbus = Notify.init()

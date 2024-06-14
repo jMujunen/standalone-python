@@ -15,35 +15,34 @@ GROUPS = {
     "misc": ["ping", "ram_usage"],
     "gpu": ["gpu_temp", "gpu_usage", "gpu_power"],
     "temps": ["system_temp", "gpu_temp", "cpu_temp"],
-    
 }
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Plot pandas dataframes",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "-f", "--file",
-        help="Path to the csv file",
-        type=str,
-        default="/tmp/hwinfo.csv"
+        "-f", "--file", help="Path to the csv file", type=str, default="/tmp/hwinfo.csv"
     )
     parser.add_argument(
-        "-w", "--window",
+        "-w",
+        "--window",
         help="Window size for the moving average",
         type=int,
-        default=100
+        default=100,
     )
     parser.add_argument(
         "COLUMNS",
         help="""Columns to plot
         Supports groups, such as 'cpu' or 'gpu' or 'temps' .""",
         nargs="*",
-    default=['cpu_temp'] #, 'system_temp', 'gpu_usage', 'gpu_power', 'gpu_memory_usage']
+        default=[
+            "cpu_temp"
+        ],  # , 'system_temp', 'gpu_usage', 'gpu_power', 'gpu_memory_usage']
     )
-    # TODO: Add support for limiting the range of the x-axis (time) 
+    # TODO: Add support for limiting the range of the x-axis (time)
     return parser.parse_args()
 
 
@@ -64,39 +63,48 @@ def main(filepath, window_size, columns):
     """
     if not os.path.isfile(filepath):
         raise FileNotFoundError(f"File {filepath} not found.")
-    df = pd.read_csv(filepath, sep=r',')
+    df = pd.read_csv(filepath, sep=r",")
     if any(col not in df.columns for col in columns):
         raise ValueError("One or more of the columns do not exist.")
 
     smooth_data = {}
     for column in columns:
         smooth_data[column] = np.convolve(
-            df[column], np.ones(window_size)/window_size, mode='valid')
+            df[column], np.ones(window_size) / window_size, mode="valid"
+        )
 
     smooth_df = pd.DataFrame(smooth_data)
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    line, = ax.plot([], [], label=columns[0])  # Changed to use the first column for the label
+    (line,) = ax.plot(
+        [], [], label=columns[0]
+    )  # Changed to use the first column for the label
 
     def init():
         ax.set_xlim(left=0, right=len(df))
-        ax.set_ylim(bottom=np.min(smooth_df.values)-1, top=250)  # Used smooth_df instead of smooth_data
-        return line,
+        ax.set_ylim(
+            bottom=np.min(smooth_df.values) - 1, top=250
+        )  # Used smooth_df instead of smooth_data
+        return (line,)
 
     def animate(i):
-        new_data = pd.read_csv(filepath, sep=r',\s+', engine='python')
+        new_data = pd.read_csv(filepath, sep=r",\s+", engine="python")
         new_smooth_data = {}
         for column in columns:
             new_smooth_data[column] = np.convolve(
-                new_data[column], np.ones(window_size)/window_size, mode='valid')
+                new_data[column], np.ones(window_size) / window_size, mode="valid"
+            )
         new_smooth_df = pd.DataFrame(new_smooth_data)
         ax.clear()
         new_smooth_df.plot(ax=ax, grid=True)
 
-    #ani = FuncAnimation(fig, animate, frames=100, interval=200)
-    ani = FuncAnimation(fig, animate, frames=100, interval=200)  # Update every 1000 milliseconds (1 second)
+    # ani = FuncAnimation(fig, animate, frames=100, interval=200)
+    ani = FuncAnimation(
+        fig, animate, frames=100, interval=200
+    )  # Update every 1000 milliseconds (1 second)
     plt.show()
-    
+
+
 if __name__ == "__main__":
     args = parse_args()
     if args.COLUMNS[0] in GROUPS.keys():

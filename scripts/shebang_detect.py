@@ -3,11 +3,12 @@
 # shebang_detect.py - Detect and modify shebangs
 # Usage: python3 shebang_detect.py <directory>
 
+
 import argparse
 import re
 
 from Color import cprint, fg
-from MetaData import Dir
+from MetaData import Dir, Exe
 
 SHEBANG_REGEX = re.compile(r"#!.*")
 
@@ -51,7 +52,7 @@ def parse_args():
     parser.add_argument(
         "-c",
         "--convert",
-        help="Convert #\!/bin/bash` to `#\!/bin/sh and #\!/usr/bin/python to #\!/usr/bin/python3",
+        help=r"Convert #!/bin/bash` to `#!/bin/sh and #!/usr/bin/python to #!/usr/bin/python3",
         action="store_true",
         required=False,
     )
@@ -62,11 +63,7 @@ def parse_args():
 def main(args):
     directory = Dir(args.directory)
     for item in directory:
-        if (
-            item.is_file
-            and item.is_executable
-            and item.extension.strip(".") == args.file
-        ):
+        if isinstance(item, Exe) and item.extension.strip(".") == args.file:
             shebang = item.shebang
             if args.verbose:
                 # Print the file name and shebang
@@ -75,22 +72,16 @@ def main(args):
 
             if args.convert:
                 if SHEBANG_REGEX.match(shebang):
-                    new_shebang = SHEBANG_REGEX.sub(
-                        "#!/usr/bin/env python3", shebang
-                    )  # Convert to python3
+                    new_shebang = SHEBANG_REGEX.sub("#!/usr/bin/env python3", shebang)  # Convert to python3
                     item.shebang = new_shebang
 
-                elif not SHEBANG_REGEX.match(
-                    shebang
-                ):  # Add the shebang if it's missing
+                elif not SHEBANG_REGEX.match(shebang):  # Add the shebang if it's missing
                     if args.file == "sh":
                         item.shebang = f"#!/bin/bash\n{shebang}"
                     elif args.file == "py":
                         item.shebang = f"#!/usr/bin/env python3\n{shebang}"
 
-            if (
-                not SHEBANG_REGEX.match(shebang) and args.missing
-            ):  # Add the shebang if it's missing
+            if not SHEBANG_REGEX.match(shebang) and args.missing:  # Add the shebang if it's missing
                 if args.file == "sh":
                     # Don't overwrite the first line
                     item.shebang = f"#!/bin/sh\n{shebang}"
