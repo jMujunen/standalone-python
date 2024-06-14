@@ -3,11 +3,11 @@
 # pandas_plot.py - Plot pandas dataframes
 
 import os
-import sys
-import pandas as pd
+import argparse
+
 import matplotlib.pyplot as plt
 import numpy as np
-import argparse
+import pandas as pd
 from matplotlib.animation import FuncAnimation
 
 FILE = "/tmp/hwinfo.csv"
@@ -17,15 +17,14 @@ GROUPS = {
     "temps": ["system_temp", "gpu_temp", "cpu_temp"],
 }
 
-
+def addition():
+    if some 
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Plot pandas dataframes",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument(
-        "-f", "--file", help="Path to the csv file", type=str, default="/tmp/hwinfo.csv"
-    )
+    parser.add_argument("-f", "--file", help="Path to the csv file", type=str, default="/tmp/hwinfo.csv")
     parser.add_argument(
         "-w",
         "--window",
@@ -38,9 +37,7 @@ def parse_args():
         help="""Columns to plot
         Supports groups, such as 'cpu' or 'gpu' or 'temps' .""",
         nargs="*",
-        default=[
-            "cpu_temp"
-        ],  # , 'system_temp', 'gpu_usage', 'gpu_power', 'gpu_memory_usage']
+        default=["cpu_temp"],  # , 'system_temp', 'gpu_usage', 'gpu_power', 'gpu_memory_usage']
     )
     # TODO: Add support for limiting the range of the x-axis (time)
     return parser.parse_args()
@@ -69,39 +66,29 @@ def main(filepath, window_size, columns):
 
     smooth_data = {}
     for column in columns:
-        smooth_data[column] = np.convolve(
-            df[column], np.ones(window_size) / window_size, mode="valid"
-        )
+        smooth_data[column] = np.convolve(df[column], np.ones(window_size) / window_size, mode="valid")
 
     smooth_df = pd.DataFrame(smooth_data)
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    (line,) = ax.plot(
-        [], [], label=columns[0]
-    )  # Changed to use the first column for the label
+    (line,) = ax.plot([], [], label=columns[0])  # Changed to use the first column for the label
 
     def init():
         ax.set_xlim(left=0, right=len(df))
-        ax.set_ylim(
-            bottom=np.min(smooth_df.values) - 1, top=250
-        )  # Used smooth_df instead of smooth_data
+        ax.set_ylim(bottom=np.min(smooth_df.values) - 1, top=250)  # Used smooth_df instead of smooth_data
         return (line,)
 
     def animate(i):
         new_data = pd.read_csv(filepath, sep=r",\s+", engine="python")
         new_smooth_data = {}
         for column in columns:
-            new_smooth_data[column] = np.convolve(
-                new_data[column], np.ones(window_size) / window_size, mode="valid"
-            )
+            new_smooth_data[column] = np.convolve(new_data[column], np.ones(window_size) / window_size, mode="valid")
         new_smooth_df = pd.DataFrame(new_smooth_data)
         ax.clear()
         new_smooth_df.plot(ax=ax, grid=True)
 
     # ani = FuncAnimation(fig, animate, frames=100, interval=200)
-    ani = FuncAnimation(
-        fig, animate, frames=100, interval=200
-    )  # Update every 1000 milliseconds (1 second)
+    ani = FuncAnimation(fig, animate, frames=100, interval=200)  # Update every 1000 milliseconds (1 second)
     plt.show()
 
 

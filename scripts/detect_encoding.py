@@ -17,8 +17,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Detect the encoding of a text based file')
     parser.add_argument('file_path', type=str, help='The path to the text file')
     parser.add_argument('--verbose', '-v', action='store_true', help='Enable verbose mode')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main(file):
@@ -40,8 +39,8 @@ def main(file):
 
 if __name__ == "__main__":
     args = parse_args()
-    encoding = main(args.file_path)
+    result = main(args.file_path)
     # TODO M0R3 Verbose
     if args.verbose:
         print(f'Input file: {args.file_path}')
-    print(encoding)
+    print(result)

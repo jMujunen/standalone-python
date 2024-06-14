@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+"""A simple progress bar object"""
 from time import sleep
 
 # pb.py - A simple progress bar object
@@ -19,7 +19,7 @@ class ProgressBar:
 
     Methods
     -------
-    update(current_value=0)
+    update(current_value=0
         Updates the progress bar with the given current value
     increment(increment=1)
         Increments the current value of the progress bar by the given amount
@@ -40,10 +40,11 @@ class ProgressBar:
         """
         self.inital_value = inital_value
         self.value_ = 0
+        self.progress = 1
 
     def update(self, current_value=0):
-        """
-        Updates the progress bar with the given current value
+        """Updates the progress bar with the given current value
+
         Parameters
         ----------
         current_value : int
@@ -66,13 +67,7 @@ class ProgressBar:
 
     @property
     def value(self):
-        """
-        This is a property method that returns the current value of the progress bar
-        Returns
-        -------
-        int
-            The current value of the progress bar.
-        """
+        """Value getter property. Returns the current value"""
         return int(self.value_)
 
     @value.setter

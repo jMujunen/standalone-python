@@ -15,13 +15,13 @@ class FileTreeNode:
 
     def __init__(self, name: str, path: str, parent=None):
         """
-                Initialize a new FileTreeNode instance.
+        Initialize a new FileTreeNode instance.
 
-                Args:
-        # ?
-                    name (str): The name of the file.
-                    path (str): The path to the file.
-                    parent (FileTreeNode, optional): The parent node. Defaults to None.
+        Args:
+
+            name (str): The name of the file.
+            path (str): The path to the file.
+            parent (FileTreeNode, optional): The parent node. Defaults to None.
         """
         self.name = name
         self.path = path

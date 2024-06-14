@@ -16,7 +16,7 @@ Functions:
 ---------
     cprint: Wrapper arond `print()` which provides a cleaner way of interfacing with this module.
     The alternative is to use print with f-strings or string concatenation which can be tedious to read.
-
+    
 Examples:
 ---------
     >>> print(f"{bg.red}Hello World{style.reset}")
@@ -229,11 +229,9 @@ class style(Attributes):
 
     """
 
-    pass
-
     def listall(self):
         """Prints all available attributes."""
-        print(' '.join([k for k in style.STYLE.keys()]))
+        print(' '.join(list(style.STYLE.keys())))
 
     def showall(self):
         """Similar to listall() but it renders the style as well."""

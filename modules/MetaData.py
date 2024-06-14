@@ -678,7 +678,6 @@ class Dir(File):
                     return obj(os.path.join(self.path, d, file_name))
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e)
-            pass
 
     @property
     def is_empty(self):

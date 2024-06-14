@@ -7,12 +7,13 @@ import subprocess
 import re
 import datetime
 
+
 class CpuData:
     def __init__(self):
         """
         Initializes an instance of `CpuData`.
         The object contains information about the CPU, including its clock speed, voltage, temperature and name.
-        
+
         Returns
         ------
             CpuData: An instance of a class containing data about the CPU.
@@ -40,9 +41,9 @@ class CpuData:
             dict: A dictionary where keys are core numbers (ints) and values are clock frequencies (floats).
         """
         clock_dict = {}
-        with open('/proc/cpuinfo', 'r') as f:
+        with open('/proc/cpuinfo', 'r', encoding='utf-8') as f:
             raw_output = f.read()
-
+        if 
         matches = re.findall(self.clock_speed_regex, raw_output)
         count = 1
         for match in matches:
@@ -61,7 +62,9 @@ class CpuData:
             dict: A dictionary where keys are core numbers (ints) and values are temperatures (floats).
         """
         temp_dict = {}
-        cpu_temperatures = subprocess.run('sensors | grep Core', shell=True, capture_output=True, text=True).stdout.strip()
+        cpu_temperatures = subprocess.run(
+            'sensors | grep Core', shell=True, capture_output=True, text=True
+        ).stdout.strip()
 
         matches = re.findall(self.cpu_temp_regex, cpu_temperatures)
         count = 1
@@ -76,13 +79,15 @@ class CpuData:
         Queries the voltage of the CPU and returns it.
         The voltage is rounded to three decimal places.
         """
-        cpu_voltage_subproccess = subprocess.run(['echo $(sensors | grep VIN3)'], shell=True, stdout=subprocess.PIPE).stdout.decode("utf-8")
+        cpu_voltage_subproccess = subprocess.run(
+            ['echo $(sensors | grep VIN3)'], shell=True, stdout=subprocess.PIPE
+        ).stdout.decode("utf-8")
         raw_value = self.cpu_voltage_regex.search(cpu_voltage_subproccess).group(1)
         cpu_voltage = raw_value.strip()
         if len(cpu_voltage) == 4:
             return round(float(cpu_voltage.strip()), 3)
         elif len(cpu_voltage) == 6:
-            return round((float(cpu_voltage)/1000), 3)
+            return round((float(cpu_voltage) / 1000), 3)
         else:
             raise Exception("Error: Voltage not found (requires a 4 or 6 digit number eg 1.25v or 600.00mV)")
 
@@ -96,7 +101,7 @@ class CpuData:
             List[float]: A list where each element is a core number (int) and its corresponding clock frequency (float).
         """
         self.query_clocks = self.query_cpu_clocks()
-        return   ([round(float(clock)) for clock in self.query_clocks.values()])
+        return [round(float(clock)) for clock in self.query_clocks.values()]
 
     def cpu_temp_list(self):
         """
@@ -108,7 +113,7 @@ class CpuData:
             List[float]: A list where each element is a core number (int) and its corresponding temperature (float).
         """
         self.query_temp = self.query_cpu_temp()
-        return   ([round(float(temp)) for temp in self.query_temp.values()])
+        return [round(float(temp)) for temp in self.query_temp.values()]
 
     @property
     def average_temp(self):
@@ -119,7 +124,7 @@ class CpuData:
         ------
             float: The average CPU temperature in degrees Celsius (float).
         """
-        return round(sum(self.cpu_temp_list())   / len(self.cpu_temp_list()))
+        return round(sum(self.cpu_temp_list()) / len(self.cpu_temp_list()))
 
     @property
     def max_temp(self):
@@ -152,14 +157,10 @@ class CpuData:
         ------
             float: The average clock frequency (float).
         """
-        return round(sum(self.cpu_clocks_list())   / len(self.cpu_clocks_list()))
+        return round(sum(self.cpu_clocks_list()) / len(self.cpu_clocks_list()))
+
     def cpu_name(self, short=False):
-        output = subprocess.run(
-            'lscpu | grep "Model name"',
-            shell=True,
-            capture_output=True,
-            text=True
-        )
+        output = subprocess.run('lscpu | grep "Model name"', shell=True, capture_output=True, text=True)
         stderr = output.stderr.strip()
         stdout = output.stdout.strip()
 
@@ -194,7 +195,7 @@ class CpuData:
         DATETIME_REGEX = re.compile(r'\d+(-|/)\d+(-|/)\d+\s\d+:\d+:\d+(\.\d+)?')
         header_ = ''
 
-        unit_definitions = [' V',' MHz', ' MHz', ' °C', ' °C']
+        unit_definitions = [' V', ' MHz', ' MHz', ' °C', ' °C']
         template = f"{self.voltage},{self.average_clock},{self.max_clock},{self.average_temp},{self.max_temp}"
 
         if timestamp:
@@ -202,11 +203,11 @@ class CpuData:
             template = f"{timestamp},{template}"
         if header:
             if timestamp:
-                keys = ['Time', 'Voltage','Average Clock', 'Max Clock', 'Average Temp', 'Max Temp']
+                keys = ['Time', 'Voltage', 'Average Clock', 'Max Clock', 'Average Temp', 'Max Temp']
             else:
-                keys = ['Voltage','Average Clock', 'Max Clock', 'AVerage Temp', 'Max Temp']
+                keys = ['Voltage', 'Average Clock', 'Max Clock', 'AVerage Temp', 'Max Temp']
             header_ = ",".join(keys)
-            template  = header_ + "\n"+template
+            template = header_ + "\n" + template
 
         # Append units to the end of each field
         if units:
@@ -231,9 +232,14 @@ class CpuData:
             template = f'{header_}\n{", ".join(values)}' if header else ", ".join(values)
 
         # Format the template with the data from this instance of the class.
-        formatted =  template.format(voltage=self.voltage, average_clock=self.average_clock, max_clock=self.max_clock, average_temp=self.average_temp, max_temp=self.max_temp)
+        formatted = template.format(
+            voltage=self.voltage,
+            average_clock=self.average_clock,
+            max_clock=self.max_clock,
+            average_temp=self.average_temp,
+            max_temp=self.max_temp,
+        )
         return formatted
-
 
         values = ''
         header_line = ''
@@ -259,8 +265,8 @@ class CpuData:
         -------
             str: A string representing the current state of the CPU in a readable format.
         """
-        voltage 		  = self.voltage
-        average_clock	  = self.average_clock
+        voltage = self.voltage
+        average_clock = self.average_clock
         maxiumum_clock = self.max_clock
 
         maxiumum_temp = self.max_temp
@@ -274,9 +280,10 @@ class CpuData:
             f'Avg temp: {average_temp}°C'
         ).strip()
 
+
 # Example usage
 if __name__ == '__main__':
-    cpu_data= CpuData()
+    cpu_data = CpuData()
     print(cpu_data)
     print(format(cpu_data, 'csv_units'))
     print(cpu_data.voltage)
