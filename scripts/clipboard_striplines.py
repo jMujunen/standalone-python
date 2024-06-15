@@ -11,7 +11,7 @@ import pyperclip
 # TODO - add more presets for common patterns
 PRESETS = {
     # Concatenate a multiline string into a single line separated a space
-    "multiline": lambda x: " ".join(i.strip() for i in x.split("\n")),
+    "multiline": lambda x: " ".join(i.strip() for i in x.strip().split("\n")),
     "whitespace": lambda x: re.sub(r"([^\s]\s+|\n)", "", x),
     # Remove REPL prompt chars "...:"
     "ipy": lambda x: re.sub(r"\.\.\.:", "", x, flags=re.MULTILINE),
@@ -62,13 +62,9 @@ def parse_args():
         default=" ",
     )
 
-    parser.add_argument(
-        "--lstrip", help="Only strip from the left", action="store_true"
-    )
+    parser.add_argument("--lstrip", help="Only strip from the left", action="store_true")
 
-    parser.add_argument(
-        "--rstrip", help="Only strip from the right", action="store_true"
-    )
+    parser.add_argument("--rstrip", help="Only strip from the right", action="store_true")
     parser.add_argument("-l", "--list", help="List presets", action="store_true")
     parser.add_argument(
         "-p",
@@ -103,6 +99,9 @@ def main(char, replacement):
     try:
         pattern = re.compile(char)
         text = pyperclip.paste()
+        if args.preset:
+            return PRESETS[args.preset](text)
+
         # Split the text into individual lines
         lines = text.split("\n")
         # Initialize an empty list to hold the processed lines

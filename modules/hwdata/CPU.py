@@ -43,7 +43,7 @@ class CpuData:
         clock_dict = {}
         with open('/proc/cpuinfo', 'r', encoding='utf-8') as f:
             raw_output = f.read()
-        if 
+
         matches = re.findall(self.clock_speed_regex, raw_output)
         count = 1
         for match in matches:

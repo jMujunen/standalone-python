@@ -2,13 +2,12 @@ import  os
 from shutil import copyfile, copyfileobj
 import shutil
 from pathlib import Path
-import pathlib
 import sys
 import re
 import html
 from urllib.parse import unquote
 import urllib.request
-from random import seed,random,randint
+from random import seed,randint
 
 
 

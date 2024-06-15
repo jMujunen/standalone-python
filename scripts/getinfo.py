@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Get information about files in a directory"""
+"""Prints the total count of each file type in a given directory
+
+Example:
+-------
+    >>
+"""
 
 import os
 import sys
