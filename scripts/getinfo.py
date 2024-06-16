@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Prints the total count of each file type in a given directory
-
-Example:
--------
-    >>
-"""
+"""Prints the total count of each file type in a given directory"""
 
 import os
 import sys
@@ -99,11 +94,8 @@ def count_file_types(directory):
                 file_extension = file_extension[1:]  # remove the dot from the extension
                 if file_extension in file_types:
                     file_types[file_extension] += 1
-                    # file_types[file_extension]['count'] += 1
-                    # file_types[file_extension]['size'] = int(os.path.getsize(os.path.join(root, file))) + file_types[file_extension]['size']
                 else:
                     file_types[file_extension] = 1
-                    # file_types[file_extension] = {'count': 1, 'size': int(os.path.getsize(os.path.join(root, file)))}
 
     return file_types
 
@@ -115,8 +107,3 @@ if __name__ == "__main__":
         file_type_counts = count_file_types(DIRECTORY)
         for file_type, count in file_type_counts.items():
             print("{:<20} {:>10}".format(file_type, count))
-        # for file_type in file_type_counts.keys():
-        # count = file_type_counts[file_type]['count']
-        # size = file_type_counts[file_type]['size']
-
-        # print(f"{file_type}: {count} - Size: {ByteConverter.convert_bytes(size)}")

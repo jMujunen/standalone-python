@@ -5,7 +5,6 @@
 from time import sleep
 
 import sys
-import subprocess
 import argparse
 import os
 import re
@@ -121,12 +120,13 @@ def main():
     # write_data_to_file(data, args.output)
 
 
+# Example
 if __name__ == '__main__':
     main()
-    ''' 
+    '''
     Defaults:
         python3 cpu_clocks.py
-            --duration=80 
-            --interval=0.2 
+            --duration=80
+            --interval=0.2
             --output=/home/joona/Logs/cpu_clocks.csv
     '''
