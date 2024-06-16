@@ -397,7 +397,7 @@ class File:
         ----------
             bool: True if the file is a git object, False otherwise
         """
-        return GIT_OBJECT_REGEX.match(self.basename)
+        return GIT_OBJECT_REGEX.match(self.basename) is not None
 
     @property
     def is_image(self):
@@ -1062,15 +1062,16 @@ class Video(File):
         ]
         ffprobe_output = subprocess.check_output(ffprobe_cmd).decode("utf-8")
         self._metadata = json.loads(ffprobe_output)
-        bit_rate = metadata["format"]["bit_rate"]
-        if metadata['tags']:
+        bit_rate = self._metadata["format"]["bit_rate"]
+        if self._metadata['tags']:
+            self._metadata['tags'] = {k: v for k, v in self._metadata['tags'].items() if isinstance(v, str)}
 
         return bit_rate
 
-    @property
-    def capture_date(self):
-        if not self._metadata:
-            self._metadata =
+    # @property
+    # def capture_date(self):
+    #     if not self._metadata:
+    #         self._metadata =
 
     @property
     def is_corrupt(self):
@@ -1093,6 +1094,19 @@ class Video(File):
             sys.exit(0)
         except Exception as e:
             print(f"Error: {e}")
+
+    def render(self):
+        """Render the video using in the shell using kitty protocols."""
+        if os.environ.get("TERM") == 'xterm-kitty':
+            try:
+                subprocess.call(['mpv', self.path])
+            except Exception as e:
+                print(f"Error: {e}")
+        else:
+            try:
+                subprocess.call(["xdg-open", self.path])
+            except Exception as e:
+                print(f"Error: {e}")
 
 
 class Log(File):

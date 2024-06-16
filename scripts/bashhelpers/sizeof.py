@@ -4,7 +4,6 @@
 
 import os
 import subprocess
-import sys
 import argparse
 
 from ByteConverter import ByteConverter
@@ -23,9 +22,7 @@ def parse_args():
         help="Path to directory. Defaults to current directory.",
     )
     parser.add_argument("-l", "--lines", type=int, default=1)
-    parser.add_argument(
-        "-a", "--all", action="store_true", default=False, help="Show file sizes"
-    )
+    parser.add_argument("-a", "--all", action="store_true", default=False, help="Show file sizes")
     parser.add_argument(
         "-mount",
         action="store_true",
@@ -62,7 +59,7 @@ def sizeof(path):
 
     stdout = output.stdout.strip()
     stderr = output.stderr.strip()
-    if not "denied" in stderr:
+    if "denied" not in stderr:
         print(stderr)
     output = stdout.split("\n")
     for item in output:

@@ -4,11 +4,12 @@
 
 import psutil
 import subprocess
-import re
+
 
 class NetworkInterface:
     def __init__(self, interface='wlan0'):
         self.interface = interface
+
     def addresses(self):
         for interface, values in psutil.net_if_addrs().items():
             if self.interface in interface:
@@ -51,12 +52,8 @@ class NetworkInterface:
             except Exception as e:
                 pass
 
-        return (
-            listening_connections,
-            established_connections,
-            outgoing_connections,
-            other_connections
-        )
+        return (listening_connections, established_connections, outgoing_connections, other_connections)
+
     def byte_io(self, destination):
         if not self.interface in psutil.net_connections(pernic=True):
             return 1
@@ -68,12 +65,13 @@ class NetworkInterface:
             return bytes_recv
         else:
             return bytes_sent, bytes_recv
+
     def ping(self, destination='1.1.1.1'):
         ping = subprocess.run(
             f'ping -c 1 {destination} | sed -u "s/^.*time=//g; s/ ms//g; s/^PING.*//g; s/^---.*//g; s/^.*packets.*//g; s/^rtt.*//g"',
             shell=True,
             capture_output=True,
-            text=True
+            text=True,
         )
         if ping.stderr:
             return ping.stderr.strip()
@@ -81,6 +79,7 @@ class NetworkInterface:
             return round(float(ping.stdout.strip()))
         except ValueError:
             return 0
+
     @property
     def online(self):
         return 'online' if psutil.net_if_stats()[self.interface].isup else 'offline'
@@ -112,6 +111,7 @@ class NetworkInterface:
 
         return nm
         '''
+
     @property
     def hosts(self):
         hosts = subprocess.run(
@@ -133,12 +133,14 @@ class NetworkInterface:
             f'  Broadcast: {self.addresses()[2]}\n'
             f'  MAC: {self.addresses()[3]}'
         )
+
     # TODO: Add more
     '''
     for proc in psutil.process_iter(['pid', 'name', 'username']):
         print(proc.info)
     '''
-        
+
+
 # Example
 if __name__ == '__main__':
     net = NetworkInterface()
@@ -147,24 +149,26 @@ if __name__ == '__main__':
     try:
         listeneing_addr = [
             [k for k in net.connections()[0] if k.raddr[0] != '127.0.0.1' and k.laddr not in listeneing_addr],
-            [k for k in net.connections()[0] if k.laddr[0] != '127.0.0.1' and k.laddr not in listeneing_addr]]
+            [k for k in net.connections()[0] if k.laddr[0] != '127.0.0.1' and k.laddr not in listeneing_addr],
+        ]
     except Exception as e:
         print(e)
     try:
-        established_addr =[
+        established_addr = [
             [k for k in net.connections()[1] if k.raddr[0] != '127.0.0.1' and k.laddr not in listeneing_addr],
-            [k for k in net.connections()[1] if k.laddr[0] != '127.0.0.1' and k.laddr not in listeneing_addr]]
+            [k for k in net.connections()[1] if k.laddr[0] != '127.0.0.1' and k.laddr not in listeneing_addr],
+        ]
     except Exception as e:
         print(e)
 
     try:
         outgoing_addr = [
             [k for k in net.connections()[2] if k.raddr[0] != '127.0.0.1' and k.laddr not in listeneing_addr],
-            [k for k in net.connections()[2] if k.laddr[0] != '127.0.0.1' and k.laddr not in listeneing_addr]]
-        
+            [k for k in net.connections()[2] if k.laddr[0] != '127.0.0.1' and k.laddr not in listeneing_addr],
+        ]
+
     except Exception as e:
         print(e)
-
 
     raddr = []
     for k in net.connections()[2]:
@@ -173,6 +177,7 @@ if __name__ == '__main__':
         if k.laddr[0] not in raddr:
             raddr.append(f'local: {k.laddr[0]}')
     import pprint
+
     pprint.pprint(raddr)
 
     '''
@@ -181,7 +186,7 @@ if __name__ == '__main__':
             listeneing_addr.append(f'remote: {k.raddr[0]}')
         if k.laddr[0] not in listeneing_addr:
            listeneing_addr.append(f'local: {k.laddr[0]}')
-    
+
     for k in net.connections()[3]:
         if k.raddr[0] not in  outgoing_addr:
              outgoing_addr.append(f'remote: {k.raddr[0]}')
@@ -197,16 +202,13 @@ if __name__ == '__main__':
         print(e)
     try:
         for k in listeneing_addr:
-           pprint.pprint(k)
+            pprint.pprint(k)
     except Exception as e:
         print(e)
-        
+
     try:
 
         for k in outgoing_addr:
             pprint.pprint(k)
     except Exception as e:
         print(e)
-
-    
-

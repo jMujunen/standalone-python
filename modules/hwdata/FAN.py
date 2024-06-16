@@ -2,7 +2,6 @@
 
 import subprocess
 import re
-from time import sleep
 
 # TODO:
 # * Add support for renaming xfans (fan1 becomes CPU fan)
@@ -34,7 +33,7 @@ class Fan:
             cpu:               0 RPM  (min =    0 RPM)
 
         """
-        
+
         if not friendly_name:
             self.name = fan_id
         else:
@@ -42,16 +41,20 @@ class Fan:
         self.fan_id = fan_id
 
         self.fan_data_regex = r'^(fan\d+).*([0-9]{3,4})'
-        #self.name = self.name
+        # self.name = self.name
+
     @property
     def type(self):
         return self.name
+
     @property
     def name(self):
         return self._name
+
     @name.setter
     def name(self, name):
         self._name = name
+
     def query_fans(self):
         """
         Query the fan speed data from the sensors and return the fan data in a dictionary format.
@@ -64,10 +67,7 @@ class Fan:
         """
         # Get the fan speed data from the sensors using a subprocess
         command_output = subprocess.run(
-            f"sensors | grep {self.fan_id}",
-            shell=True,
-            capture_output=True,
-            text=True
+            f"sensors | grep {self.fan_id}", shell=True, capture_output=True, text=True
         ).stdout.strip()
 
         # Find all matches in the text {'fan1': '555', 'fan2': '1025'}
@@ -87,6 +87,7 @@ class Fan:
         print("Error: Fan speeds are all 0")
         return "Error: Fan speeds are all 0"
         '''
+
     def parse_data(self):
         """
         Parse the data and return the name and speed of the selected fan.
@@ -112,6 +113,7 @@ class Fan:
     @property
     def speed(self):
         return int(self.query_fans())
+
     '''
     def __str__(self):
         # Output: `FANSPEED` [555 RPM]
@@ -126,17 +128,24 @@ class Fan:
 
     def __str__(self):
         return f'{self.name}: {self.speed} RPM'
-        
+
+
 # Example usage
 if __name__ == '__main__':
 
-    fans = [Fan('fan1', 'CPU'), Fan('fan2', 'REAR'), Fan('fan3', 'SYS1'), 
-            Fan('fan4', 'SYS2'), Fan('fan5', 'SYS3'), Fan('fan6', 'BOTTOM')]
+    fans = [
+        Fan('fan1', 'CPU'),
+        Fan('fan2', 'REAR'),
+        Fan('fan3', 'SYS1'),
+        Fan('fan4', 'SYS2'),
+        Fan('fan5', 'SYS3'),
+        Fan('fan6', 'BOTTOM'),
+    ]
 
     for fan in fans:
         print(fan)
         print(fan.speed)
-    
+
     '''
     print(fan1)
     print(int(fan6))

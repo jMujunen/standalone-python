@@ -1,7 +1,7 @@
 import subprocess
 import re
-from time import sleep
 import psutil
+
 
 class SystemTemp:
     def __init__(self):
@@ -14,10 +14,7 @@ class SystemTemp:
     def temp(self):
         # Get the temperature data from the sensors using a subprocess
         command_output = subprocess.run(
-            "sensors | grep 'Sensor 2' | awk  '{print $3}'",
-            shell=True,
-            capture_output=True,
-            text=True
+            "sensors | grep 'Sensor 2' | awk  '{print $3}'", shell=True, capture_output=True, text=True
         ).stdout.strip()
 
         # Extract the first matching temperature value
@@ -38,31 +35,29 @@ class SystemTemp:
         current_temp = self.temp
         return int(current_temp) if int(current_temp) else 0
 
+
 class RAM:
     def __init__(self):
         return None
+
     def info(self):
         return psutil.virtual_memory()
+
     @property
     def percent_used(self):
         return int(psutil.virtual_memory().percent)
 
     def __str__(self):
-        return(
-            f'RAM: {self.percent_used}%'
-        )
+        return f'RAM: {self.percent_used}%'
+
 
 class Misc:
     def __init__(self):
         return None
+
     def get_uptime(self):
         # Get the uptime data from the sensors using a subprocess
-        command_output = subprocess.run(
-            "uptime -p",
-            shell=True,
-            capture_output=True,
-            text=True
-        ).stdout.strip()
+        command_output = subprocess.run("uptime -p", shell=True, capture_output=True, text=True).stdout.strip()
 
         # Extract the first matching uptime value
         uptime_match = re.search(r"(\d+\s+\w+.*)+", command_output)
@@ -80,6 +75,7 @@ class Misc:
             names.append(user.name)
             terminals.append(user.terminal)
         return list(zip(names, terminals))
+
 
 # Example usage
 if __name__ == '__main__':

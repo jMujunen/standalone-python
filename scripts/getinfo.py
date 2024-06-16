@@ -6,82 +6,8 @@ import sys
 
 from ExecutionTimer import ExecutionTimer
 
-DIRECTORY = os.getcwd()
 
-file_types = {
-    "img": [
-        ".jpg",
-        ".jpeg",
-        ".png",
-        ".gif",
-        ".heic",
-        ".nef",
-        ".webp",
-        "svg",
-    ],
-    "doc": [".pdf", ".doc", ".docx", ".txt", ".odt", ".pptx"],
-    "video": [".mp4", ".avi", ".mkv", ".wmv", ".webm", ".m4v"],
-    "audio": [
-        ".3ga",
-        ".aac",
-        ".ac3",
-        ".aif",
-        ".aiff",
-        ".alac",
-        ".amr",
-        ".ape",
-        ".au",
-        ".dss",
-        ".flac",
-        ".flv",
-        ".m4a",
-        ".m4b",
-        ".m4p",
-        ".mp3",
-        ".mpga",
-        ".ogg",
-        ".oga",
-        ".mogg",
-        ".opus",
-        ".qcp",
-        ".tta",
-        ".voc",
-        ".wav",
-        ".wma",
-        ".wv",
-    ],
-    "zip": [
-        ".zip",
-        ".rar",
-        ".tar",
-        ".bz2",
-        ".7z",
-        ".gz",
-        ".xz",
-        ".tar.gz",
-        ".tgz",
-        ".zipx",
-    ],
-    "raw": [".cr2", ".nef", ".raf", ".mov"],
-    "text": [".txt", ".md", ".ini", ".log", ".json", ".csv", ".xml"],
-    "code": [
-        ".py",
-        ".bat",
-        ".sh",
-        ".c",
-        ".cpp",
-        ".h",
-        ".java",
-        ".js",
-        ".ts",
-        ".php",
-        ".html",
-        ".css",
-        ".scss",
-    ],
-    "other": [],  # For any other file type
-    "dupes": [],  # For duplicate files
-}
+DIRECTORY = os.getcwd()
 
 
 def count_file_types(directory):

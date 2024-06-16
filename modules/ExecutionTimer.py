@@ -30,7 +30,7 @@ class ExecutionTimer:
     def __exit__(self, exc_type, exc_value, traceback):
         self.end_time = time()
         self.execution_time = self.end_time - self.start_time
-        print(f"\n\033[34mExecution time: {self.fmttime(self.execution_time)}\033[0m")
+        print(f"\033[34mExecution time: {self.fmttime(self.execution_time)}\033[0m")
 
     def fmttime(self, seconds):
         """
