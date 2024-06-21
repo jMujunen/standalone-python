@@ -2,82 +2,52 @@
 
 # avgvalue.py - Calculate the average value of a list of numbers
 
-import argparse
-import sys
-import os
-import re
 
-DIGIT_REGEX = re.compile(r"(\d+(\.\d+)?)")
+import sys
+import csv
+from statistics import mean
+from ExecutionTimer import ExecutionTimer
+
 FILE = "/tmp/hwinfo.csv"
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Calculates the min, max, and mean for each column in a csv file.\n\
-            Also works on single column files.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-    parser.add_argument("FILE", help="Enter the file name", type=str)
-    return parser.parse_args()
-
-
 def main(csv_file):
-    try:
-        with open(csv_file) as file:
-            header = next(file)
-            content = file.readlines()
+    with open(csv_file, "r") as f:
+        reader = csv.reader(f)
+        header = next(reader)
 
-        if "," in str(header):
-            header = header.split(",")
-        columns = [str(item) for item in header]
-
-        # Single column file
-        if len(columns) == 1:
-            numbers = content
-            numbers = [float(x) for x in numbers]
-            avg = round(sum(numbers) / len(numbers), 3)
+        if len(header) == 1:  # Single column file
+            numbers = [float(row[0]) for row in reader]
+            avg = round(mean(numbers), 3)
             print(avg)
             sys.exit(0)
 
-        # Multiple column file (csv)
-        c = []
+        else:  # Multiple columns
+            data = list(zip(*reader))  # Transpose the data so we can access by column
 
-        for column in columns:
-            numbers = []
-            for line in content:
-                value = DIGIT_REGEX.findall(line.split(",")[header.index(column)])
-                numbers.append(float(value[0][0]))
-
+    for i, col in enumerate(header):
+        if i == 0:
+            # Skip datetime col
+            continue
+        try:
+            numbers = [float(x) for x in data[i] if "Network is unreachable" not in x]
             min_value = round(min(numbers), 3)
             max_value = round(max(numbers), 3)
-            mean_value = round(sum(numbers) / len(numbers), 3)
+            mean_value = round(mean(numbers), 3)
 
             print(
-                f"""{column.strip()}: 
-                min: {min_value}
-                max: {max_value}
-                mean: {mean_value}"""
+                f"\x1b[1m{col.strip()}:\x1b[0m\n min: {min_value}\n max: {max_value}\n mean: {mean_value}",
+                end="\n\n",
             )
+        except (IndexError, ValueError) as e:
+            print("Error processing column", col, ": ", str(e), sep="")
 
-        """
-            min_value = round(min(numbers), 3)
-            max_value = round(max(numbers), 3)
-            mean_value = round(sum(numbers) / len(numbers), 3)
-
-            c.append([min_value, max_value, mean_value])
-        
-        print(' '.join(header).strip())
-        print(print(' '.join([str(x) for x in c]).strip()))
-        """
-
-        sys.exit(0)
-    except Exception as e:
-        print(e)
-        pass
+        # TODO : Pretty print output
+    return
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 1:
+    with ExecutionTimer():
+        if len(sys.argv) > 1:
+            FILE = sys.argv[1]  # Use the file given as argument, if any
         main(FILE)
-    args = parse_args()
-    main(args.FILE)

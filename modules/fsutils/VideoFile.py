@@ -3,7 +3,7 @@
 from ExecutionTimer import ExecutionTimer
 
 with ExecutionTimer():
-    print('Video')
+    print("Video")
     import subprocess
     import os
     import json
@@ -34,7 +34,7 @@ with ExecutionTimer():
             super().__init__(path)
 
         @property
-        def metadata(self):
+        def metadata(self) -> dict:
             if not self._metadata:
                 ffprobe_cmd = [
                     "ffprobe",
@@ -46,11 +46,11 @@ with ExecutionTimer():
                     self.path,
                 ]
                 ffprobe_output = subprocess.check_output(ffprobe_cmd).decode("utf-8")
-                self._metadata = json.loads(ffprobe_output).get('format')
+                self._metadata = json.loads(ffprobe_output).get("format")
             return self._metadata
 
         @property
-        def bitrate(self):
+        def bitrate(self) -> int:
             """
             Extract the bitrate of the video from the ffprobe output.
 
@@ -58,15 +58,15 @@ with ExecutionTimer():
             ----------
                 int: The bitrate of the video in bits per second.
             """
-            return self.metadata.get('bit_rate')
+            return self.metadata.get("bit_rate", -1)
 
         @property
-        def duration(self):
-            return self.metadata.get('duration')
+        def duration(self) -> float:
+            return self.metadata.get("duration", 0)
 
         @property
         def capture_date(self):
-            return self.metadata.get('tags').get('creation_time')
+            return self.metadata.get("tags").get("creation_time", "")
 
         # @property
         # def capture_date(self):
@@ -74,7 +74,7 @@ with ExecutionTimer():
         #         self._metadata =
 
         @property
-        def is_corrupt(self):
+        def is_corrupt(self) -> bool:
             """
             Check if the video is corrupt.
 
@@ -92,14 +92,12 @@ with ExecutionTimer():
                 return True  # Video is corrupt
             except KeyboardInterrupt:
                 sys.exit(0)
-            except Exception as e:
-                print(f"Error: {e}")
 
-        def render(self):
+        def render(self) -> None:
             """Render the video using in the shell using kitty protocols."""
-            if os.environ.get("TERM") == 'xterm-kitty':
+            if os.environ.get("TERM") == "xterm-kitty":
                 try:
-                    subprocess.call(['mpv', self.path])
+                    subprocess.call(["mpv", self.path])
                 except Exception as e:
                     print(f"Error: {e}")
             else:
@@ -107,3 +105,28 @@ with ExecutionTimer():
                     subprocess.call(["xdg-open", self.path])
                 except Exception as e:
                     print(f"Error: {e}")
+
+        def make_gif(self, scale=500, fps=10, output: str | None = None) -> int:
+            """Convert the video to a gif using FFMPEG.
+
+            Parameters:
+            -----------
+                scale : int, optional (default is 500)
+                fps   : int, optional (default is 10)
+                **kwargs : dict, define output path here if nessacary
+            """
+            output = output or os.path.join(self.dir_name, self.basename + ".gif")
+            return subprocess.call(
+                [
+                    "ffmpeg",
+                    "-i",
+                    f"{self.path}",
+                    "-vf",
+                    f"scale=-1:{str(scale)}",
+                    "-r",
+                    f"{str(fps)}",
+                    f"{output}",
+                    "-loglevel",
+                    "quiet",
+                ],
+            )

@@ -6,13 +6,12 @@ import sys
 
 import PySimpleGUI as sg
 from kdeConnect import SMS
-from Notification import Notification
-
+import DBus
 
 GRAPH_SIZE = (300, 300)  # this one setting drives the other settings
-CIRCLE_LINE_WIDTH, LINE_COLOR = 20, 'orange'
-TEXT_FONT = 'Consolas'
-THEME = 'Dark Gray 2'
+CIRCLE_LINE_WIDTH, LINE_COLOR = 20, "orange"
+TEXT_FONT = "Consolas"
+THEME = "Dark Gray 2"
 
 # Computations based on your settings above
 TEXT_HEIGHT = GRAPH_SIZE[0] // 4
@@ -37,12 +36,17 @@ def update_meter(graph_elem, percent_complete):
         (GRAPH_SIZE[0] - CIRCLE_LINE_WIDTH, CIRCLE_LINE_WIDTH),
         arc_length,
         0,
-        'arc',
+        "arc",
         arc_color=LINE_COLOR,
         line_width=CIRCLE_LINE_WIDTH,
     )
     percent = percent_complete
-    graph_elem.draw_text(f'{percent:.0f}%', TEXT_LOCATION, font=(TEXT_FONT, -TEXT_HEIGHT), color=TEXT_COLOR)
+    graph_elem.draw_text(
+        f"{percent:.0f}%",
+        TEXT_LOCATION,
+        font=(TEXT_FONT, -TEXT_HEIGHT),
+        color=TEXT_COLOR,
+    )
 
 
 def main(timer=25, timeout=200):
@@ -50,56 +54,65 @@ def main(timer=25, timeout=200):
     seconds = minutes * 60
     timeout_wait = (timer * 60) / (timeout / 1000)
     timeout_wait = round(timeout_wait)
-    print(timeout_wait)
+    print(timer)
+
+    bus = DBus()
+    bus.notification(title="POMO", message=f"{timer}min timer is up!")
 
     sg.theme(THEME)
 
     layout = [
-        [sg.Push(), sg.Text(str(timer), font=(TEXT_FONT), text_color=TEXT_COLOR, key='-TIME_LEFT-'), sg.Push()],
-        [sg.Graph(GRAPH_SIZE, (0, 0), GRAPH_SIZE, key='-GRAPH-')],
-        [sg.Push(), sg.Button('Go'), sg.Button('Exit'), sg.Push()],
+        [
+            sg.Push(),
+            sg.Text(
+                str(timer), font=(TEXT_FONT), text_color=TEXT_COLOR, key="-TIME_LEFT-"
+            ),
+            sg.Push(),
+        ],
+        [sg.Graph(GRAPH_SIZE, (0, 0), GRAPH_SIZE, key="-GRAPH-")],
+        [sg.Push(), sg.Button("Go"), sg.Button("Exit"), sg.Push()],
     ]
 
-    window = sg.Window('Circlular Meter', layout, location=(0, 0), finalize=True)
-    graph_window = window['-GRAPH-']
+    window = sg.Window("Circlular Meter", layout, location=(0, 0), finalize=True)
+    graph_window = window["-GRAPH-"]
 
     update_meter(graph_window, 0 / timeout_wait * 100)
     seconds_left = seconds - 0
     while True:
         event, values = window.read()
-        if event == sg.WIN_CLOSED or event == 'Exit':
+        if event == sg.WIN_CLOSED or event == "Exit":
             break
-        if event == 'Go':
-            print('Started timer...')
+        if event == "Go":
+            print("Started timer...")
             for progress in range(timeout_wait):
                 try:
-                    label = f'{seconds_left // 60}:{seconds_left % 60:02d}'
+                    label = f"{seconds_left // 60}:{seconds_left % 60:02d}"
                     if progress % 5 == 0:
                         seconds_left -= 1
-                        window['-TIME_LEFT-'].update(label)
-                    update_meter(window['-GRAPH-'], progress / timeout_wait * 100)
+                        window["-TIME_LEFT-"].update(label)
+                    update_meter(window["-GRAPH-"], progress / timeout_wait * 100)
                     window.read(timeout=timeout)
                 except KeyboardInterrupt:
                     break
         if seconds_left <= 6:
             try:
-                notify = Notification('Pomodoro', 'Time is up')
-                notify.show()
+                bus.send()  # ("Pomodoro", "Time is up")
+
             except:
-                print('Could not send notification')
+                print("Could not send notification")
             try:
-                sms_engine = SMS('d847bc89_cacd_4cb7_855b_9570dba7d6fa')
-                sms_engine.send('Pomodoro: Time is up!', '6042265455')
+                sms_engine = SMS("d847bc89_cacd_4cb7_855b_9570dba7d6fa")
+                sms_engine.send("Pomodoro: Time is up!", "6042265455")
             except:
-                print('Could not send SMS')
+                print("Could not send SMS")
         break
     window.close()
 
 
-if __name__ == '__main__':
-    if ('--help', '-help', '-h') in sys.argv:
-        print('Usage: pomo [minutes]')
-        print('Default 25 minutes')
+if __name__ == "__main__":
+    if ("--help", "-help", "-h") in sys.argv:
+        print("Usage: pomo [minutes]")
+        print("Default 25 minutes")
         sys.exit(0)
     if len(sys.argv) > 1:
         timer = int(sys.argv[1])

@@ -1,7 +1,7 @@
 from ExecutionTimer import ExecutionTimer
 
 with ExecutionTimer():
-    print('Script')
+    print("Script")
     from fsutils.GenericFile import File
 
     class Exe(File):

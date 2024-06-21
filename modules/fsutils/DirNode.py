@@ -1,9 +1,9 @@
-""" DirNode.Dir -  Represents a directory. Contains methods to list objects inside this directory."""
+"""DirNode.Dir -  Represents a directory. Contains methods to list objects inside this directory."""
 
 from ExecutionTimer import ExecutionTimer
 
 with ExecutionTimer():
-    print('DirNode')
+    print("DirNode")
     import os
     import datetime
     import re
@@ -184,7 +184,9 @@ with ExecutionTimer():
             for item in self:
                 if item.is_file:
                     file_stats = os.stat(item.path)
-                    atime = datetime.datetime.fromtimestamp(file_stats.st_atime).strftime("%Y-%m-%d %H:%M:%S")
+                    atime = datetime.datetime.fromtimestamp(file_stats.st_atime).strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    )
                     files.append((item.path, atime))
 
             files.sort(key=lambda x: x[1])
@@ -270,6 +272,7 @@ def obj(path):
     -------
         ValueError: If path is None.
         FileNotFoundError: If provided path does not exist.
+
     """
     if not path:
         raise ValueError("Path cannot be None")

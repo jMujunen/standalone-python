@@ -16,7 +16,6 @@ def format_code(code, language):
         pass
     elif language == "javascript":
         # TODO Format JavaScript code
-        # [ ] pasksa
         pass
     else:
         # TODO Default formatting for unknown languages

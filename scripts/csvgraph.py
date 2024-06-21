@@ -2,37 +2,43 @@
 
 # gcsv.py - Generate a graph from a list of numbers
 
-import os
+
 import sys
 import argparse
 import re
 
 import matplotlib.pyplot as plt
 
-DIGITS_RE = re.compile(r'(\d+(\.\d+)?)')
-ALL_COLUMNS_KEYWORDS = ["all", "-all", "--all", "-all", "-a", 
-                        "all columns", "all_columns", "all columns", "all_columns"]
+DIGITS_RE = re.compile(r"(\d+(\.\d+)?)")
+ALL_COLUMNS_KEYWORDS = [
+    "all",
+    "-all",
+    "--all",
+    "-all",
+    "-a",
+    "all_columns",
+]
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Generate a graph from numbers in a file.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+    parser.add_argument("FILE", help="Enter the file name", type=str)
     parser.add_argument(
-        "FILE", 
-        help="Enter the file name",
-        type=str
-        )
-    parser.add_argument(
-        "-c", "--column",
+        "-c",
+        "--column",
         help='''If input is a csv file, choose which column to graph.
         Valid values are str(header) or int(header)
-            Examples: 
+            Examples:
                 - graph.py /tmp/cpu_data.csv -c 1
                 - graph.py /tmp/cpu_data.csv -c "average_clock"''',
-        nargs="+"
+        nargs="+",
     )
 
     return parser.parse_args()
+
 
 def main(args):
     try:
@@ -47,10 +53,10 @@ def main(args):
             if args.column:
                 for column in args.column:
                     try:
-                        # 
+                        #
                         column = int(column)
                         numbers = file.readlines()
-                        numbers = [(x.split(',')[column]) for x in numbers]
+                        numbers = [(x.split(",")[column]) for x in numbers]
                         numbers = [DIGITS_RE.findall(numbers[x]) for x in range(len(numbers))]
                         numbers = [float(x[0][0]) for x in numbers]
                         plt.plot(numbers)
@@ -59,18 +65,18 @@ def main(args):
                         try:
                             args.column = str(column)
                         except Exception as e:
-                            print('Invalid column type')
+                            print("Invalid column type")
                             sys.exit(1)
-                        header = next(file).split(',')
+                        header = next(file).split(",")
                         column = header.index(column)
                         numbers = file.readlines()
-                        numbers = [float(x.split(',')[column]) for x in numbers]
+                        numbers = [float(x.split(",")[column]) for x in numbers]
                         numbers = [DIGITS_RE.findall(numbers[x]) for x in range(len(numbers))]
                         numbers = [float(x[0][0]) for x in numbers]
                         plt.plot(numbers)
                         plt.show()
                 else:
-                    print('Invalid column type')
+                    print("Invalid column type")
                     sys.exit(1)
             else:
                 numbers = file.readlines()

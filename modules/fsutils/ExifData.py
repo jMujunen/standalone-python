@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """get_original_capture_date.py - Extracting EXIF data from a photo."""
+
 import argparse
 from PIL import Image
 from PIL.ExifTags import TAGS
 
+
 class ExifData:
     """Class to extract EXIF metadata."""
+
     def __init__(self, path):
         self.path = path
 
@@ -32,10 +35,11 @@ class ExifData:
     def __str__(self):
         """Format the capture date in a human readable format."""
         if not self.capture_date:
-            raise ValueError('Could not determine capture date')
+            raise ValueError("Could not determine capture date")
         date = self.capture_date[:10].replace(":", "-")
         time = self.capture_date[-8:]
         return f"{date} {time}"
+
 
 def parse_args():
     """Parse command line arguments."""
@@ -46,6 +50,7 @@ def parse_args():
     parser.add_argument("file_path", type=str, help="File path")
     parser.add_argument("--directory", "-d", action="store_true", help="Enable directory mode")
     return parser.parse_args()
+
 
 # Example usage
 if __name__ == "__main__":

@@ -5,7 +5,6 @@
 import random
 import sys
 
-from 
 
 def main():
     if len(sys.argv) == 1:
@@ -15,12 +14,12 @@ def main():
         print(random.randint(int(sys.argv[1])))
 
     """
-    TODO: 
+    TODO:
     * Add option for character
     elif len(sys.argv) == 3:
         for arg in sys.argv[1:]:
             if arg in ["-a", "--alpha", "alpha", "letters", "a"]:
-                print(chr(random.randint(ord('a'), ord('z')))) 
+                print(chr(random.randint(ord('a'), ord('z'))))
     """
 
 

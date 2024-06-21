@@ -57,7 +57,6 @@ class Styler:
         ----------
             tuple: A tuple containing the compiled regex, prefix and suffix strings used for styling.
         """
-
         # TODO Add support for setting foreground and background colors with color codes as integers
 
         if ESCAPE_REGEX.match(str(color)):

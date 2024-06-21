@@ -3,14 +3,15 @@
 from ExecutionTimer import ExecutionTimer
 
 with ExecutionTimer():
-    print('Img')
+    print("Img")
     import subprocess
     import datetime
-
+    from io import BytesIO
     from PIL import Image, UnidentifiedImageError
     from PIL.ExifTags import TAGS
     import ollama
     import imagehash
+    import base64
 
     from fsutils.GenericFile import File
 
@@ -27,6 +28,7 @@ with ExecutionTimer():
             calculate_hash(self): Calculate the hash value of the image
             render(self, size=None): Render an image using kitty at a specified size (optional)
             generate_title(): EXPERIMENTAL! - Generate a title for the image using ollama
+            resize(width=320, height=320) - Resize the image to a specified width and height
 
         Properties:
         ----------
@@ -167,13 +169,34 @@ with ExecutionTimer():
                 print(f"An error occurred while rendering the image:\n{str(e)}")
 
         def open(self):
-            """Save img to /tmp and open the image in the OS default image viewer"""
+            """Open the image in the OS default image viewer"""
             try:
                 with Image.open(self.path) as f:
                     f.show()
-                return f
+                return 0
             except UnidentifiedImageError as e:
                 print(e)
+            return 1
+
+        def resize(self, width=320, height=320):
+            """Resize the image to specified width and height
+
+            Returns:
+            ---------
+                str: base64 encoded string of the resized image
+            """
+            with Image.open(self.path) as img:
+                resized_img = img.resize((width, height))
+            try:
+                resized_img.save(f"/tmp/{self.basename}")
+            except OSError as e:
+                print(f"An error occurred while saving resized image:\n{str(e)}")
+            finally:
+                buffered = BytesIO()
+                resized_img.save(buffered, format="JPEG")
+                img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+                return img_str
 
         @property
         def is_corrupt(self):

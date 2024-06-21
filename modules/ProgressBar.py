@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """A simple progress bar object"""
+
 from time import sleep
+from typing import Any
 
 # pb.py - A simple progress bar object
 
@@ -30,7 +32,7 @@ class ProgressBar:
         Returns the value of the progress bar for use in a for loop
     """
 
-    def __init__(self, inital_value=100):
+    def __init__(self, inital_value: int = 100):
         """
         Initializes a new instance of the class
         Parameters
@@ -42,7 +44,7 @@ class ProgressBar:
         self.value_ = 0
         self.progress = 1
 
-    def update(self, current_value=0):
+    def update(self, current_value: int = 0) -> None:
         """Updates the progress bar with the given current value
 
         Parameters
@@ -54,19 +56,19 @@ class ProgressBar:
         output = str(f"[{self.progress:.1f}%]")
         print(output.ljust(int(self.progress), "="), end="[100.0%]\r")
 
-    def increment(self, increment=1):
+    def increment(self, increment: int = 1) -> None:
         """
         Increments the current value of the progress bar by the given amount
-        Parameters
+
+        Parameters:
         ----------
-        increment : int
-            The amount to increment the current value by
+            increment (int): The amount to increment the current value by
         """
-        self.value = self.value + increment
+        self.value += increment
         self.update(self.value)
 
     @property
-    def value(self):
+    def value(self) -> int:
         """Value getter property. Returns the current value"""
         return int(self.value_)
 
@@ -80,11 +82,22 @@ class ProgressBar:
             The new value to set for the progress bar.
         """
         self.value_ = new_value
-        self.update(self.value_)
+        return self.update(self.value_)
 
     def __len__(self):
         """Returns the length of the progress bar for use in a for loop"""
         return self.inital_value
+
+    def __int__(self) -> int:
+        return int(self.value)
+
+    def __iter__(self) -> Any:
+        for i in range(int(self.inital_value)):
+            yield i
+
+    def __str__(self) -> str:
+        self.update(self.value)
+        return str(self.value)
 
 
 # Example usage
