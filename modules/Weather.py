@@ -13,6 +13,7 @@ Examples:
 """
 
 import requests
+import sys
 
 
 class Weather:
@@ -47,9 +48,9 @@ class Weather:
 
     def __init__(
         self,
-        api_key="6eb1659474bdf84f068aba3fbfe37ce6",
-        latitude=49.0521162,
-        longitude=-122.329479,
+        api_key,
+        latitude,
+        longitude,
     ):
         """
         Initializes a Weather object.
@@ -132,5 +133,14 @@ class Weather:
 
 
 if __name__ == "__main__":
-    Abbotsford = Weather()
+    try:
+        api_key = sys.argv[1]
+        print(api_key)
+        long, lat = sys.argv[2:4]
+        print(f"Longtitude:\n\t{long}\nLatitude\n\t{lat}")
+    except Exception as e:
+        print(e)
+        print("Usage:\n\tWeather.py <api_key> <longitude> <latitude>")
+        sys.exit(1)
+    Abbotsford = Weather(api_key, long, lat)
     print(Abbotsford.data)

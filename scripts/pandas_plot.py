@@ -17,14 +17,15 @@ GROUPS = {
     "temps": ["system_temp", "gpu_temp", "cpu_temp"],
 }
 
-def addition():
-    if some 
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Plot pandas dataframes",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("-f", "--file", help="Path to the csv file", type=str, default="/tmp/hwinfo.csv")
+    parser.add_argument(
+        "-f", "--file", help="Path to the csv file", type=str, default="/tmp/hwinfo.csv"
+    )
     parser.add_argument(
         "-w",
         "--window",
@@ -66,7 +67,9 @@ def main(filepath, window_size, columns):
 
     smooth_data = {}
     for column in columns:
-        smooth_data[column] = np.convolve(df[column], np.ones(window_size) / window_size, mode="valid")
+        smooth_data[column] = np.convolve(
+            df[column], np.ones(window_size) / window_size, mode="valid"
+        )
 
     smooth_df = pd.DataFrame(smooth_data)
 
@@ -75,20 +78,26 @@ def main(filepath, window_size, columns):
 
     def init():
         ax.set_xlim(left=0, right=len(df))
-        ax.set_ylim(bottom=np.min(smooth_df.values) - 1, top=250)  # Used smooth_df instead of smooth_data
+        ax.set_ylim(
+            bottom=np.min(smooth_df.values) - 1, top=250
+        )  # Used smooth_df instead of smooth_data
         return (line,)
 
     def animate(i):
         new_data = pd.read_csv(filepath, sep=r",\s+", engine="python")
         new_smooth_data = {}
         for column in columns:
-            new_smooth_data[column] = np.convolve(new_data[column], np.ones(window_size) / window_size, mode="valid")
+            new_smooth_data[column] = np.convolve(
+                new_data[column], np.ones(window_size) / window_size, mode="valid"
+            )
         new_smooth_df = pd.DataFrame(new_smooth_data)
         ax.clear()
         new_smooth_df.plot(ax=ax, grid=True)
 
     # ani = FuncAnimation(fig, animate, frames=100, interval=200)
-    ani = FuncAnimation(fig, animate, frames=100, interval=200)  # Update every 1000 milliseconds (1 second)
+    ani = FuncAnimation(
+        fig, animate, frames=100, interval=200
+    )  # Update every 1000 milliseconds (1 second)
     plt.show()
 
 

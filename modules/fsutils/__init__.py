@@ -1,6 +1,3 @@
-import os
-import re
-
 from .GenericFile import File
 from .ImageFile import Img
 from .VideoFile import Video
