@@ -3,12 +3,12 @@
 from ExecutionTimer import ExecutionTimer
 
 with ExecutionTimer():
-    print('Generic')
+    print("Generic")
     import os
     import re
     import chardet
 
-    from fsutils.mimecfg import FILE_TYPES
+    from .mimecfg import FILE_TYPES
 
     GIT_OBJECT_REGEX = re.compile(r"([a-f0-9]{37,41})")
 

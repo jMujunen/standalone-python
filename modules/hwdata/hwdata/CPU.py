@@ -7,7 +7,10 @@ import subprocess
 import re
 import datetime
 
+from dataclasses import dataclass
 
+
+@dataclass
 class CpuData:
     def __init__(self):
         """
