@@ -4,20 +4,16 @@
 
 import subprocess
 from Styler import Styler
-from Color import *
-from ByteConverter import ByteConverter
-
+from Color import fg, style
+from size import Converter
 
 
 command_output = subprocess.run(
-    'free | grep -oP "(Mem|Swap):.*"',
-    shell=True,
-    capture_output=True,
-    text=True
+    'free | grep -oP "(Mem|Swap):.*"', shell=True, capture_output=True, text=True
 ).stdout
 
-mem = command_output.split('\n')[0]
-swap = command_output.split('\n')[1]
+mem = command_output.split("\n")[0]
+swap = command_output.split("\n")[1]
 
 mem_total = mem.split()[1]
 mem_used = mem.split()[2]
@@ -43,11 +39,13 @@ text = f"""{' '.ljust(10)}{'Used'.ljust(10)}{'Cached'.ljust(10)}
 
 free = Styler(text)
 
-free.colorized_command_output([
-    free.body_style(r"([1-4]\d\.\d%)", fg.green),
-    free.body_style(r"([5-7]\d\.\d%)", fg.yellow),
-    free.body_style(r"([8-9]\d\.\d%)", fg.red),
-    free.body_style(r"^([\s]+.*)\n", style.bold)
-])
+free.colorized_command_output(
+    [
+        free.body_style(r"([1-4]\d\.\d%)", fg.green),
+        free.body_style(r"([5-7]\d\.\d%)", fg.yellow),
+        free.body_style(r"([8-9]\d\.\d%)", fg.red),
+        free.body_style(r"^([\s]+.*)\n", style.bold),
+    ]
+)
 
 print(free.sort())

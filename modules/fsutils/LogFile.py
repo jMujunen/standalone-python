@@ -1,12 +1,14 @@
 """This module exposes the Log class as a parent of File"""
 
 from ExecutionTimer import ExecutionTimer
+from pandas import Series
 
 with ExecutionTimer():
-    print('Log')
+    print("Log")
     import re
     import pandas as pd
     from .GenericFile import File
+    from typing import Iterator, Any, List
 
     # from fsutils.GenericFile import File
     from Color import fg, style
@@ -24,9 +26,7 @@ with ExecutionTimer():
         Methods:
         ----------
             header (str): Get the header of the log file.
-
             columns (list): Get the columns of the log file.
-
             footer (str): Get the footer of the log file.
 
         """
@@ -38,7 +38,7 @@ with ExecutionTimer():
             super().__init__(path, encoding)
 
         @property
-        def header(self):
+        def header(self) -> str:
             """
             Get the header of the log file.
 
@@ -49,7 +49,7 @@ with ExecutionTimer():
             return self.head(1).strip().strip(self.spec)
 
         @property
-        def columns(self):
+        def columns(self) -> List[str]:
             """
             Get the columns of the log file.
 
@@ -60,13 +60,13 @@ with ExecutionTimer():
             return [col for col in self.head(1).split(self.spec)]
 
         @property
-        def footer(self):
+        def footer(self) -> str | None:
             second_last, last = self.tail(2).strip().split("\n")
             second_last = second_last.strip(self.spec)
             last = last.strip(self.spec)
             return second_last if second_last == self.header else None
 
-        def to_df(self):
+        def to_df(self) -> pd.DataFrame:
             """
             Convert the log file into a pandas DataFrame.
 
@@ -78,7 +78,7 @@ with ExecutionTimer():
 
             return pd.DataFrame(self.content, columns=self.columns)
 
-        def sanatize(self):
+        def sanatize(self) -> str:
             """
             Sanatize the log file by removing any empty lines, spaces, and trailing delimiters
             from the header and footer. Also remove the last 2 lines
@@ -107,7 +107,7 @@ with ExecutionTimer():
             return self._content
 
         @property
-        def stats(self):
+        def stats(self) -> Series | float:
             """
             Calculate basic statistical information for the data in a DataFrame.
 
@@ -121,7 +121,7 @@ with ExecutionTimer():
                 df = pd.read_csv(self.sanatize())
             return df.mean()
 
-        def compare(self, other):
+        def compare(self, other: File) -> None:
             """
             Compare the statistics of this log file with another. Prints a table comparing each column's mean values.
 
@@ -140,7 +140,7 @@ with ExecutionTimer():
                 Frame_Time                       4.07                 + 8.73
                 GPU_Busy                         + 58                  4.749 """
 
-            def compare_values(num1, num2):
+            def compare_values(num1: str | int, num2: str | int):
                 digits = re.compile(r"(\d+(\.\d+)?)")
 
                 num1 = digits.search(str(num1))[0]
@@ -184,7 +184,7 @@ with ExecutionTimer():
                     except KeyError:
                         pass
 
-        def save(self):
+        def save(self) -> None:
             """
             Save the (updated) content to the log file (overwrites original content).
             """

@@ -6,7 +6,7 @@ import os
 import subprocess
 import argparse
 
-from ByteConverter import ByteConverter
+from size import Converter
 from ExecutionTimer import ExecutionTimer
 
 
@@ -64,7 +64,7 @@ def sizeof(path):
     output = stdout.split("\n")
     for item in output:
         size, directory = item.split("\t")
-        print(f"{str(ByteConverter(int(size))).ljust(12)}{directory}")
+        print(f"{str(Converter(int(size))).ljust(12)}{directory}")
     return stdout, stderr if stderr else stdout
 
 
