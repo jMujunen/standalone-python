@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
+""" "df.py - Colorize the output of df"""
 
-# disk_use.py - Colorize the output of df
-
-import sys
 from Styler import Styler
-from Color import *
+from Color import fg, style
 
-df = Styler('df -h')
+df = Styler("df -h")
 
-df.colorized_command_output([
+df.colorized_command_output(
+    [
         df.body_style(r"^([^\s]+.*)\n", style.bold),
         df.body_style(r"(/dev/[ns][vd]\w+)", fg.cyan),
         df.body_style(r"(tmpfs)", fg.yellow),
@@ -17,7 +16,8 @@ df.colorized_command_output([
         df.body_style(r"tmpfs.*(\s\d{2}%)", fg.deeppink),
         df.body_style(r"tmpfs.*(\s[2-9]%)", fg.yellow),
         df.body_style(r"(/boot|/home|\s/\s)", fg.green),
-        df.body_style(r"(\d{2}\.\d\.\d\.\d{2,3}:/\w+/?\w+?)", fg.blue) #10.0.0.50:/hdd")
-])  
+        df.body_style(r"(\d{2}\.\d\.\d\.\d{2,3}:/\w+/?\w+?)", fg.blue),  # 10.0.0.50:/hdd")
+    ]
+)
 
 print(df.sort())
