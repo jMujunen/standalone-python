@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """ "df.py - Colorize the output of df"""
 
+import re
+
+
 from Styler import Styler
 from Color import fg, style
 
 df = Styler("df -h")
-
+df.remove_by_row("credentials")
+df.remove_by_row("efivars")
 df.colorized_command_output(
     [
         df.body_style(r"^([^\s]+.*)\n", style.bold),

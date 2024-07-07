@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
+"""Disk.py - Query disk information for HWINFO"""
 
-# Disk.py - Query disk information for HWINFO
-
+from dataclasses import dataclass
 import psutil
 
 
+@dataclass
 class Disk:
-    def __init__(self, mountpoint, friendly_name=None):
+    def __init__(self, mountpoint: str, friendly_name: str | None = None):
         self.mountpoint = mountpoint
         self.friendly_name = friendly_name
 
-    def percent_used(self):
+    def percent_used(self) -> float:
         return psutil.disk_usage(self.mountpoint).percent
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(
-            f'{self.mountpoint} {self.friendly_name if self.friendly_name else ""}:\n',
-            f"Percent used: {self.percent_used()}%\n",
+            f"""{self.mountpoint}
+    {self.friendly_name} Usage: {self.percent_used()}%\n"""
         )
 
 

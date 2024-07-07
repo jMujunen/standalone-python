@@ -144,3 +144,6 @@ if __name__ == "__main__":
         sys.exit(1)
     Abbotsford = Weather(api_key, long, lat)
     print(Abbotsford.data)
+
+# TODO: Fix alias get_weather
+# Test

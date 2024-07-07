@@ -1,5 +1,8 @@
+"""Reusable object for manipulating command output"""
+
 import re
 import subprocess
+from typing import List, Tuple, Union
 
 ESCAPE_REGEX = re.compile(r"(\d+;?)+")
 
@@ -40,11 +43,11 @@ class Styler:
         self.command_output = self.run_command()
 
     @property
-    def styles(self):
+    def styles(self) -> List[str]:
         # Property for getting the list of styles applied to the command output.
         return self._styles
 
-    def body_style(self, pattern, color):
+    def body_style(self, pattern: str, color: Union[int, str]) -> Tuple[re.Pattern[str], str, str]:
         """
         Applies a style (color) to all instances of a specific pattern in the command output.
 
@@ -68,9 +71,9 @@ class Styler:
         regex = re.compile(pattern)
 
         self._styles.append((regex, color_prefix, color_suffix))
-        return (regex, color_prefix, color_suffix)
+        return (regex, str(color_prefix), "\033[0m")
 
-    def run_command(self):
+    def run_command(self) -> str:
         """
         Runs the command and captures its output.
 
@@ -92,9 +95,9 @@ class Styler:
 
         return command_output.stdout
 
-    def sort(self, ignore_header=True):
-        """
-        Sorts the output of the command. Ignores the header during sorting and prepends it unless specified.
+    def sort(self, ignore_header=True) -> str:
+        """Sorts the output of the command.
+        Ignores the header during sorting and prepends it unless specified.
 
         Parameters:
         ----------
@@ -116,21 +119,24 @@ class Styler:
             sorted_rows = sorted(rows)
         return "\n".join(sorted_rows).replace("\n\n", "\n")
 
-    def colorized_command_output(self, style):
+    def colorized_command_output(self, style) -> str:
         """
         Applies a list of styles to the command output and returns it.
 
         Args:
         ----------
-            style (Union[tuple, list]): A tuple or list of tuples where each tuple contains a pattern and color code for styling text in the output.
+            style (Union[tuple[re.Pattern, [str]]): A tuple or list of tuples where
+            each tuplecontains a pattern and color code for styling text in the output.
 
         Returns:
         ----------
-            str: The colorized version of the command's stdout. Each instance of the patterns in the style tuples are replaced with the corresponding color codes.
+            str: The colorized version of the command's stdout. Each instance of
+            the patterns in the style tuples are replaced with the corresponding color codes.
         """
 
         if not isinstance(style, list):
             style = [style]
+            print("\033[1;31mError at line 1 in Styler.py[\033[0m]")
 
         for s in style:
             regex, color_prefix, color_suffix = s
@@ -142,3 +148,89 @@ class Styler:
                 )
 
         return self.command_output
+
+    def remove_by_regex(self, pattern: str) -> None:
+        """
+        Removes all instances of a specific regular expression pattern from the command output.
+
+        Args:
+        ----------
+            pattern (str): The regular expression pattern to be removed from the command output.
+        """
+        self.command_output = re.sub(pattern, "", self.command_output)
+
+    def remove_by_column(self, column: int) -> None:
+        """
+        Removes a specific column from the command output.
+
+        Args:
+        ----------
+            column (int): The index of the column to be removed from the command output.
+                          Columns are 0-indexed.
+        """
+        lines = self.command_output.split("\n")
+        for i in range(len(lines)):
+            line = lines[i].split()
+            if column < len(line):
+                del line[column]
+            lines[i] = " ".join(line)
+        self.command_output = "\n".join(lines)
+
+    def remove_by_row(self, row: int | str) -> None:
+        """Removes a specific row from the command output.
+
+        Args:
+        ----------
+            row (int): The index of the row to be removed from the command output.
+                       Rows are 0-indexed.
+        """
+        lines = self.command_output.split("\n")
+        if isinstance(row, int) and row < len(lines):
+            del lines[row]
+        elif isinstance(row, str):
+            self.command_output = "\n".join([line for line in lines if row not in line])
+            return
+        self.command_output = "\n".join(lines)
+
+    def style_column(self, column: int, color: Union[int, str]) -> None:
+        """
+        Applies a style (color) to all instances of a specific column in the command output.
+
+        Args:
+        ----------
+            column (int): The index of the column to be styled in the command output.
+                          Columns are 0-indexed.
+            color (Union[int, str]): The escape code or plain text representation of the desired color.
+        """
+        lines = self.command_output.split("\n")
+        for i in range(len(lines)):
+            line = lines[i].split()
+            if column < len(line):
+                if ESCAPE_REGEX.match(str(color)):
+                    color_prefix = f"\033[{color}m"
+                else:
+                    color_prefix = color
+                color_suffix = "\033[0m"
+                line[column] = f"{color_prefix}{line[column]}{color_suffix}"
+            lines[i] = " ".join(line)
+        self.command_output = "\n".join(lines)
+
+    def style_row(self, row: int, color: Union[int, str]) -> None:
+        """
+        Applies a style (color) to all instances of a specific row in the command output.
+
+        Args:
+        ----------
+            row (int): The index of the row to be styled in the command output.
+                       Rows are 0-indexed.
+            color (Union[int, str]): The escape code or plain text representation of the desired color.
+        """
+        lines = self.command_output.split("\n")
+        if row < len(lines):
+            if ESCAPE_REGEX.match(str(color)):
+                color_prefix = f"\033[{color}m"
+            else:
+                color_prefix = color
+            color_suffix = "\033[0m"
+            lines[row] = f"{color_prefix}{lines[row]}{color_suffix}"
+        self.command_output = "\n".join(lines)

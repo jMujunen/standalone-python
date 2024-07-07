@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """ExecutionTimer.py - A reusable class to measure execution time"""
 
-import os
 from time import time
 
 
@@ -59,6 +58,7 @@ class ExecutionTimer:
 
 if __name__ == "__main__":
     with ExecutionTimer():
+        # Tmp
         print("START")
         print([i for i in range(1000)])
         # for root, _, filename in os.walk(os.getcwd()):

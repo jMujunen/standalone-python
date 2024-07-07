@@ -3,8 +3,7 @@
 
 from time import sleep
 from typing import Any
-
-# pb.py - A simple progress bar object
+import sys
 
 
 class ProgressBar:
@@ -32,9 +31,10 @@ class ProgressBar:
         Returns the value of the progress bar for use in a for loop
     """
 
-    def __init__(self, inital_value: int = 100):
+    def __init__(self, inital_value=100) -> None:
         """
         Initializes a new instance of the class
+
         Parameters
         ----------
         inital_value : int
@@ -44,19 +44,19 @@ class ProgressBar:
         self.value_ = 0
         self.progress = 1
 
-    def update(self, current_value: int = 0) -> None:
-        """Updates the progress bar with the given current value
+    # def update(self, current_value=0) -> None:
+    #     """Updates the progress bar with the given current value
 
-        Parameters
-        ----------
-        current_value : int
-            The value to update the progress bar with
-        """
-        self.progress = current_value / self.inital_value * 100
-        output = str(f"[{self.progress:.1f}%]")
-        print(output.ljust(int(self.progress), "="), end="[100.0%]\r")
+    #     Parameters
+    #     ----------
+    #     current_value : int
+    #         The value to update the progress bar with
+    #     """
 
-    def increment(self, increment: int = 1) -> None:
+    #     output = f"[{self.progress:.1f}%]"
+    #     print(output.ljust(int(self.progress), "="), end="[100.0%]\r")
+
+    def increment(self, increment=1) -> None:
         """
         Increments the current value of the progress bar by the given amount
 
@@ -65,7 +65,10 @@ class ProgressBar:
             increment (int): The amount to increment the current value by
         """
         self.value += increment
-        self.update(self.value)
+        self.progress = self.value / self.inital_value * 100
+        output = f"[{self.progress:.1f}%]"
+        sys.stdout.write("\r" + output.ljust(int(self.progress / 2), "=") + "[100.0%]")
+        sys.stdout.flush()
 
     @property
     def value(self) -> int:
@@ -73,7 +76,7 @@ class ProgressBar:
         return int(self.value_)
 
     @value.setter
-    def value(self, new_value):
+    def value(self, new_value: int) -> int:
         """
         Method which sets the value of the progress bar
         Args
@@ -82,7 +85,7 @@ class ProgressBar:
             The new value to set for the progress bar.
         """
         self.value_ = new_value
-        return self.update(self.value_)
+        return self.value
 
     def __len__(self):
         """Returns the length of the progress bar for use in a for loop"""
@@ -92,17 +95,15 @@ class ProgressBar:
         return int(self.value)
 
     def __iter__(self) -> Any:
-        for i in range(int(self.inital_value)):
-            yield i
+        yield (i for i in range(int(self.inital_value)))
 
     def __str__(self) -> str:
-        self.update(self.value)
         return str(self.value)
 
 
 # Example usage
 if __name__ == "__main__":
-    pb = ProgressBar(100)
-    for i in range(100):
+    pb = ProgressBar(227)
+    for i in range(227):
         pb.increment()
-        sleep(0.1)
+        sleep(0.05)

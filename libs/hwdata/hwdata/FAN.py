@@ -2,6 +2,7 @@
 
 import subprocess
 import re
+from typing import List, Tuple
 from dataclasses import dataclass
 
 # TODO:
@@ -10,11 +11,25 @@ from dataclasses import dataclass
 
 @dataclass
 class Fan:
-    def __init__(self, fan_id, friendly_name=None):
+    """Class representing a single fan.
+
+    Attributes:
+    ----------
+        name (str): The name of the fan
+        fan_id (str): The id of the fan in lm-sensors output
+
+    Methods:
+    --------
+        speed() -> int: The current speed of the fan in RPMs.
+        query_fans() -> str: The raw output of lm-sensors for this fan.
+    """
+
+    def __init__(self, fan_id: str, friendly_name: str | None = None):
         """
         Initialize the fan object with the given fan number.
 
         Parameters:
+        -----------
             fan_id (str): The name representing the fan in lm-sensors
                           For example: Fan('fan1') represents fan1 in
 
@@ -34,6 +49,8 @@ class Fan:
             fan10:             0 RPM  (min =    0 RPM)
             cpu:               0 RPM  (min =    0 RPM)
 
+
+
         """
 
         if not friendly_name:
@@ -46,18 +63,18 @@ class Fan:
         # self.name = self.name
 
     @property
-    def type(self):
+    def type(self) -> str:
         return self.name
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @name.setter
-    def name(self, name):
+    def name(self, name: str) -> None:
         self._name = name
 
-    def query_fans(self):
+    def query_fans(self) -> dict:
         """
         Query the fan speed data from the sensors and return the fan data in a dictionary format.
 
@@ -90,45 +107,11 @@ class Fan:
         return "Error: Fan speeds are all 0"
         """
 
-    def parse_data(self):
-        """
-        Parse the data and return the name and speed of the selected fan.
-
-        Parameters:
-            None
-
-        Returns:
-            name (str): The name of the selected fan
-            fan_speed (str): The speed of the selected fan
-        """
-
-        count = 1
-        for fan, speed in self.query_fans().items():
-            if count == self.fan:
-                name = fan
-                fan_speed = speed
-                break
-            else:
-                count += 1
-        return name, fan_speed
-
     @property
-    def speed(self):
-        return int(self.query_fans())
+    def speed(self) -> int:
+        return int(self.query_fans()[0]) or 0
 
-    """
-    def __str__(self):
-        # Output: `FANSPEED` [555 RPM]
-        return f'{self.query_fans()} RPM'  # if fanspeed.isdigit() else fanspeed
-
-    def __int__(self):
-        return int(self.query_fans())
-
-    def __len__(self):
-        return len(self.query_fans())
-    """
-
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name}: {self.speed} RPM"
 
 

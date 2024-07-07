@@ -4,7 +4,8 @@
 
 import random
 import multiprocessing
-from ExecutionTimer import ExecutionTimer
+import time
+
 
 def monte_carlo_pi(iterations):
     inside_circle = 0
@@ -15,9 +16,8 @@ def monte_carlo_pi(iterations):
             inside_circle += 1
     return (inside_circle / iterations) * 4
 
-if __name__ == "__main__":
-    
 
+if __name__ == "__main__":
     num_iterations = 10**10
     num_processes = multiprocessing.cpu_count()
 
