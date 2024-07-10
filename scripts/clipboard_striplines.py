@@ -11,8 +11,7 @@ import pyperclip
 # TODO - add more presets for common patterns
 PRESETS = {
     # Concatenate a multiline string into a single line separated a space
-    "multiline": lambda x: " ".join(i.strip() for i in x.strip().split("\n")),
-    "whitespace": lambda x: re.sub(r"([^\s]\s+|\n)", "", x),
+    "whitespace": lambda x: re.sub(r"([^\s]\s+|\n)", "", x, flags=re.MULTILINE),
     # Remove REPL prompt chars "...:"
     "ipy": lambda x: re.sub(r"\.\.\.:", "", x, flags=re.MULTILINE),
 }
@@ -57,6 +56,7 @@ def parse_args():
         default="",
     )
     parser.add_argument(
+        "-p",
         "--pattern",
         help="PCRE - Perl compatiable regex patterns to search for",
         default=" ",
@@ -67,7 +67,6 @@ def parse_args():
     parser.add_argument("--rstrip", help="Only strip from the right", action="store_true")
     parser.add_argument("-l", "--list", help="List presets", action="store_true")
     parser.add_argument(
-        "-p",
         "--preset",
         choices=["multiline", "ipy", "whitespace"],
         required=False,
@@ -87,7 +86,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(char, replacement):
+def main(char, replacement) -> str:
     """
     Strips a character from each line in the clipboard content.
 
@@ -99,29 +98,29 @@ def main(char, replacement):
     try:
         pattern = re.compile(char)
         text = pyperclip.paste()
-        if args.preset:
-            return PRESETS[args.preset](text)
-
         # Split the text into individual lines
         lines = text.split("\n")
         # Initialize an empty list to hold the processed lines
         output = []
+        if args.preset:
+            text = PRESETS[args.preset](text)
+            return text
+
         for line in lines:
             # Strip the character or pattern from each line
             output.append(re.sub(pattern, replacement, line))
         # Join the output list back into a single text string
         text = "\n".join(output)
         # Update the clipboard with the processed text
-        pyperclip.copy(text)
         # Print the processed text for debugging purposes
-        print(text)
-        return 0
+        return text
     except Exception as e:
-        print(e)
-        return 1
+        return str(e)
 
 
 # Example usage:
 if __name__ == "__main__":
     args = parse_args()
-    main(args.pattern, args.replace)
+    output = main(args.pattern, args.replace)
+    pyperclip.copy(output)
+    print(output)
