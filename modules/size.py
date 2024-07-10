@@ -2,10 +2,8 @@
 """Convert bytes to a human-readble string"""
 
 import sys
-from dataclasses import dataclass
 
 
-@dataclass
 class Converter:
     """Converts a size in bytes to a human-readable string representation."""
 
@@ -47,10 +45,13 @@ class Converter:
     def __int__(self) -> int:
         return int(float(self))
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.__dict__})"
+
 
 if __name__ == "__main__":
     try:
         print(Converter(int(sys.argv[1])))
     except (IndexError, ValueError):
-        print("Usage: ./ByteConverter.py <size in bytes>")
+        print("Usage: ./size  <size in bytes>")
         sys.exit(1)

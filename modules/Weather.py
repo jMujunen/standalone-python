@@ -146,4 +146,3 @@ if __name__ == "__main__":
     print(Abbotsford.data)
 
 # TODO: Fix alias get_weather
-# Test
