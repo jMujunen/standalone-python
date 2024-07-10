@@ -40,7 +40,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(args):
+def main(args: argparse.Namespace) -> None:
     try:
         with open(args.FILE) as file:
             header = next(file)
@@ -66,12 +66,12 @@ def main(args):
                             args.column = str(column)
                         except Exception as e:
                             print("Invalid column type")
-                            sys.exit(1)
-                        header = next(file).split(",")
-                        column = header.index(column)
+                            return
+                        h = header.split(", ")
+                        column = h.index(column)
                         numbers = file.readlines()
                         numbers = [float(x.split(",")[column]) for x in numbers]
-                        numbers = [DIGITS_RE.findall(numbers[x]) for x in range(len(numbers))]
+                        numbers = [DIGITS_RE.findall(str(numbers[x])) for x in range(len(numbers))]
                         numbers = [float(x[0][0]) for x in numbers]
                         plt.plot(numbers)
                         plt.show()
