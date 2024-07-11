@@ -2,6 +2,7 @@
 """Parse data structures from arbitrary text"""
 
 import os
+import sys
 import ast
 
 
@@ -47,17 +48,23 @@ def find_lists(text: str) -> list:
                 except (ValueError, SyntaxError):
                     print("Could not parse list at position", start)
         i += 1
-    return lists
+    return lists[-1]
 
 
-def main(file: str) -> None:
-    if os.path.exsists(file):
+def main(file: str) -> list | None:
+    if os.path.exists(file):
         with open(file, "r") as f:
             content = f.read()
+        return find_lists(content)
 
 
-# Use the function to find all top-level lists in the content
-top_level_lists = find_lists(content)
-
-# Now `top_level_lists` contains all the top-level lists from the log file that were successfully parsed
-print(top_level_lists)
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python3 parse_data_structures.py <filename>")
+    else:
+        result = main(sys.argv[1])
+        if result is not None:
+            for item in result:
+                if isinstance(item, list):
+                    print("\n".join(item))
+                print("=" * 60)

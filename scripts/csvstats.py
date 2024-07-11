@@ -4,7 +4,6 @@
 import os
 import sys
 import csv
-from random import randint
 from statistics import mean
 
 from rich.console import Console
