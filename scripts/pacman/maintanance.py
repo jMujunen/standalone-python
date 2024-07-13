@@ -25,3 +25,11 @@ def clean_syslogs() -> int:
 def rm_orphans() -> int:
     return_code = os.system("sudo pacman -Rs $(pacman -Qtdq)")
     return 0 if return_code == 0 or return_code == 256 else return_code
+
+def main() -> None:
+    clean_cache()
+    clean_syslogs()
+    rm_orphans()
+
+if __name__ == "__main__":
+    main()
