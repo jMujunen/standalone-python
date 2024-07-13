@@ -34,38 +34,23 @@ def parse_args():
 
 
 def sizeof(path):
-    if args.all:
-        output = subprocess.run(
-            f"du -ab {path} | sort -h | tail -{int(args.lines)}",
-            shell=True,
-            capture_output=True,
-            text=True,
-        )
-    else:
-        if args.mount:
-            output = subprocess.run(
-                f"du -xb {path} | sort -h | tail -{int(args.lines)}",
-                shell=True,
-                capture_output=True,
-                text=True,
-            )
-        else:
-            output = subprocess.run(
-                f"du -b {path} | sort -h | tail -{int(args.lines)}",
-                shell=True,
-                capture_output=True,
-                text=True,
-            )
-
+    cmd = "du -b" if not args.all else "du -ab"
+    if args.mount:
+        cmd += "x"
+    output = subprocess.run(
+        f"{cmd} {path} | sort -h | tail -{int(args.lines)}",
+        shell=True,
+        capture_output=True,
+        text=True,
+    )
     stdout = output.stdout.strip()
     stderr = output.stderr.strip()
     if "denied" not in stderr:
         print(stderr)
-    output = stdout.split("\n")
-    for item in output:
+    for item in stdout.split("\n"):
         size, directory = item.split("\t")
         print(f"{str(Converter(int(size))).ljust(12)}{directory}")
-    return stdout, stderr if stderr else stdout
+    return output.stdout if args.all else None
 
 
 def all_direcorty_sizes(self, path):
