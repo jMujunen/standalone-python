@@ -3,7 +3,7 @@
 
 import os
 import sys
-from glob import glob
+from collections import defaultdict
 from ExecutionTimer import ExecutionTimer
 from fsutils.mimecfg import FILE_TYPES
 
@@ -13,18 +13,12 @@ DIRECTORY = os.getcwd()
 
 
 def count_file_types(directory: str) -> dict:
-    file_types = {}
-    for file in glob(f"{directory}/**/*", recursive=True):
-        # for root, dirs, files in os.walk(directory):
-        #     for file in files:
-        file_name, file_extension = os.path.splitext(file)
-        if file_extension and file_extension not in IGNORED:
-            file_extension = file_extension[1:]  # remove the dot from the extension
-            if file_extension in file_types:
-                file_types[file_extension] += 1
-            else:
-                file_types[file_extension] = 1
-
+    file_types = defaultdict(int)
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            _, ext = os.path.splitext(file)
+            if ext and ext not in IGNORED:
+                file_types[ext[1:]] += 1  # remove the dot from the extension
     return dict(sorted(file_types.items(), key=lambda item: item[1]))
 
 
