@@ -234,3 +234,4 @@ class Styler:
             color_suffix = "\033[0m"
             lines[row] = f"{color_prefix}{lines[row]}{color_suffix}"
         self.command_output = "\n".join(lines)
+#
