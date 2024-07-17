@@ -4,28 +4,51 @@
 import os
 import sys
 from collections import defaultdict
+import argparse
+
 from ExecutionTimer import ExecutionTimer
 from fsutils.mimecfg import FILE_TYPES
+from fsutils import Dir
+from ProgressBar import ProgressBar
 
-IGNORED = FILE_TYPES.get("ignored")
+IGNORED = FILE_TYPES.get("ignored", [])
 
 DIRECTORY = os.getcwd()
 
 
-def count_file_types(directory: str) -> dict:
+def count_file_types(directory: str, ignore=False) -> dict:
     file_types = defaultdict(int)
-    for root, dirs, files in os.walk(directory):
-        for file in files:
-            _, ext = os.path.splitext(file)
+    path = Dir(directory)
+    progress = ProgressBar(len(path))
+    for item in path:
+        progress.increment()
+        ext = item.extension
+        if not ignore:
             if ext and ext not in IGNORED:
                 file_types[ext[1:]] += 1  # remove the dot from the extension
+            else:
+                if ext:
+                    file_types[ext[1:]] += 1  # remove the dot from the extension
     return dict(sorted(file_types.items(), key=lambda item: item[1]))
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("directory", nargs="?", default=os.getcwd())
+    parser.add_argument(
+        "--no-ignore",
+        action="store_true",
+        help="Don't ignore files based on the mimecfg",
+        default=False,
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
+    args = parse_args()
     if len(sys.argv) > 1:
         DIRECTORY = "".join(sys.argv[1:])
     with ExecutionTimer():
-        counts = count_file_types(DIRECTORY)
+        counts = count_file_types(DIRECTORY, args.no_ignore)
         for file_type, count in counts.items():
             print("{:<20} {:>10}".format(file_type, count))

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
+"""Finds and removes corrupt images and videos."""
 
-# remove_corrupt_media.py - Finds and removes corrupt images and videos.
-
-import os
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import os
 
-from fsutils import Dir, File, Img, Video
+from fsutils import Dir, Img
 from ExecutionTimer import ExecutionTimer
 from ProgressBar import ProgressBar
 from Color import cprint, style, fg
@@ -14,46 +14,61 @@ from Color import cprint, style, fg
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Finds and removes corrupt images and videos")
     parser.add_argument("path", help="Path to the directory")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Do not remove files, only show what would be done"
+    )
     return parser.parse_args()
 
 
-def main(path):
+def process_file(item: Img):
+    return (item.is_corrupt, item.path)
+
+
+def main(path: str, dry_run: bool) -> None:
     with ExecutionTimer():
         corrupted_files = []
 
-        directory = Dir(path)
-        jobs = len(directory) + 1
+        images = Dir(path).images
+        num_images = len(images)
+        progress = ProgressBar(num_images)
 
-        cprint(f"Found {jobs - 1} files", fg.green, style.bold)
-        progress = ProgressBar(jobs)
-        for item in directory:
-            progress.increment()
-            if (
-                isinstance(item, (Video, Img)) and item.is_corrupt
-            ):  # item.is_file and item.is_image or item.is_video:
-                cprint(f"{item.path} is corrupt. Removing...", fg.red, style.bold)
-                corrupted_files.append(item.path)
+        cprint(f"Found {num_images - 1} files", fg.green, style.bold)
+        with ThreadPoolExecutor() as executor:
+            futures = [executor.submit(process_file, img) for img in images]
+            for future in as_completed(futures):
+                try:
+                    result = future.result()
+                    if result:
+                        corrupt, path = result
+                        progress.increment()
+                        if corrupt:
+                            corrupted_files.append(path)  # save for later analysis
+                except Exception as e:
+                    cprint(e, fg.red)
+                except KeyboardInterrupt:
+                    break
         print("")
         with open("corrupt_files.txt", "w") as f:
             f.write("\n".join(corrupted_files))
 
         print("\n".join(corrupted_files))
 
-    if input("Are you sure you want to remove these files? [y/N]: ") in ["y", "Y"]:
-        os.system("clear")
-        remove_progress = ProgressBar(len(corrupted_files))
-        for f in corrupted_files:
-            remove_progress.increment()
-            try:
-                os.remove(f)
-            except KeyboardInterrupt:
-                break
-            except Exception as e:
-                cprint(f"\n{e}", fg.red, style.bold)
-                continue
+        if not dry_run and corrupted_files:
+            if input("Are you sure you want to remove these files? [y/N]: ") in ["y", "Y"]:
+                os.system("clear")
+                remove_progress = ProgressBar(len(corrupted_files))
+                for f in corrupted_files:
+                    remove_progress.increment()
+                    try:
+                        os.remove(f)
+                    except KeyboardInterrupt:
+                        break
+                    except Exception as e:
+                        cprint(f"\n{e}", fg.red, style.bold)
+                        continue
     print(f"\nDone: {len(corrupted_files)} successfully removed")
 
 
 if __name__ == "__main__":
     args = parse_arguments()
-    main(args.path)
+    main(args.path, args.dry_run)

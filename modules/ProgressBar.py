@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """A simple progress bar object"""
 
-from time import sleep
 from typing import Any
 import sys
 
@@ -12,7 +11,7 @@ class ProgressBar:
 
     Attributes
     ----------
-    inital_value : int
+    initial_value : int
         The initial value of the progress bar. Defaults to 100.
 
     current_value : int
@@ -31,41 +30,27 @@ class ProgressBar:
         Returns the value of the progress bar for use in a for loop
     """
 
-    def __init__(self, inital_value=100) -> None:
-        """
-        Initializes a new instance of the class
+    def __init__(self, initial_value: int) -> None:
+        """Initializes a new instance of the class
 
         Parameters
         ----------
-        inital_value : int
+        initial_value : int
             The initial value of the progress bar. Defaults to 100.
         """
-        self.inital_value = inital_value
+        self.initial_value = initial_value
         self.value_ = 0
         self.progress = 1
 
-    # def update(self, current_value=0) -> None:
-    #     """Updates the progress bar with the given current value
-
-    #     Parameters
-    #     ----------
-    #     current_value : int
-    #         The value to update the progress bar with
-    #     """
-
-    #     output = f"[{self.progress:.1f}%]"
-    #     print(output.ljust(int(self.progress), "="), end="[100.0%]\r")
-
     def increment(self, increment=1) -> None:
-        """
-        Increments the current value of the progress bar by the given amount
+        """Increments the current value of the progress bar by the given amount
 
         Parameters:
         ----------
             increment (int): The amount to increment the current value by
         """
         self.value += increment
-        self.progress = self.value / self.inital_value * 100
+        self.progress = self.value / self.initial_value * 100
         output = f"[{self.progress:.1f}%]"
         sys.stdout.write("\r" + output.ljust(int(self.progress / 2), "=") + "[100.0%]")
         sys.stdout.flush()
@@ -87,23 +72,31 @@ class ProgressBar:
         self.value_ = new_value
         return self.value
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the length of the progress bar for use in a for loop"""
-        return self.inital_value
+        return self.initial_value
 
     def __int__(self) -> int:
         return int(self.value)
 
     def __iter__(self) -> Any:
-        yield (i for i in range(int(self.inital_value)))
+        yield (i for i in range(int(self.initial_value)))
 
     def __str__(self) -> str:
         return str(self.value)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print("\n")
+
 
 # Example usage
 if __name__ == "__main__":
-    pb = ProgressBar(227)
-    for i in range(227):
-        pb.increment()
-        sleep(0.05)
+    from ExecutionTimer import ExecutionTimer
+
+    with ExecutionTimer():
+        progress = ProgressBar(150000)
+        for i in range(150000):
+            progress.increment()
