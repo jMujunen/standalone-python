@@ -62,26 +62,25 @@ def main():
     args = parse_args()
     number_of_files = get_number_of_files(args.INPUT_DIRECTORY)
 
-    pb = ProgressBar(int(number_of_files))
+    with ProgressBar(int(number_of_files)) as pb:
+        files = subprocess.run(
+            f"find {args.INPUT_DIRECTORY} -type f", shell=True, capture_output=True, text=True
+        ).stdout.strip()
+        files = files.split("\n")
 
-    files = subprocess.run(
-        f"find {args.INPUT_DIRECTORY} -type f", shell=True, capture_output=True, text=True
-    ).stdout.strip()
-    files = files.split("\n")
+        for file in files:
+            try:
+                output_path = os.path.join(args.OUTPUT_DIRECTORY, os.path.basename(file))
+                if args.dry:
+                    print(f"{file} -> {output_path}.")
+                else:
+                    shutil.move(file, output_path)
+                    if args.verbose:
+                        print(f"{file} -> {output_path}")
 
-    for file in files:
-        try:
-            output_path = os.path.join(args.OUTPUT_DIRECTORY, os.path.basename(file))
-            if args.dry:
-                print(f"{file} -> {output_path}.")
-            else:
-                shutil.move(file, output_path)
-                if args.verbose:
-                    print(f"{file} -> {output_path}")
-
-            # pb.increment()
-        except Exception as e:
-            print(e)
+                # pb.increment()
+            except Exception as e:
+                print(e)
 
 
 if __name__ == "__main__":

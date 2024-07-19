@@ -17,7 +17,7 @@ def main(file: str) -> None:
     common_files = find_lists(content)
 
     for item in common_files:
-        cprint(f"{'='*20}| {item[-1]} |{'='*20}", style.bold)
+        cprint(f"{'=' * 20}| {item[-1]} |{'=' * 20}", style.bold)
         for img in item:
             subprocess.run(
                 f'kitten icat --use-window-size 100,100,500,100 "{img}"',
@@ -32,15 +32,15 @@ def main(file: str) -> None:
             except ValueError:
                 print("Input an integer\n")
                 continue
-        progress = ProgressBar(len(common_files))
-        for item in common_files:
-            progress.increment()
-            for i, img in enumerate(item):
-                if len(item) > 1 and i > len(item) - int(num_remove) - 1:
-                    os.remove(img)
-                    cprint(f"Successfully removed {img}")
-                else:
-                    continue
+        with ProgressBar(len(common_files)) as progress:
+            for item in common_files:
+                progress.increment()
+                for i, img in enumerate(item):
+                    if len(item) > 1 and i > len(item) - int(num_remove) - 1:
+                        os.remove(img)
+                        cprint(f"Successfully removed {img}")
+                    else:
+                        continue
 
         cprint("\nFiles removed successfully", style.bold, fg.green)
 

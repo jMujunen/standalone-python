@@ -10,8 +10,7 @@ import shutil
 from typing import List
 import argparse
 
-from fsutils.DirNode import Dir
-from fsutils.VideoFile import Video
+from fsutils import Dir, Video
 
 from Color import fg, style, cprint
 from ExecutionTimer import ExecutionTimer
@@ -39,112 +38,112 @@ def main(
     # List of file objects
     old_files = []
     new_files = []
-    indir = Dir(input_directory)
+    input_dir = Dir(input_directory)
     outdir = Dir(output_directory)
 
     try:
         # for folder_path in indir.rel_directories:
-        # Create the output directorys if they don't exist
+        # Create the output directories if they don't exist
         os.makedirs(outdir.path, exist_ok=True)
     except OSError as e:
         print(f"[\033[31m Error creating output directory '{outdir}': {e} \033[0m]")
         exit(1)
 
     # Initialize progress bar
-    number_of_files = len(indir) + 1
-    progress = ProgressBar(number_of_files)
+    number_of_files = len(input_dir) + 1
 
-    # Loop through all files in input directory
-    for item in indir:
-        progress.increment()
-        if isinstance(item, Video):
-            try:
-                # Define the output file path
-                output_file_path = os.path.join(outdir.path, item.basename)
-            except Exception as e:
-                cprint(f"\n{e}", fg.red, style.underline)
-                continue
+    with ProgressBar(number_of_files) as progress:
+        # Loop through all files in input directory
+        for item in input_dir:
+            progress.increment()
+            if isinstance(item, Video):
+                try:
+                    # Define the output file path
+                    output_file_path = os.path.join(outdir.path, item.basename)
+                except Exception as e:
+                    cprint(f"\n{e}", fg.red, style.underline)
+                    continue
 
-            # Check if the output file already exists
-            if os.path.exists(output_file_path):
+                # Check if the output file already exists
+                if os.path.exists(output_file_path):
+                    output_file_object = Video(output_file_path)
+                    # If metadata is the same but size if different, its already compressed so skip
+                    # and flag for removal of old file
+                    if (
+                        output_file_object.metadata == item.metadata
+                        and output_file_object.size != item.size
+                    ):
+                        old_files.append(item)
+                        new_files.append(output_file_object)
+                        continue
+                    elif output_file_object.is_corrupt:
+                        os.remove(output_file_object.path)
+                    elif (
+                        output_file_object.basename == item.basename
+                        and not output_file_object.is_corrupt
+                        and item.size != output_file_object.size
+                    ):
+                        count = 0
+                        # Loop until a unique name is found
+                        while True:
+                            try:
+                                print(output_file_object.metadata)
+                                print(output_file_object.bitrate)
+                                print(output_file_object.size)
+                                print(output_file_object.basename)
+                                print("-------------")
+                                print(item.metadata)
+                                print(item.bitrate)
+                                print(item.size)
+                                print(item.basename)
+                                # Rename the file: "input_file.mp4" -> "input_file_1.mp4"
+                                new_path = f"{output_file_path[:-4]}_{str(count)}.mp4"
+                                shutil.move(item.path, new_path)
+                                item = Video(new_path)
+                                break
+                            except FileExistsError:
+                                count += 1
+                                continue
+                    # If all else fails, something was not accounted for
+                    else:
+                        (
+                            os.remove(item.path)
+                            if not item.is_corrupt
+                            else cprint(
+                                "FATAL ERROR: Manual intervention required",
+                                fg.red,
+                                style.underline,
+                            )
+                        )
+                        continue
+                # ffmpeg -i input.mp4 -c:v h264_nvenc -preset slow -crf 23 -b:v 0 -vf scale=1280:720 output.mp4
+                # Run ffmpeg command for each file
+                if item.bitrate < rate:
+                    continue
+                result = subprocess.run(
+                    # f'ffmpeg -i "{item.path}" -c:v hevc_nvenc -crf 20 -qp 20 "{output_file_path}"',
+                    f'ffmpeg -i "{item.path}" -c:v h264_nvenc -crf 18 -qp 28 "{output_file_path}"',
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                )
+                result = result.returncode
                 output_file_object = Video(output_file_path)
-                # If metadata is the same but size if different, its already compressed so skip
-                # and flag for removal of old file
-                if (
-                    output_file_object.metadata == item.metadata
-                    and output_file_object.size != item.size
-                ):
+
+                # Check if conversion was successful and do a few more checks for redundancy
+                if result == 0 and not item.is_corrupt and not output_file_object.is_corrupt:
                     old_files.append(item)
                     new_files.append(output_file_object)
-                    continue
-                elif output_file_object.is_corrupt:
-                    os.remove(output_file_object.path)
-                elif (
-                    output_file_object.basename == item.basename
-                    and not output_file_object.is_corrupt
-                    and item.size != output_file_object.size
-                ):
-                    count = 0
-                    # Loop until a unique name is found
-                    while True:
-                        try:
-                            print(output_file_object.metadata)
-                            print(output_file_object.bitrate)
-                            print(output_file_object.size)
-                            print(output_file_object.basename)
-                            print("-------------")
-                            print(item.metadata)
-                            print(item.bitrate)
-                            print(item.size)
-                            print(item.basename)
-                            # Rename the file: "input_file.mp4" -> "input_file_1.mp4"
-                            new_path = f"{output_file_path[:-4]}_{str(count)}.mp4"
-                            shutil.move(item.path, new_path)
-                            item = Video(new_path)
-                            break
-                        except FileExistsError:
-                            count += 1
-                            continue
-                # If all else fails, something was not accounted for
+
                 else:
-                    (
-                        os.remove(item.path)
-                        if not item.is_corrupt
-                        else cprint(
-                            "FATAL ERROR: Manual intervention required",
-                            fg.red,
-                            style.underline,
-                        )
+                    cprint(
+                        f"\n{item.basename} could not be converted. Error code: {result}",
+                        fg.red,
+                        style.bold,
                     )
-                    continue
-            # ffmpeg -i input.mp4 -c:v h264_nvenc -preset slow -crf 23 -b:v 0 -vf scale=1280:720 output.mp4
-            # Run ffmpeg command for each file
-            if item.bitrate < rate:
-                continue
-            result = subprocess.run(
-                # f'ffmpeg -i "{item.path}" -c:v hevc_nvenc -crf 20 -qp 20 "{output_file_path}"',
-                f'ffmpeg -i "{item.path}" -c:v h264_nvenc -crf 18 -qp 28 "{output_file_path}"',
-                shell=True,
-                capture_output=True,
-                text=True,
-            )
-            result = result.returncode
-            output_file_object = Video(output_file_path)
-
-            # Check if conversion was successful and do a few more checks for redundancy
-            if result == 0 and not item.is_corrupt and not output_file_object.is_corrupt:
-                old_files.append(item)
-                new_files.append(output_file_object)
-
             else:
-                cprint(
-                    f"\n{item.basename} could not be converted. Error code: {result}",
-                    fg.red,
-                    style.bold,
-                )
-        else:
-            # Not a video, skip
-            pass
+                # Not a video, skip
+                pass
     # Notify user of completion
     cprint("\nBatch conversion completed.", fg.green)
     return old_files, new_files

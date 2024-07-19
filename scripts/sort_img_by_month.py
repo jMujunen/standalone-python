@@ -117,44 +117,129 @@ def main(input_dir, output_dir):
         # Initialize objects and variables
         d = Dir(input_dir)
         items = len(d)
-        progress = ProgressBar(items - 1)
         removed = 0
         # Create a directory for the images without metadata
         os.makedirs(os.path.join(output_dir, "Videos", "Dashcam"), exist_ok=True)
         # os.makedirs(os.path.join(output_dir, "Videos", "NoMetaData"), exist_ok=True)
         os.makedirs(os.path.join(output_dir, "Videos", "Other"), exist_ok=True)
         os.makedirs(os.path.join(output_dir, "Videos", ""), exist_ok=True)
+        with ProgressBar(items - 1) as progress:
+            # Iterate over all files in the directory
+            for item in d.objects():
+                progress.increment()
+                if item.extension in JUNK:
+                    os.remove(item.path)
+                    continue
+                # ============================ PHOTO =============================== #
+                if item.is_image and isinstance(item, Img):
+                    output = os.path.join(output_dir, "Photos")
+                    if JUNK_FILE_REGEX.match(item.basename):
+                        try:
+                            os.remove(item.path)
+                            removed += 1
+                        except FileNotFoundError:
+                            cprint(f"FileNotFound: Error removing {item.path}", fg.red)
 
-        # Iterate over all files in the directory
-        for item in d.objects():
-            progress.increment()
-            if item.extension in JUNK:
-                os.remove(item.path)
-                continue
-            # ============================ PHOTO =============================== #
-            if item.is_image and isinstance(item, Img):
-                output = os.path.join(output_dir, "Photos")
-                if JUNK_FILE_REGEX.match(item.basename):
                     try:
-                        os.remove(item.path)
-                        removed += 1
-                    except FileNotFoundError:
-                        cprint(f"FileNotFound: Error removing {item.path}", fg.red)
-
-                try:
-                    # Sort the images into directories by capture date year
-                    # If the image does not have a capture date, move it to 'NoMetaData' directory
-                    # and rename if necessary to avoid duplicates
+                        # Sort the images into directories by capture date year
+                        # If the image does not have a capture date, move it to 'NoMetaData' directory
+                        # and rename if necessary to avoid duplicates
+                        if not item.capture_date:
+                            # Move the file to 'NoMetaData' directory
+                            os.makedirs(os.path.join(output, "NoMetaData"), exist_ok=True)
+                            no_meta_data_dir = os.path.join(output, "NoMetaData")
+                            no_meta_data_image = os.path.join(no_meta_data_dir, item.basename)
+                            # Rename the file if it already exists in 'NoMetaData' directory
+                            # to avoid duplicates
+                            count = 0
+                            while os.path.exists(no_meta_data_image):
+                                if item == Img(no_meta_data_image):
+                                    duplicates.append(item.path)
+                                    break
+                                count += 1
+                                # Increment the count until we find a filename that does not exist yet
+                                try:
+                                    new_file_name = f"{item.basename[:-4]}_{count}{item.extension}"
+                                    shutil.move(
+                                        item.path,
+                                        os.path.join(no_meta_data_dir, new_file_name),
+                                        copy_function=shutil.copy2,
+                                    )
+                                    # If the new filename does not exist, break the loop and
+                                    # continue execution with the new filename
+                                    break
+                                except Exception as e:
+                                    cprint(e, fg.orange)
+                                    continue
+                            try:
+                                # If the file does not exist in 'NoMetaData' directory yet, move it there
+                                shutil.move(
+                                    item.path,
+                                    os.path.join(output, "NoMetaData", ""),
+                                    copy_function=shutil.copy2,
+                                )
+                            except Exception as e:
+                                cprint(e, fg.gray)
+                        # Meta data found, move it to appropriate year subdirectory based
+                        # on metadata date
+                        else:
+                            capture_year = str(item.capture_date.year)
+                            output_file_path = os.path.join(
+                                output, str(capture_year), item.basename
+                            )
+                            for regex, func in SPECIAL_FILES.items():
+                                if regex.match(item.basename):
+                                    output_file_path = func(output, item) or f".{output_file_path}"
+                            # Check if the file already exists in the destination directory,
+                            # if so increment a counter to create a unique name for it.
+                            count = 0
+                            while os.path.exists(output_file_path):
+                                if item == Img(output_file_path):
+                                    duplicates.append(item.path)
+                                    break
+                                count += 1
+                                try:
+                                    filename = os.path.split(output_file_path)[-1][:-4]
+                                    output_file_name = f"{filename}_{count}{item.extension}"
+                                    output_file_path = os.path.join(
+                                        output, capture_year, output_file_name
+                                    )
+                                    shutil.move(
+                                        item.path, output_file_path, copy_function=shutil.copy2
+                                    )
+                                    break
+                                except Exception as e:
+                                    cprint(e, fg.orange)
+                                    continue
+                            try:
+                                os.makedirs(os.path.join(output, str(capture_year)), exist_ok=True)
+                                shutil.move(item.path, output_file_path, copy_function=shutil.copy2)
+                            except KeyboardInterrupt:
+                                break
+                            except (FileNotFoundError, NotADirectoryError):
+                                pass
+                            except Exception as e:
+                                cprint(e, fg.deeppink)
+                                continue
+                    except TypeError as e:
+                        cprint(e, fg.red)
+                        try:
+                            shutil.move(item.path, output)
+                        except Exception as e:
+                            cprint(f"FATAL ERROR: {e}:", bg.red, fg.black, style.underline)
+                    except Exception as e:
+                        cprint(e, fg.red)
+                    rm_empty_folders(item.dir_name)
+                # ============================ VIDEO =============================== #
+                elif item.is_video and isinstance(item, Video):
+                    output = os.path.join(output_dir, "Videos")
                     if not item.capture_date:
-                        # Move the file to 'NoMetaData' directory
-                        os.makedirs(os.path.join(output, "NoMetaData"), exist_ok=True)
                         no_meta_data_dir = os.path.join(output, "NoMetaData")
-                        no_meta_data_image = os.path.join(no_meta_data_dir, item.basename)
-                        # Rename the file if it already exists in 'NoMetaData' directory
-                        # to avoid duplicates
+                        os.makedirs(no_meta_data_dir, exist_ok=True)
+                        no_meta_data_path = os.path.join(no_meta_data_dir, item.basename)
                         count = 0
-                        while os.path.exists(no_meta_data_image):
-                            if item == Img(no_meta_data_image):
+                        while os.path.exists(no_meta_data_path):
+                            if item == Video(no_meta_data_path):
                                 duplicates.append(item.path)
                                 break
                             count += 1
@@ -171,6 +256,7 @@ def main(input_dir, output_dir):
                                 break
                             except Exception as e:
                                 cprint(e, fg.orange)
+                                count += 1
                                 continue
                         try:
                             # If the file does not exist in 'NoMetaData' directory yet, move it there
@@ -181,19 +267,17 @@ def main(input_dir, output_dir):
                             )
                         except Exception as e:
                             cprint(e, fg.gray)
-                    # Meta data found, move it to appropriate year subdirectory based
-                    # on metadata date
+                            continue
+                        # Meta data found, move it to appropriate year subdirectory based
+                        # on metadata date
                     else:
                         capture_year = str(item.capture_date.year)
-                        output_file_path = os.path.join(output, str(capture_year), item.basename)
-                        for regex, func in SPECIAL_FILES.items():
-                            if regex.match(item.basename):
-                                output_file_path = func(output, item) or f".{output_file_path}"
+                        output_file_path = os.path.join(output, capture_year, item.basename)
                         # Check if the file already exists in the destination directory,
                         # if so increment a counter to create a unique name for it.
                         count = 0
                         while os.path.exists(output_file_path):
-                            if item == Img(output_file_path):
+                            if item == Video(output_file_path):
                                 duplicates.append(item.path)
                                 break
                             count += 1
@@ -207,9 +291,9 @@ def main(input_dir, output_dir):
                                 break
                             except Exception as e:
                                 cprint(e, fg.orange)
-                                continue
+                                count += 1
                         try:
-                            os.makedirs(os.path.join(output, str(capture_year)), exist_ok=True)
+                            os.makedirs(os.path.join(output, capture_year), exist_ok=True)
                             shutil.move(item.path, output_file_path, copy_function=shutil.copy2)
                         except KeyboardInterrupt:
                             break
@@ -218,173 +302,94 @@ def main(input_dir, output_dir):
                         except Exception as e:
                             cprint(e, fg.deeppink)
                             continue
-                except TypeError as e:
-                    cprint(e, fg.red)
-                    try:
-                        shutil.move(item.path, output)
-                    except Exception as e:
-                        cprint(f"FATAL ERROR: {e}:", bg.red, fg.black, style.underline)
-                except Exception as e:
-                    cprint(e, fg.red)
-                rm_empty_folders(item.dir_name)
-            # ============================ VIDEO =============================== #
-            elif item.is_video and isinstance(item, Video):
-                output = os.path.join(output_dir, "Videos")
-                if not item.capture_date:
-                    no_meta_data_dir = os.path.join(output, "NoMetaData")
-                    os.makedirs(no_meta_data_dir, exist_ok=True)
-                    no_meta_data_path = os.path.join(no_meta_data_dir, item.basename)
-                    count = 0
-                    while os.path.exists(no_meta_data_path):
-                        if item == Video(no_meta_data_path):
-                            duplicates.append(item.path)
-                            break
-                        count += 1
-                        # Increment the count until we find a filename that does not exist yet
-                        try:
-                            new_file_name = f"{item.basename[:-4]}_{count}{item.extension}"
-                            shutil.move(
-                                item.path,
-                                os.path.join(no_meta_data_dir, new_file_name),
-                                copy_function=shutil.copy2,
-                            )
-                            # If the new filename does not exist, break the loop and
-                            # continue execution with the new filename
-                            break
-                        except Exception as e:
-                            cprint(e, fg.orange)
-                            count += 1
-                            continue
-                    try:
-                        # If the file does not exist in 'NoMetaData' directory yet, move it there
-                        shutil.move(
-                            item.path,
-                            os.path.join(output, "NoMetaData", ""),
-                            copy_function=shutil.copy2,
-                        )
-                    except Exception as e:
-                        cprint(e, fg.gray)
-                        continue
-                    # Meta data found, move it to appropriate year subdirectory based
-                    # on metadata date
-                else:
-                    capture_year = str(item.capture_date.year)
-                    output_file_path = os.path.join(output, capture_year, item.basename)
-                    # Check if the file already exists in the destination directory,
-                    # if so increment a counter to create a unique name for it.
+                    rm_empty_folders(item.dir_name)
+                # ============================ FILE =============================== #
+
+                elif isinstance(item, Log):
+                    if "hwinfo" in item.basename.lower():
+                        os.makedirs(os.path.join(output_dir, "Logs", "hwinfo"), exist_ok=True)
+                        output = os.path.join(output_dir, "Logs", "hwinfo")
+                    elif "gpuz" in item.basename.lower():
+                        os.makedirs(os.path.join(output_dir, "Logs", "gpuz"), exist_ok=True)
+                        output = os.path.join(output_dir, "Logs", "gpuz")
+                    else:
+                        os.makedirs(os.path.join(output_dir, "Logs"), exist_ok=True)
+                        output = os.path.join(output_dir, "Logs")
+                    output_file_path = os.path.join(output, item.basename)
                     count = 0
                     while os.path.exists(output_file_path):
-                        if item == Video(output_file_path):
+                        if item == Log(output_file_path):
                             duplicates.append(item.path)
                             break
                         count += 1
                         try:
                             filename = os.path.split(output_file_path)[-1][:-4]
                             output_file_name = f"{filename}_{count}{item.extension}"
-                            output_file_path = os.path.join(output, capture_year, output_file_name)
+                            output_file_path = os.path.join(output, output_file_name)
                             shutil.move(item.path, output_file_path, copy_function=shutil.copy2)
                             break
                         except Exception as e:
-                            cprint(e, fg.orange)
-                            count += 1
+                            print("Error:", e)
+                            continue
                     try:
-                        os.makedirs(os.path.join(output, capture_year), exist_ok=True)
-                        shutil.move(item.path, output_file_path, copy_function=shutil.copy2)
-                    except KeyboardInterrupt:
-                        break
-                    except (FileNotFoundError, NotADirectoryError):
+                        shutil.move(
+                            item.path,
+                            os.path.join(output, item.basename),
+                            copy_function=shutil.copy2,
+                        )
+                    except Exception as e:
+                        cprint(e, fg.gray)
+                        continue
+                    rm_empty_folders(item.dir_name)
+                elif item.is_dir:
+                    rm_empty_folders(item.path)
+                elif not item.is_dir and not isinstance(item, Dir) and item.extension is not None:
+                    # ============================ MISC  =============================== #
+                    os.makedirs(os.path.join(output_dir, "Misc"), exist_ok=True)
+                    output = os.path.join(output_dir, "Misc")
+                    for mimetype, ext in MIME.items():
+                        if item.extension in ext:
+                            os.makedirs(os.path.join(output, mimetype), exist_ok=True)
+                            output = os.path.join(output, mimetype)
+                            break
+
+                    output_file_path = os.path.join(output, item.basename)
+                    count = 0
+                    while os.path.exists(output_file_path):
+                        if item == File(output_file_path):
+                            duplicates.append(item.path)
+                            break
+                        count += 1
+                        try:
+                            filename = os.path.split(output_file_path)[-1][:-4]
+                            output_file_name = f"{filename}_{count}{item.extension}"
+                            output_file_path = os.path.join(output, output_file_name)
+                            shutil.move(item.path, output_file_path, copy_function=shutil.copy2)
+                            break
+                        except Exception as e:
+                            print("Error:", e)
+                            continue
+                    try:
+                        # if os.path.isdir(input_dir) or os.path.isdir(
+                        #     output_file_path
+                        # ):  # " #or os.path.is_empty:
+                        #     cprint(
+                        #         f"Error concatating file paths for file {item.basename}",
+                        #         fg.red,
+                        #         style.bold,
+                        #         style.underline,
+                        #     )
+                        #     pass
+                        shutil.move(
+                            item.path,
+                            output_file_path,
+                            copy_function=shutil.copy2,
+                        )
+                    except Exception as e:
                         pass
-                    except Exception as e:
-                        cprint(e, fg.deeppink)
-                        continue
-                rm_empty_folders(item.dir_name)
-            # ============================ FILE =============================== #
-
-            elif isinstance(item, Log):
-                if "hwinfo" in item.basename.lower():
-                    os.makedirs(os.path.join(output_dir, "Logs", "hwinfo"), exist_ok=True)
-                    output = os.path.join(output_dir, "Logs", "hwinfo")
-                elif "gpuz" in item.basename.lower():
-                    os.makedirs(os.path.join(output_dir, "Logs", "gpuz"), exist_ok=True)
-                    output = os.path.join(output_dir, "Logs", "gpuz")
-                else:
-                    os.makedirs(os.path.join(output_dir, "Logs"), exist_ok=True)
-                    output = os.path.join(output_dir, "Logs")
-                output_file_path = os.path.join(output, item.basename)
-                count = 0
-                while os.path.exists(output_file_path):
-                    if item == Log(output_file_path):
-                        duplicates.append(item.path)
-                        break
-                    count += 1
-                    try:
-                        filename = os.path.split(output_file_path)[-1][:-4]
-                        output_file_name = f"{filename}_{count}{item.extension}"
-                        output_file_path = os.path.join(output, output_file_name)
-                        shutil.move(item.path, output_file_path, copy_function=shutil.copy2)
-                        break
-                    except Exception as e:
-                        print("Error:", e)
-                        continue
-                try:
-                    shutil.move(
-                        item.path,
-                        os.path.join(output, item.basename),
-                        copy_function=shutil.copy2,
-                    )
-                except Exception as e:
-                    cprint(e, fg.gray)
-                    continue
-                rm_empty_folders(item.dir_name)
-            elif item.is_dir:
-                rm_empty_folders(item.path)
-            elif not item.is_dir and not isinstance(item, Dir) and item.extension is not None:
-                # ============================ MISC  =============================== #
-                os.makedirs(os.path.join(output_dir, "Misc"), exist_ok=True)
-                output = os.path.join(output_dir, "Misc")
-                for mimetype, ext in MIME.items():
-                    if item.extension in ext:
-                        os.makedirs(os.path.join(output, mimetype), exist_ok=True)
-                        output = os.path.join(output, mimetype)
-                        break
-
-                output_file_path = os.path.join(output, item.basename)
-                count = 0
-                while os.path.exists(output_file_path):
-                    if item == File(output_file_path):
-                        duplicates.append(item.path)
-                        break
-                    count += 1
-                    try:
-                        filename = os.path.split(output_file_path)[-1][:-4]
-                        output_file_name = f"{filename}_{count}{item.extension}"
-                        output_file_path = os.path.join(output, output_file_name)
-                        shutil.move(item.path, output_file_path, copy_function=shutil.copy2)
-                        break
-                    except Exception as e:
-                        print("Error:", e)
-                        continue
-                try:
-                    # if os.path.isdir(input_dir) or os.path.isdir(
-                    #     output_file_path
-                    # ):  # " #or os.path.is_empty:
-                    #     cprint(
-                    #         f"Error concatating file paths for file {item.basename}",
-                    #         fg.red,
-                    #         style.bold,
-                    #         style.underline,
-                    #     )
-                    #     pass
-                    shutil.move(
-                        item.path,
-                        output_file_path,
-                        copy_function=shutil.copy2,
-                    )
-                except Exception as e:
-                    pass
-                rm_empty_folders(item.path)
-                # cprint(f"Unknown file type{type(item)}, {item.path}", fg.cyan, style.underline)
-            # else:
+                    rm_empty_folders(item.path)
+                    # cprint(f"Unknown file type{type(item)}, {item.path}", fg.cyan, style.underline)
+                # else:
 
         cprint("Done organizing files", fg.green)
         return removed, items, duplicates
