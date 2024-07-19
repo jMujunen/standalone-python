@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Higher level interface for printing colored text in the terminal.
 
 This module utilizes metaclasses to create a higher level (and therefor) human readble interface for
@@ -23,6 +23,7 @@ Examples:
     >>> cprint("This is bold and cyan", fg.cyan, style.bold)
 """
 
+from dataclasses import dataclass
 
 class ColorMeta(type):
     """Metaclass base for creating the interface for printing colored text in the terminal."""
@@ -347,6 +348,27 @@ def cprint(text, *styles, end="\n"):
     """
     print(str(Parse(text, *styles)), end=end)
 
+
+@dataclass
+class Color2:
+    r: int
+    g: int
+    b: int
+
+    # Add methods for each style you want to support
+    def bold(self):
+        return BoldColor(self.r, self.g, self.b)
+
+    def italic(self):
+        return ItalicColor(self.r, self.g, self.b)
+
+class BoldColor(Color2):
+    # Implement the bold style here if necessary
+    pass
+
+class ItalicColor(Color2):
+    # Implement the italic style here if necessary
+    pass
 
 # Example usage
 if __name__ == "__main__":

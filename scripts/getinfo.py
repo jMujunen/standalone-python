@@ -19,17 +19,18 @@ DIRECTORY = os.getcwd()
 def count_file_types(directory: str, ignore=False) -> dict:
     file_types = defaultdict(int)
     path = Dir(directory)
-    progress = ProgressBar(len(path))
-    for item in path:
-        progress.increment()
-        ext = item.extension
-        if not ignore:
-            if ext and ext not in IGNORED:
-                file_types[ext[1:]] += 1  # remove the dot from the extension
-            else:
-                if ext:
+    # progress = ProgressBar(len(path))
+    with ProgressBar(len(path)) as progress:
+        for item in path:
+            progress.increment()
+            ext = item.extension
+            if not ignore:
+                if ext and ext not in IGNORED:
                     file_types[ext[1:]] += 1  # remove the dot from the extension
-    return dict(sorted(file_types.items(), key=lambda item: item[1]))
+                else:
+                    if ext:
+                        file_types[ext[1:]] += 1  # remove the dot from the extension
+        return dict(sorted(file_types.items(), key=lambda item: item[1]))
 
 
 def parse_args() -> argparse.Namespace:
