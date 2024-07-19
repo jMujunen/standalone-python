@@ -7,6 +7,7 @@ import re
 import pyperclip
 import random
 
+
 def rgb_to_ansi(r, g, b):
     """
     Convert RGB color values to an ANSI escape code.
@@ -41,7 +42,12 @@ def random_hex():
         >>> random_hex()
         '#e0c1f8'
     """
-    return "#%02x%02x%02x" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    return "#%02x%02x%02x" % (
+        random.randint(0, 255),
+        random.randint(0, 255),
+        random.randint(0, 255),
+    )
+
 
 def hex_to_rgb(hex_code):
     """
@@ -60,6 +66,7 @@ def hex_to_rgb(hex_code):
     """
     hex_code = hex_code.lstrip("#")
     return tuple(int(hex_code[i : i + 2], 16) for i in (0, 2, 4))
+
 
 def hex_to_ansi(hex_code):
     """
@@ -89,8 +96,9 @@ def main(color):
         # RGB format
         rgb_values = map(int, color_input.split(","))
         ansi_code = rgb_to_ansi(*rgb_values)
-    elif re.match(r"\(\d{1,3},\s*\d{1,3},\s*\d{1,3}\)", color_input) or \
-        re.match(r"\('\d{1,3},\s*\d{1,3},\s*\d{1,3}'\)", color_input):
+    elif re.match(r"\(\d{1,3},\s*\d{1,3},\s*\d{1,3}\)", color_input) or re.match(
+        r"\('\d{1,3},\s*\d{1,3},\s*\d{1,3}'\)", color_input
+    ):
         # RGB format
         rgb_values = re.findall(r"\d+", color_input)
         ansi_code = rgb_to_ansi(*rgb_values)
@@ -103,7 +111,6 @@ def main(color):
     stripped_ansi_code = ansi_code.replace("\033", "")
     print(f"{ansi_code}{stripped_ansi_code}\033[0m")
     pyperclip.copy(stripped_ansi_code)
-
 
 
 def parse_arguments():

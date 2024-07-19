@@ -57,7 +57,9 @@ def main(args: argparse.Namespace) -> None:
                         column = int(column)
                         numbers = file.readlines()
                         numbers = [(x.split(",")[column]) for x in numbers]
-                        numbers = [DIGITS_RE.findall(numbers[x]) for x in range(len(numbers))]
+                        numbers = [
+                            DIGITS_RE.findall(numbers[x]) for x in range(len(numbers))
+                        ]
                         numbers = [float(x[0][0]) for x in numbers]
                         plt.plot(numbers)
                         plt.show()
@@ -71,7 +73,10 @@ def main(args: argparse.Namespace) -> None:
                         column = h.index(column)
                         numbers = file.readlines()
                         numbers = [float(x.split(",")[column]) for x in numbers]
-                        numbers = [DIGITS_RE.findall(str(numbers[x])) for x in range(len(numbers))]
+                        numbers = [
+                            DIGITS_RE.findall(str(numbers[x]))
+                            for x in range(len(numbers))
+                        ]
                         numbers = [float(x[0][0]) for x in numbers]
                         plt.plot(numbers)
                         plt.show()

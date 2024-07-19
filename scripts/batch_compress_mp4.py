@@ -23,11 +23,16 @@ from size import Converter
 
 
 def parse_arguments() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Batch process all .mp4 files in a directory")
+    parser = argparse.ArgumentParser(
+        description="Batch process all .mp4 files in a directory"
+    )
     parser.add_argument("input_directory", help="Input directory")
     parser.add_argument("output_directory", help="Output directory")
     parser.add_argument(
-        "--rate", help="Ensure bitrate (per second) is under this value", default="500000", type=int
+        "--rate",
+        help="Ensure bitrate (per second) is under this value",
+        default="500000",
+        type=int,
     )
     return parser.parse_args()
 
@@ -131,7 +136,11 @@ def main(
                 output_file_object = Video(output_file_path)
 
                 # Check if conversion was successful and do a few more checks for redundancy
-                if result == 0 and not item.is_corrupt and not output_file_object.is_corrupt:
+                if (
+                    result == 0
+                    and not item.is_corrupt
+                    and not output_file_object.is_corrupt
+                ):
                     old_files.append(item)
                     new_files.append(output_file_object)
 
@@ -154,7 +163,9 @@ if __name__ == "__main__":
     with ExecutionTimer():
         args = parse_arguments()
         # Run the main function
-        old_files, new_files = main(args.input_directory, args.output_directory, int(args.rate))
+        old_files, new_files = main(
+            args.input_directory, args.output_directory, int(args.rate)
+        )
         if not old_files or not new_files:
             cprint("Nothing to convert. Exiting...", fg.yellow)
             exit(1)

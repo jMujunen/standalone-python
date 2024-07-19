@@ -81,7 +81,9 @@ class SMS:
         else:
             raise ValueError(f"Invalid destination: {destination}")
 
-        print(f"\033[33mAttempting send {RESET} {BLUE}{msg}{RESET}] to {RESET} {BLUE}{destination}{RESET}...")
+        print(
+            f"\033[33mAttempting send {RESET} {BLUE}{msg}{RESET}] to {RESET} {BLUE}{destination}{RESET}..."
+        )
         send_sms_process = subprocess.run(
             f'kdeconnect-cli --send-sms "{msg}" --destination {destination} -d {self.device_id}',
             shell=True,

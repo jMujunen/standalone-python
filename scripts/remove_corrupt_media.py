@@ -12,10 +12,14 @@ from Color import cprint, style, fg
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Finds and removes corrupt images and videos")
+    parser = argparse.ArgumentParser(
+        description="Finds and removes corrupt images and videos"
+    )
     parser.add_argument("path", help="Path to the directory")
     parser.add_argument(
-        "--dry-run", action="store_true", help="Do not remove files, only show what would be done"
+        "--dry-run",
+        action="store_true",
+        help="Do not remove files, only show what would be done",
     )
     return parser.parse_args()
 
@@ -53,7 +57,10 @@ def main(path: str, dry_run: bool) -> None:
             print("\n".join(corrupted_files))
 
             if not dry_run and corrupted_files:
-                if input("Are you sure you want to remove these files? [y/N]: ") in ["y", "Y"]:
+                if input("Are you sure you want to remove these files? [y/N]: ") in [
+                    "y",
+                    "Y",
+                ]:
                     os.system("clear")
                     remove_progress = ProgressBar(len(corrupted_files))
                     for f in corrupted_files:

@@ -25,6 +25,7 @@ Examples:
 
 from dataclasses import dataclass
 
+
 class ColorMeta(type):
     """Metaclass base for creating the interface for printing colored text in the terminal."""
 
@@ -362,13 +363,16 @@ class Color2:
     def italic(self):
         return ItalicColor(self.r, self.g, self.b)
 
+
 class BoldColor(Color2):
     # Implement the bold style here if necessary
     pass
 
+
 class ItalicColor(Color2):
     # Implement the italic style here if necessary
     pass
+
 
 # Example usage
 if __name__ == "__main__":

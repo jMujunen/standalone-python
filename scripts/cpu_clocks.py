@@ -17,7 +17,11 @@ def parse_args():
         "-d", "--duration", type=int, default=80, help="Measurement duration in seconds"
     )
     parser.add_argument(
-        "-i", "--interval", type=float, default=0.2, help="Measurement interval in seconds"
+        "-i",
+        "--interval",
+        type=float,
+        default=0.2,
+        help="Measurement interval in seconds",
     )
     parser.add_argument(
         "-o",

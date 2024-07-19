@@ -64,13 +64,18 @@ def main():
 
     with ProgressBar(int(number_of_files)) as pb:
         files = subprocess.run(
-            f"find {args.INPUT_DIRECTORY} -type f", shell=True, capture_output=True, text=True
+            f"find {args.INPUT_DIRECTORY} -type f",
+            shell=True,
+            capture_output=True,
+            text=True,
         ).stdout.strip()
         files = files.split("\n")
 
         for file in files:
             try:
-                output_path = os.path.join(args.OUTPUT_DIRECTORY, os.path.basename(file))
+                output_path = os.path.join(
+                    args.OUTPUT_DIRECTORY, os.path.basename(file)
+                )
                 if args.dry:
                     print(f"{file} -> {output_path}.")
                 else:

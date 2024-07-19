@@ -14,9 +14,13 @@ def parse_args():
     --------
          args: The parsed arguments.
     """
-    parser = argparse.ArgumentParser(description='Detect the encoding of a text based file')
-    parser.add_argument('file_path', type=str, help='The path to the text file')
-    parser.add_argument('--verbose', '-v', action='store_true', help='Enable verbose mode')
+    parser = argparse.ArgumentParser(
+        description="Detect the encoding of a text based file"
+    )
+    parser.add_argument("file_path", type=str, help="The path to the text file")
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Enable verbose mode"
+    )
     return parser.parse_args()
 
 
@@ -32,8 +36,8 @@ def main(file):
     ---------
         str: The detected encoding.
     """
-    with open(file, 'rb') as f:
-        encoding = chardet.detect(f.read())['encoding']
+    with open(file, "rb") as f:
+        encoding = chardet.detect(f.read())["encoding"]
     return encoding
 
 
@@ -42,5 +46,5 @@ if __name__ == "__main__":
     result = main(args.file_path)
     # TODO M0R3 Verbose
     if args.verbose:
-        print(f'Input file: {args.file_path}')
+        print(f"Input file: {args.file_path}")
     print(result)

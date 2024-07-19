@@ -59,7 +59,15 @@ def parse_args() -> argparse.Namespace:
         nargs="*",
         required=False,
         type=list,
-        choices=["file-properties", "recursive", "db-files", "all", "checksum", "deps", "opt-deps"],
+        choices=[
+            "file-properties",
+            "recursive",
+            "db-files",
+            "all",
+            "checksum",
+            "deps",
+            "opt-deps",
+        ],
         default=[],
     )
     return parser.parse_args()

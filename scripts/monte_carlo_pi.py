@@ -22,7 +22,9 @@ if __name__ == "__main__":
     num_processes = multiprocessing.cpu_count()
 
     with multiprocessing.Pool(processes=num_processes) as pool:
-        results = pool.map(monte_carlo_pi, [num_iterations // num_processes] * num_processes)
+        results = pool.map(
+            monte_carlo_pi, [num_iterations // num_processes] * num_processes
+        )
 
     end_time = time.time()
     print(f"Estimated value of Pi: {sum(results) / num_processes}")

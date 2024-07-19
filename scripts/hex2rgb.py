@@ -16,6 +16,7 @@ def hex_to_rgb(hex_code):
     hex_code = hex_code.lstrip("#")
     return tuple(int(hex_code[i : i + 2], 16) for i in (0, 2, 4))
 
+
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         rgb = hex_to_rgb(sys.argv[1])

@@ -47,7 +47,9 @@ class Styler:
         # Property for getting the list of styles applied to the command output.
         return self._styles
 
-    def body_style(self, pattern: str, color: Union[int, str]) -> Tuple[re.Pattern[str], str, str]:
+    def body_style(
+        self, pattern: str, color: Union[int, str]
+    ) -> Tuple[re.Pattern[str], str, str]:
         """
         Applies a style (color) to all instances of a specific pattern in the command output.
 
@@ -234,4 +236,6 @@ class Styler:
             color_suffix = "\033[0m"
             lines[row] = f"{color_prefix}{lines[row]}{color_suffix}"
         self.command_output = "\n".join(lines)
+
+
 #

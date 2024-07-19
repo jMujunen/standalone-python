@@ -40,7 +40,9 @@ def find_lists(text: str) -> list:
         elif text[i] == "]" and stack:
             # End of a list, pop from the stack and check if we need to parse this list
             start = stack.pop()
-            inner_content = text[start + 1 : i].strip()  # Extract content inside brackets
+            inner_content = text[
+                start + 1 : i
+            ].strip()  # Extract content inside brackets
             if inner_content:
                 try:
                     parsed_list = ast.literal_eval("[" + inner_content + "]")
