@@ -130,7 +130,7 @@ def main(
                     f'ffmpeg -i "{item.path}" -c:v h264_nvenc -crf 18 -qp 28 "{output_file_path}"',
                     shell=True,
                     capture_output=True,
-                    text=True,
+                    text=True, check=False,
                 )
                 result = result.returncode
                 output_file_object = Video(output_file_path)

@@ -88,7 +88,7 @@ class Styler:
             f"{self.command} {self.flags} {self.positional_arguments}",
             shell=True,
             capture_output=True,
-            text=True,
+            text=True, check=False,
         )
         if command_output.stderr:
             # print(command_output.stderr)
@@ -238,4 +238,3 @@ class Styler:
         self.command_output = "\n".join(lines)
 
 
-#

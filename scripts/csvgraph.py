@@ -53,7 +53,6 @@ def main(args: argparse.Namespace) -> None:
             if args.column:
                 for column in args.column:
                     try:
-                        #
                         column = int(column)
                         numbers = file.readlines()
                         numbers = [(x.split(",")[column]) for x in numbers]
@@ -63,10 +62,10 @@ def main(args: argparse.Namespace) -> None:
                         numbers = [float(x[0][0]) for x in numbers]
                         plt.plot(numbers)
                         plt.show()
-                    except Exception as e:
+                    except Exception:
                         try:
                             args.column = str(column)
-                        except Exception as e:
+                        except Exception:
                             print("Invalid column type")
                             return
                         h = header.split(", ")
@@ -80,9 +79,8 @@ def main(args: argparse.Namespace) -> None:
                         numbers = [float(x[0][0]) for x in numbers]
                         plt.plot(numbers)
                         plt.show()
-                else:
-                    print("Invalid column type")
-                    sys.exit(1)
+                print("Invalid column type")
+                sys.exit(1)
             else:
                 numbers = file.readlines()
                 numbers = [float(x) for x in numbers[1:] if len(x) < 20]

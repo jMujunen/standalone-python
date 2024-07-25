@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
-import os, sys, re, subprocess
+import os
+import re
+import subprocess
 
 path_regex = re.compile(r".*:\s([^\s]+).*")
 confirm_regex = re.compile(r"[yY]|^$")
 output = subprocess.run(
-    "sudo pacman -Syu", shell=True, capture_output=True, text=True
+    "sudo pacman -Syu", shell=True, capture_output=True, text=True, check=False
 ).stderr.strip()
 
 matches = re.findall(path_regex, output)

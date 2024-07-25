@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
 from time import sleep
-from datetime import datetime
 import argparse
 import os
 
 from hwdata import CPU
 
-from ExecutionTimer import ExecutionTimer
 
 
 def parse_args():
@@ -61,7 +59,7 @@ def log_cpu(args):
     else:
         output_file = args.output
 
-    line = f"datetime,voltage,average_clock,max_clock\n"
+    line = "datetime,voltage,average_clock,max_clock\n"
 
     if not os.path.exists(output_file):
         with open(output_file, "w") as file:
@@ -83,7 +81,7 @@ def log_cpu(args):
         end = "\r"
         try:
             os.system("clear")
-        except Exception as e:
+        except Exception:
             os.system("cls")
     else:
         end = "\n"

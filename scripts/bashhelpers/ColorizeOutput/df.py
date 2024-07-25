@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """ "df.py - Colorize the output of df"""
 
-import re
 
 
 from Styler import Styler

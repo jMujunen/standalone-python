@@ -43,7 +43,7 @@ def sizeof(path):
         f"{cmd} {path} | sort -h | tail -{int(args.lines)}",
         shell=True,
         capture_output=True,
-        text=True,
+        text=True, check=False,
     )
     stdout = output.stdout.strip()
     stderr = output.stderr.strip()

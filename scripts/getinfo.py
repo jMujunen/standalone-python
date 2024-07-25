@@ -27,9 +27,8 @@ def count_file_types(directory: str, ignore=False) -> dict:
             if not ignore:
                 if ext and ext not in IGNORED:
                     file_types[ext[1:]] += 1  # remove the dot from the extension
-                else:
-                    if ext:
-                        file_types[ext[1:]] += 1  # remove the dot from the extension
+                elif ext:
+                    file_types[ext[1:]] += 1  # remove the dot from the extension
         return dict(sorted(file_types.items(), key=lambda item: item[1]))
 
 
@@ -52,4 +51,4 @@ if __name__ == "__main__":
     with ExecutionTimer():
         counts = count_file_types(DIRECTORY, args.no_ignore)
         for file_type, count in counts.items():
-            print("{:<20} {:>10}".format(file_type, count))
+            print(f"{file_type:<20} {count:>10}")

@@ -3,7 +3,6 @@
 # TODO: Add an support for sorting (by name, size, date installed, ect..)
 
 import sys
-import importlib
 import csv
 import json
 

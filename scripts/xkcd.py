@@ -39,7 +39,7 @@ if __name__ == "__main__":
             f.write(page_content)
         subprocess.run(
             "kitten icat /tmp/xkcd.png",
-            shell=True,
+            shell=True, check=False,
         )
     except:
         print(f"Failed to save/open {url}")

@@ -53,7 +53,7 @@ class SMS:
                 "kdeconnect-cli -l --id-only",
                 shell=True,
                 capture_output=True,
-                text=True,
+                text=True, check=False,
             )
             if dev_id_process.returncode == 0:
                 self._device_id = dev_id_process.stdout.strip()
@@ -88,7 +88,7 @@ class SMS:
             f'kdeconnect-cli --send-sms "{msg}" --destination {destination} -d {self.device_id}',
             shell=True,
             capture_output=True,
-            text=True,
+            text=True, check=False,
         )
         return send_sms_process.returncode
 
@@ -121,7 +121,7 @@ class SMS:
 # Example usage
 def main(dest):
     def joke():
-        return subprocess.run(f"curl {url}", shell=True, capture_output=True, text=True)
+        return subprocess.run(f"curl {url}", shell=True, capture_output=True, text=True, check=False)
 
     com = SMS("d847bc89_cacd_4cb7_855b_9570dba7d6fa")
     url = "https://icanhazdadjoke.com"

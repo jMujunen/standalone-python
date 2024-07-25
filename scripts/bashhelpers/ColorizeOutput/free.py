@@ -5,11 +5,10 @@
 import subprocess
 from Styler import Styler
 from Color import fg, style
-from size import Converter
 
 
 command_output = subprocess.run(
-    'free | grep -oP "(Mem|Swap):.*"', shell=True, capture_output=True, text=True
+    'free | grep -oP "(Mem|Swap):.*"', shell=True, capture_output=True, text=True, check=False
 ).stdout
 
 mem = command_output.split("\n")[0]

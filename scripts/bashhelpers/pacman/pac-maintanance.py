@@ -5,7 +5,7 @@ import sys
 import subprocess
 import argparse
 
-from Color import cprint, fg, style
+from Color import cprint, style
 
 # TODO: Implement script to automated system maintenance
 # - [x] Clean cache

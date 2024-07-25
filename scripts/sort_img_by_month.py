@@ -436,7 +436,7 @@ def main(input_dir, output_dir):
                             output_file_path,
                             copy_function=shutil.copy2,
                         )
-                    except Exception as e:
+                    except Exception:
                         pass
                     rm_empty_folders(item.path)
                     # cprint(f"Unknown file type{type(item)}, {item.path}", fg.cyan, style.underline)

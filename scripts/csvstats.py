@@ -74,7 +74,6 @@ def main(csv_file):
         # TODO : Pretty print output
     console = Console()
     console.print(table)
-    return
 
 
 if __name__ == "__main__":

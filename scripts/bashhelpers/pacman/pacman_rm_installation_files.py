@@ -6,7 +6,6 @@
 import argparse
 import subprocess
 import os
-import shutil
 import re
 import sys
 
@@ -28,7 +27,7 @@ def main(program_name):
         f"sudo pacman -U --noconfirm --noprogressbar {program_name}",
         shell=True,
         capture_output=True,
-        text=True,
+        text=True, check=False,
     ).stderr.strip()
 
     matches = re.findall(path_regex, output)

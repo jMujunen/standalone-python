@@ -53,7 +53,7 @@ def parse_args():
 
 def get_number_of_files(directory):
     number_of_files = subprocess.run(
-        f"find {directory} -type f | wc -l", shell=True, capture_output=True, text=True
+        f"find {directory} -type f | wc -l", shell=True, capture_output=True, text=True, check=False
     ).stdout.strip()
     return number_of_files
 
@@ -67,7 +67,7 @@ def main():
             f"find {args.INPUT_DIRECTORY} -type f",
             shell=True,
             capture_output=True,
-            text=True,
+            text=True, check=False,
         ).stdout.strip()
         files = files.split("\n")
 

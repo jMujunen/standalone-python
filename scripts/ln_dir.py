@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 
 import argparse
-import glob
 import os
 import re
-import subprocess
 
-from MetaData import Dir, File
+from fsutils import Dir
 
 
 def parse_args():
@@ -50,17 +48,17 @@ def mklinks(src, dst, pattern):
         file_path = os.path.join(src, file)
         if os.path.isfile(file_path) and re.match(pattern, file):
             link = os.path.join(dst, file)
-            print("Linking {} to {}".format(link, os.path.join(src, file)))
+            print(f"Linking {link} to {os.path.join(src, file)}")
             try:
                 # Attempt to create a hardlink
                 os.link(os.path.join(src, file), link)
-            except FileExistsError as e:
+            except FileExistsError:
                 print("File already exists")
-            except PermissionError as e:
+            except PermissionError:
                 print("Permission denied")
-            except OSError as e:
+            except OSError:
                 print("Failed to create link")
-            except Exception as e:
+            except Exception:
                 print("Unknown error")
         elif os.path.isdir(os.path.join(src, file)):
             # Recursively call this method for directories
@@ -81,17 +79,17 @@ def cleanup(output_path):
     for root, dirs, files in os.walk(output_path, topdown=False):
         directory = Dir(root)
         if directory.is_empty:
-            print("Removing empty directory: {}".format(root))
+            print(f"Removing empty directory: {root}")
             try:
                 os.rmdir(root)
             except OSError:
-                print("Failed to remove empty directory: {}".format(root))
+                print(f"Failed to remove empty directory: {root}")
                 continue
             except Exception as e:
-                print("Unexpected error: {}".format(e))
+                print(f"Unexpected error: {e}")
                 continue
         else:
-            print("Keeping non-empty directory: {}".format(root))
+            print(f"Keeping non-empty directory: {root}")
 
 
 def main(input_path, output_path, pattern):

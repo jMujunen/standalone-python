@@ -2,7 +2,7 @@
 
 
 def add_commas(number):
-    return "{:,}".format(number)
+    return f"{number:,}"
 
 
 # Example usage

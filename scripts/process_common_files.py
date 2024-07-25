@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
 
-import sys
 import os
 import subprocess
+import sys
 
-from fsutils import Dir, Img, File
-from Color import cprint, style, fg
+from Color import cprint, fg, style
 from ProgressBar import ProgressBar
+
 from parse_list_from_file import find_lists
 
 
 def main(file: str) -> None:
+    """Processes a file containing image lists and allows the user to delete them.
+
+    Parameters:
+    ------------
+        file (str): The path to the file containing image lists.
+            Each list represents a group of images, and each line in a list is an image path.
+    """
     with open(file, "r") as f:
         content = f.read()
 
@@ -21,7 +28,7 @@ def main(file: str) -> None:
         for img in item:
             subprocess.run(
                 f'kitten icat --use-window-size 100,100,500,100 "{img}"',
-                shell=True,
+                shell=True, check=False,
             )
     reply = input("\nDo you want to delete these files? (y/N): ")
     if reply.lower() == "y":

@@ -36,7 +36,7 @@ def main(args):
         f"scp {source_files} {args.HOST}:{source_dest}",
         shell=True,
         text=True,
-        capture_output=True,
+        capture_output=True, check=False,
     )
     error = output.stderr
     out = output.stdout
@@ -45,7 +45,7 @@ def main(args):
         exit(1)
     else:
         # Print colored msg
-        print(f"\x1b[1;32mSucess\033[0m")
+        print("\x1b[1;32mSucess\033[0m")
     exit(0)
 
 
