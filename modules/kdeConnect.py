@@ -121,7 +121,15 @@ class SMS:
 
 
 # Example usage
-def main(dest):
+def main(dest: str) -> int:
+    """Sends a dad joke via SMS to the specified destination.
+
+    Parameters:
+    -----------
+        dest (str): The phone number or contact name to send the joke to.
+
+    """
+
     def joke():
         return subprocess.run(
             f"curl {url}", shell=True, capture_output=True, text=True, check=False

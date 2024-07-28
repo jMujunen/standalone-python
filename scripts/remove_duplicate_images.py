@@ -27,6 +27,7 @@ def parse_args() -> argparse.Namespace:
         "--dry-run",
         action="store_true",
         help="Only print the duplicate images that would be removed",
+        default=False,
     )
     parser.add_argument("--no-confirm", help="Remove without confirmation", action="store_true")
     return parser.parse_args()
@@ -53,19 +54,18 @@ def find_duplicates() -> OrderedDict[imagehash.ImageHash | None, Img]:
     nun_images = len(images)
 
     cprint(f"Found {nun_images - 1} files", fg.green, style.bold)
-    progress = ProgressBar(nun_images)
-
-    with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(process_file, img) for img in images]
-        for future in as_completed(futures):
-            result = future.result()
-            if result:
-                progress.increment()
-                hash_value, img_object = result
-                if hash_value not in hashes:
-                    hashes[hash_value] = [img_object]
-                else:
-                    hashes[hash_value].append(img_object)
+    with ProgressBar(nun_images) as progress:
+        with ThreadPoolExecutor(20) as executor:
+            futures = [executor.submit(process_file, img) for img in images]
+            for future in as_completed(futures):
+                result = future.result()
+                if result:
+                    progress.increment()
+                    hash_value, img_object = result
+                    if hash_value not in hashes:
+                        hashes[hash_value] = [img_object]
+                    else:
+                        hashes[hash_value].append(img_object)
 
     return hashes
 
@@ -76,13 +76,15 @@ def remove_duplicates(hashes: OrderedDict, dryrun=False):
     num_keep = 2
     for k, v in hashes.items():
         # No hash means file is corrupt, or in otherwords, flag for removal
-        if k is None or k.is_corrupt:
-            corrupted_files.extend(v)
+        for img in v:
+            if img is None or img.is_corrupt:
+                corrupted_files.extend(v)
+                cprint(f"Corrupted file {img}", fg.red, style.bold)
+            elif len(v) >= 3:
+                duplicate_files.append(v)
             # Remove for memory efficiancy
             del hashes[k]
-        elif len(v) >= 3:
-            duplicate_files.append(v)
-
+    # TODO: Impletement dry-run
     if dryrun:
         return dry_run()
 
@@ -156,15 +158,13 @@ def remove_duplicates(hashes: OrderedDict, dryrun=False):
 def main(args: argparse.Namespace) -> None:
     with ExecutionTimer():
         hashes = find_duplicates()
+        if not args.dry_run:
+            remove_duplicates(hashes)
         num_dupes = [v for v in hashes.values() if len(v) > 1]
         cprint(f"\nDuplicates found: {len(num_dupes)}", fg.cyan, style.bold)
-
         log_file = os.path.join(os.getcwd(), "common_files.log")
-        # content = ",\n".join([f"{i} {v}" for i, v in enumerate(duplicate_files)])
-        # content = f"{content}\n\n{"="*60}\n\nCorrupted files:\n{'\n'.join(corrupted_files)}"
         with open(log_file, "w") as f:
             f.write(f"common_files = {pformat(num_dupes)}")
-            f.write(f"\n\n# {'='*60}\n\n# Corrupted files:\n")
 
         cprint(f"Log file saved to {log_file}\n", fg.blue, style.bold)
 

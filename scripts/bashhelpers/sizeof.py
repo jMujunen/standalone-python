@@ -2,17 +2,17 @@
 
 # sizeof.py - additianl functionality to `sizeof` bash alias
 
+import argparse
 import os
 import subprocess
-import argparse
 
-from size import Converter
 from ExecutionTimer import ExecutionTimer
+from size import Converter
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Additianl functionality to `sizeof` bash alias",
+        description="Additional functionality to `sizeof` bash alias",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
