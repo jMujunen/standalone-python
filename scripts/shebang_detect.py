@@ -68,9 +68,7 @@ def main(args):
     for item in directory:
         if isinstance(item, ScriptFile.Exe) and item.extension.strip(".") == args.file:
             shebang = item.shebang
-            new_shebang = SHEBANG_REGEX.sub(
-                spec.get(args.file), shebang
-            )  # Convert to python3
+            new_shebang = SHEBANG_REGEX.sub(spec.get(args.file), shebang)  # Convert to python3
             if args.verbose:
                 # Print the file name and shebang
                 cprint(item.basename, fg.yellow)
@@ -80,9 +78,7 @@ def main(args):
             if args.convert:
                 item.shebang = new_shebang
 
-            if (
-                not SHEBANG_REGEX.match(shebang) and args.missing
-            ):  # Add the shebang if it's missing
+            if not SHEBANG_REGEX.match(shebang) and args.missing:  # Add the shebang if it's missing
                 item.shebang = new_shebang
 
 

@@ -19,12 +19,8 @@ def parse_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("DIR", help="Working Directory - Default=cwd", default=".")
-    parser.add_argument(
-        "-o", "--old_extention", help="Old extention/file type - (jpg, py)"
-    )
-    parser.add_argument(
-        "-n", "--new_extention", help="New extention/file type - Default = None"
-    )
+    parser.add_argument("-o", "--old_extention", help="Old extention/file type - (jpg, py)")
+    parser.add_argument("-n", "--new_extention", help="New extention/file type - Default = None")
 
     parser.add_argument(
         "-r",

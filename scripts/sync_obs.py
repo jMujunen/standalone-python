@@ -25,9 +25,7 @@ def main():
                     continue
                 output_dir = os.path.join(OUTPUT_PATH, directory.basename)
                 if directory.basename in FOLDERS:
-                    output_dir = os.path.join(
-                        "/mnt/ssd/OBS/Joona", FOLDERS[directory.basename]
-                    )
+                    output_dir = os.path.join("/mnt/ssd/OBS/Joona", FOLDERS[directory.basename])
 
                 if not os.path.exists(output_dir):
                     os.makedirs(output_dir, exist_ok=True)

@@ -38,9 +38,7 @@ def parse_args():
         help="""Columns to plot
         Supports groups, such as 'cpu' or 'gpu' or 'temps' .""",
         nargs="*",
-        default=[
-            "temps"
-        ],  # , 'system_temp', 'gpu_usage', 'gpu_power', 'gpu_memory_usage']
+        default=["temps"],  # , 'system_temp', 'gpu_usage', 'gpu_power', 'gpu_memory_usage']
     )
     # TODO: Add support for limiting the range of the x-axis (time)
     return parser.parse_args()
@@ -66,9 +64,7 @@ def main(filepath: str, window_size: int, columns):
     df = pd.read_csv(filepath, sep=r",")
     missing_columns = [col for col in columns if col not in df.columns]
     if missing_columns:
-        raise ValueError(
-            f"Columns {', '.join(missing_columns)} do not exist in the file."
-        )
+        raise ValueError(f"Columns {', '.join(missing_columns)} do not exist in the file.")
 
     if any(col not in df.columns for col in columns):
         raise ValueError("One or more of the columns do not exist.")
@@ -86,9 +82,7 @@ def main(filepath: str, window_size: int, columns):
     smooth_df = pd.DataFrame(smooth_data)
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    line = ax.plot(
-        [], [], label=columns[0]
-    )  # Changed to use the first column for the label
+    line = ax.plot([], [], label=columns[0])  # Changed to use the first column for the label
 
     def init():
         ax.set_xlim(left=0, right=len(df))

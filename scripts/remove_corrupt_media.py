@@ -12,9 +12,7 @@ from Color import cprint, style, fg
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Finds and removes corrupt images and videos"
-    )
+    parser = argparse.ArgumentParser(description="Finds and removes corrupt images and videos")
     parser.add_argument("path", help="Path to the directory")
     parser.add_argument(
         "--dry-run",

@@ -23,9 +23,7 @@ def get_xkcd_comic():
                 url = f'https:{tag['src']}'
                 return url
 
-    raise Exception(
-        "No img tag found for the following cfg. `<img src=.*imgs.xkcd.com/comics/.*>`"
-    )
+    raise Exception("No img tag found for the following cfg. `<img src=.*imgs.xkcd.com/comics/.*>`")
 
 
 if __name__ == "__main__":
@@ -39,7 +37,8 @@ if __name__ == "__main__":
             f.write(page_content)
         subprocess.run(
             "kitten icat /tmp/xkcd.png",
-            shell=True, check=False,
+            shell=True,
+            check=False,
         )
     except:
         print(f"Failed to save/open {url}")

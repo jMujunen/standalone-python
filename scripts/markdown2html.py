@@ -8,11 +8,7 @@ layout = [
     [sg.Multiline(size=(60, 20), key="-MARKDOWN INPUT-")],
     [sg.Button("Render", key="-RENDER-")],
     [sg.Text("Rendered Markdown:")],
-    [
-        sg.Multiline(
-            size=(60, 20), key="-RENDERED OUTPUT-", disabled=True, autoscroll=True
-        )
-    ],
+    [sg.Multiline(size=(60, 20), key="-RENDERED OUTPUT-", disabled=True, autoscroll=True)],
 ]
 
 # Create the window

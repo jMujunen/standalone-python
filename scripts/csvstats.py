@@ -49,15 +49,9 @@ def main(csv_file):
             continue
         try:
             numbers = [float(x) for x in data[i] if "Network is unreachable" not in x]
-            min_value = (
-                round(min(numbers), 2) if min(numbers) < 13 else int(min(numbers))
-            )
-            max_value = (
-                round(max(numbers), 2) if max(numbers) < 13 else int(max(numbers))
-            )
-            mean_value = (
-                round(mean(numbers), 2) if mean(numbers) < 13 else int(mean(numbers))
-            )
+            min_value = round(min(numbers), 2) if min(numbers) < 13 else int(min(numbers))
+            max_value = round(max(numbers), 2) if max(numbers) < 13 else int(max(numbers))
+            mean_value = round(mean(numbers), 2) if mean(numbers) < 13 else int(mean(numbers))
             table.add_row(
                 col.strip().upper().replace("_", " "),
                 str(min_value),

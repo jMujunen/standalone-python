@@ -28,7 +28,8 @@ def main(file: str) -> None:
         for img in item:
             subprocess.run(
                 f'kitten icat --use-window-size 100,100,500,100 "{img}"',
-                shell=True, check=False,
+                shell=True,
+                check=False,
             )
     reply = input("\nDo you want to delete these files? (y/N): ")
     if reply.lower() == "y":

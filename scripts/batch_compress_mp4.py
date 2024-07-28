@@ -2,18 +2,15 @@
 
 # bp_mp4_cs.py - Batch process all .mp4 files in a directory
 
-import os
-import subprocess
-
-import shutil
-
-from typing import List
 import argparse
+import os
+import shutil
+import subprocess
+from typing import List
 
-from fsutils import Dir, Video
-
-from Color import fg, style, cprint
+from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
+from fsutils import Dir, Video
 from ProgressBar import ProgressBar
 from size import Converter
 
@@ -23,16 +20,14 @@ from size import Converter
 
 
 def parse_arguments() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Batch process all .mp4 files in a directory"
+    parser = argparse.ArgumentParser(description="Batch process all .mp4 files in a directory")
+    parser.add_argument(
+        "input_directory",
+        help="Input directory",
     )
-    parser.add_argument("input_directory", help="Input directory")
     parser.add_argument("output_directory", help="Output directory")
     parser.add_argument(
-        "--rate",
-        help="Ensure bitrate (per second) is under this value",
-        default="500000",
-        type=int,
+        "--rate", help="Ensure bitrate (per second) is under this value", default="500000", type=int
     )
     return parser.parse_args()
 
@@ -115,9 +110,7 @@ def main(
                             os.remove(item.path)
                             if not item.is_corrupt
                             else cprint(
-                                "FATAL ERROR: Manual intervention required",
-                                fg.red,
-                                style.underline,
+                                "FATAL ERROR: Manual intervention required", fg.red, style.underline
                             )
                         )
                         continue
@@ -126,21 +119,18 @@ def main(
                 if item.bitrate < rate:
                     continue
                 result = subprocess.run(
-                    # f'ffmpeg -i "{item.path}" -c:v hevc_nvenc -crf 20 -qp 20 "{output_file_path}"',
-                    f'ffmpeg -i "{item.path}" -c:v h264_nvenc -crf 18 -qp 28 "{output_file_path}"',
+                    f'ffmpeg -i "{item.path}" -c:v hevc_nvenc -crf 20 -qp 20 "{output_file_path}"',
+                    # f'ffmpeg -i "{item.path}" -c:v h264_nvenc -crf 18 -qp 28 "{output_file_path}"',
                     shell=True,
                     capture_output=True,
-                    text=True, check=False,
+                    text=True,
+                    check=False,
                 )
                 result = result.returncode
                 output_file_object = Video(output_file_path)
 
                 # Check if conversion was successful and do a few more checks for redundancy
-                if (
-                    result == 0
-                    and not item.is_corrupt
-                    and not output_file_object.is_corrupt
-                ):
+                if result == 0 and not item.is_corrupt and not output_file_object.is_corrupt:
                     old_files.append(item)
                     new_files.append(output_file_object)
 
@@ -163,9 +153,7 @@ if __name__ == "__main__":
     with ExecutionTimer():
         args = parse_arguments()
         # Run the main function
-        old_files, new_files = main(
-            args.input_directory, args.output_directory, int(args.rate)
-        )
+        old_files, new_files = main(args.input_directory, args.output_directory, int(args.rate))
         if not old_files or not new_files:
             cprint("Nothing to convert. Exiting...", fg.yellow)
             exit(1)

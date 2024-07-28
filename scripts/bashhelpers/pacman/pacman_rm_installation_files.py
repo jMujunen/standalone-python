@@ -4,9 +4,9 @@
 # to be removed based on the output of 'sudo pacman -U'
 
 import argparse
-import subprocess
 import os
 import re
+import subprocess
 import sys
 
 
@@ -27,7 +27,8 @@ def main(program_name):
         f"sudo pacman -U --noconfirm --noprogressbar {program_name}",
         shell=True,
         capture_output=True,
-        text=True, check=False,
+        text=True,
+        check=False,
     ).stderr.strip()
 
     matches = re.findall(path_regex, output)

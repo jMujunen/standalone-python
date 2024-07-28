@@ -22,9 +22,7 @@ def parse_args():
         help="Path to directory. Defaults to current directory.",
     )
     parser.add_argument("-l", "--lines", type=int, default=1)
-    parser.add_argument(
-        "-a", "--all", action="store_true", default=False, help="Show file sizes"
-    )
+    parser.add_argument("-a", "--all", action="store_true", default=False, help="Show file sizes")
     parser.add_argument(
         "-mount",
         action="store_true",
@@ -43,7 +41,8 @@ def sizeof(path):
         f"{cmd} {path} | sort -h | tail -{int(args.lines)}",
         shell=True,
         capture_output=True,
-        text=True, check=False,
+        text=True,
+        check=False,
     )
     stdout = output.stdout.strip()
     stderr = output.stderr.strip()

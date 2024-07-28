@@ -26,9 +26,7 @@ swap_free = swap.split()[3]
 
 mem_used_percent = f"{(abs(round((float(mem_free)/float(mem_total))*100-100, 1)))}%"
 try:
-    swap_used_percent = (
-        f"{(abs(round((float(swap_free)/float(swap_total))*100-100, 1)))}%"
-    )
+    swap_used_percent = f"{(abs(round((float(swap_free)/float(swap_total))*100-100, 1)))}%"
 except ZeroDivisionError:
     swap_used_percent = "N/A"
 

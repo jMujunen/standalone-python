@@ -4,11 +4,11 @@
 import argparse
 import os
 import subprocess
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import imagehash
-from pprint import pformat
 from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pprint import pformat
 
+import imagehash
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
 from fsutils import Dir, Img
@@ -69,6 +69,7 @@ def find_duplicates() -> OrderedDict[imagehash.ImageHash | None, Img]:
 
     return hashes
 
+
 def remove_duplicates(hashes: OrderedDict, dryrun=False):
     corrupted_files = []
     duplicate_files = []
@@ -106,16 +107,14 @@ def remove_duplicates(hashes: OrderedDict, dryrun=False):
                         except FileNotFoundError:
                             cprint(f"Error removing {img.path}: File does not exist.", fg.red)
             else:
-                os.system('clear')
+                os.system("clear")
         else:
-            for img in group[2:] # Remove all but the first two duplicates in group by default
+            for img in group[2:]:  # Remove all but the first two duplicates in group by default
                 try:
                     os.remove(img.path)
                     cprint(f"{img.path} removed", fg.green)
                 except FileNotFoundError:
                     continue
-
-
 
         for img in v:
             for i, img in enumerate(v):
@@ -138,20 +137,20 @@ def remove_duplicates(hashes: OrderedDict, dryrun=False):
     num_remove = 1
     reply = input("\033[33mRemove these files? [Y/n]: \033[0m")
 
-        try:
-            num_remove = len(v) - int(reply) - 1
-        except ValueError:
-            pass
-        for i, img in enumerate(v):
-            # Skip the first 2 or specified value
-            if i > num_remove:
-                try:
-                    os.remove(img)
-                    cprint(f"{img} removed", fg.green, style.bold)
-                except FileNotFoundError:
-                    cprint(f"{img} not found", fg.red, style.bold)
-        else:
-            os.system("clear")
+    try:
+        num_remove = len(v) - int(reply) - 1
+    except ValueError:
+        pass
+    for i, img in enumerate(v):
+        # Skip the first 2 or specified value
+        if i > num_remove:
+            try:
+                os.remove(img)
+                cprint(f"{img} removed", fg.green, style.bold)
+            except FileNotFoundError:
+                cprint(f"{img} not found", fg.red, style.bold)
+    else:
+        os.system("clear")
 
 
 def main(args: argparse.Namespace) -> None:
@@ -164,9 +163,8 @@ def main(args: argparse.Namespace) -> None:
         # content = ",\n".join([f"{i} {v}" for i, v in enumerate(duplicate_files)])
         # content = f"{content}\n\n{"="*60}\n\nCorrupted files:\n{'\n'.join(corrupted_files)}"
         with open(log_file, "w") as f:
-            f.write(f"common_files = {pformat(duplicate_files)}")
+            f.write(f"common_files = {pformat(num_dupes)}")
             f.write(f"\n\n# {'='*60}\n\n# Corrupted files:\n")
-            f.write(f"corrupted_files = {pformat(corrupted_files)}")
 
         cprint(f"Log file saved to {log_file}\n", fg.blue, style.bold)
 

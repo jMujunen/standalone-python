@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """ "df.py - Colorize the output of df"""
 
-
-
 from Styler import Styler
 from Color import fg, style
 
@@ -19,9 +17,7 @@ df.colorized_command_output(
         df.body_style(r"tmpfs.*(\s\d{2}%)", fg.deeppink),
         df.body_style(r"tmpfs.*(\s[2-9]%)", fg.yellow),
         df.body_style(r"(/boot|/home|\s/\s)", fg.green),
-        df.body_style(
-            r"(\d{2}\.\d\.\d\.\d{2,3}:/\w+/?\w+?)", fg.blue
-        ),  # 10.0.0.50:/hdd")
+        df.body_style(r"(\d{2}\.\d\.\d\.\d{2,3}:/\w+/?\w+?)", fg.blue),  # 10.0.0.50:/hdd")
     ]
 )
 

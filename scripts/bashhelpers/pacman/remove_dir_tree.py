@@ -3,13 +3,13 @@
 # remove_dir_tree.py - Places all files in a directory tree into a single location
 # and removes the original directory tree.
 
+import argparse
 import os
 import shutil
-import argparse
 import subprocess
 
-from pb import ProgressBar
 from ExecutionTimer import ExecutionTimer
+from ProgressBar import ProgressBar
 
 
 def parse_args():
@@ -26,28 +26,23 @@ def parse_args():
         "OUTPUT_DIRECTORY",
         help="output directory",
         type=str,
+        default=".",
     )
     parser.add_argument(
-        "-v",
-        "--verbose",
+        "v",
+        "verbose",
         help="increase output verbosity",
         action="store_true",
         default=False,
     )
     parser.add_argument(
-        "-f",
-        "--force",
+        "f",
+        "force",
         help="force remove",
         action="store_true",
         default=False,
     )
-    parser.add_argument(
-        "-d",
-        "--dry",
-        help="dry run",
-        action="store_true",
-        default=False,
-    )
+    parser.add_argument("-d", "--dry", help="dry run", action="store_true", default=False)
     return parser.parse_args()
 
 
@@ -67,15 +62,15 @@ def main():
             f"find {args.INPUT_DIRECTORY} -type f",
             shell=True,
             capture_output=True,
-            text=True, check=False,
+            text=True,
+            check=False,
         ).stdout.strip()
         files = files.split("\n")
 
         for file in files:
+            pb.increment()
             try:
-                output_path = os.path.join(
-                    args.OUTPUT_DIRECTORY, os.path.basename(file)
-                )
+                output_path = os.path.join(args.OUTPUT_DIRECTORY, os.path.basename(file))
                 if args.dry:
                     print(f"{file} -> {output_path}.")
                 else:

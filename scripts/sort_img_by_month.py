@@ -3,21 +3,19 @@
 # TODO
 # - Improve performance by using multithreading/multiprocessing
 
-import re
-import os
-import sys
-import shutil
 import argparse
+import os
+import re
+import shutil
+import sys
 
+from Color import bg, cprint, fg, style
 from ExecutionTimer import ExecutionTimer
+from fsutils import Dir, File, Img, Log, Video, mimecfg
 from ProgressBar import ProgressBar
-from fsutils import Dir, Log, Img, Video, mimecfg, File
-from Color import fg, style, cprint, bg
 
 SPECIAL_FILES = {
-    re.compile(r"^(DSC|P_\d+|IMG-\d+)"): lambda output_dir, x: rename_file(
-        output_dir, x
-    ),
+    re.compile(r"^(DSC|P_\d+|IMG-\d+)"): lambda output_dir, x: rename_file(output_dir, x),
     re.compile(r"^Screenshot"): lambda output_dir, x: screenshots(output_dir, x),
     re.compile(r"joona.and.ella"): lambda output_dir, x: wedding_photos(output_dir, x),
 }
@@ -85,9 +83,7 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Organize images into directories by year, based on the original capture date"
     )
-    parser.add_argument(
-        "input", type=str, help="Path to the directory containing the images"
-    )
+    parser.add_argument("input", type=str, help="Path to the directory containing the images")
     parser.add_argument("output", type=str, help="Path to the output directory")
     return parser.parse_args()
 
@@ -150,13 +146,9 @@ def main(input_dir, output_dir):
                         # and rename if necessary to avoid duplicates
                         if not item.capture_date:
                             # Move the file to 'NoMetaData' directory
-                            os.makedirs(
-                                os.path.join(output, "NoMetaData"), exist_ok=True
-                            )
+                            os.makedirs(os.path.join(output, "NoMetaData"), exist_ok=True)
                             no_meta_data_dir = os.path.join(output, "NoMetaData")
-                            no_meta_data_image = os.path.join(
-                                no_meta_data_dir, item.basename
-                            )
+                            no_meta_data_image = os.path.join(no_meta_data_dir, item.basename)
                             # Rename the file if it already exists in 'NoMetaData' directory
                             # to avoid duplicates
                             count = 0
@@ -167,9 +159,7 @@ def main(input_dir, output_dir):
                                 count += 1
                                 # Increment the count until we find a filename that does not exist yet
                                 try:
-                                    new_file_name = (
-                                        f"{item.basename[:-4]}_{count}{item.extension}"
-                                    )
+                                    new_file_name = f"{item.basename[:-4]}_{count}{item.extension}"
                                     shutil.move(
                                         item.path,
                                         os.path.join(no_meta_data_dir, new_file_name),
@@ -199,9 +189,7 @@ def main(input_dir, output_dir):
                             )
                             for regex, func in SPECIAL_FILES.items():
                                 if regex.match(item.basename):
-                                    output_file_path = (
-                                        func(output, item) or f".{output_file_path}"
-                                    )
+                                    output_file_path = func(output, item) or f".{output_file_path}"
                             # Check if the file already exists in the destination directory,
                             # if so increment a counter to create a unique name for it.
                             count = 0
@@ -212,9 +200,7 @@ def main(input_dir, output_dir):
                                 count += 1
                                 try:
                                     filename = os.path.split(output_file_path)[-1][:-4]
-                                    output_file_name = (
-                                        f"{filename}_{count}{item.extension}"
-                                    )
+                                    output_file_name = f"{filename}_{count}{item.extension}"
                                     output_file_path = os.path.join(
                                         output, capture_year, output_file_name
                                     )
@@ -249,9 +235,7 @@ def main(input_dir, output_dir):
                         try:
                             shutil.move(item.path, output)
                         except Exception as e:
-                            cprint(
-                                f"FATAL ERROR: {e}:", bg.red, fg.black, style.underline
-                            )
+                            cprint(f"FATAL ERROR: {e}:", bg.red, fg.black, style.underline)
                     except Exception as e:
                         cprint(e, fg.red)
                     rm_empty_folders(item.dir_name)
@@ -261,9 +245,7 @@ def main(input_dir, output_dir):
                     if not item.capture_date:
                         no_meta_data_dir = os.path.join(output, "NoMetaData")
                         os.makedirs(no_meta_data_dir, exist_ok=True)
-                        no_meta_data_path = os.path.join(
-                            no_meta_data_dir, item.basename
-                        )
+                        no_meta_data_path = os.path.join(no_meta_data_dir, item.basename)
                         count = 0
                         while os.path.exists(no_meta_data_path):
                             if item == Video(no_meta_data_path):
@@ -272,9 +254,7 @@ def main(input_dir, output_dir):
                             count += 1
                             # Increment the count until we find a filename that does not exist yet
                             try:
-                                new_file_name = (
-                                    f"{item.basename[:-4]}_{count}{item.extension}"
-                                )
+                                new_file_name = f"{item.basename[:-4]}_{count}{item.extension}"
                                 shutil.move(
                                     item.path,
                                     os.path.join(no_meta_data_dir, new_file_name),
@@ -301,9 +281,7 @@ def main(input_dir, output_dir):
                         # on metadata date
                     else:
                         capture_year = str(item.capture_date.year)
-                        output_file_path = os.path.join(
-                            output, capture_year, item.basename
-                        )
+                        output_file_path = os.path.join(output, capture_year, item.basename)
                         # Check if the file already exists in the destination directory,
                         # if so increment a counter to create a unique name for it.
                         count = 0
@@ -328,12 +306,8 @@ def main(input_dir, output_dir):
                                 cprint(e, fg.orange)
                                 count += 1
                         try:
-                            os.makedirs(
-                                os.path.join(output, capture_year), exist_ok=True
-                            )
-                            shutil.move(
-                                item.path, output_file_path, copy_function=shutil.copy2
-                            )
+                            os.makedirs(os.path.join(output, capture_year), exist_ok=True)
+                            shutil.move(item.path, output_file_path, copy_function=shutil.copy2)
                         except KeyboardInterrupt:
                             break
                         except (FileNotFoundError, NotADirectoryError):
@@ -346,14 +320,10 @@ def main(input_dir, output_dir):
 
                 elif isinstance(item, Log):
                     if "hwinfo" in item.basename.lower():
-                        os.makedirs(
-                            os.path.join(output_dir, "Logs", "hwinfo"), exist_ok=True
-                        )
+                        os.makedirs(os.path.join(output_dir, "Logs", "hwinfo"), exist_ok=True)
                         output = os.path.join(output_dir, "Logs", "hwinfo")
                     elif "gpuz" in item.basename.lower():
-                        os.makedirs(
-                            os.path.join(output_dir, "Logs", "gpuz"), exist_ok=True
-                        )
+                        os.makedirs(os.path.join(output_dir, "Logs", "gpuz"), exist_ok=True)
                         output = os.path.join(output_dir, "Logs", "gpuz")
                     else:
                         os.makedirs(os.path.join(output_dir, "Logs"), exist_ok=True)
@@ -369,9 +339,7 @@ def main(input_dir, output_dir):
                             filename = os.path.split(output_file_path)[-1][:-4]
                             output_file_name = f"{filename}_{count}{item.extension}"
                             output_file_path = os.path.join(output, output_file_name)
-                            shutil.move(
-                                item.path, output_file_path, copy_function=shutil.copy2
-                            )
+                            shutil.move(item.path, output_file_path, copy_function=shutil.copy2)
                             break
                         except Exception as e:
                             print("Error:", e)
@@ -388,11 +356,7 @@ def main(input_dir, output_dir):
                     rm_empty_folders(item.dir_name)
                 elif item.is_dir:
                     rm_empty_folders(item.path)
-                elif (
-                    not item.is_dir
-                    and not isinstance(item, Dir)
-                    and item.extension is not None
-                ):
+                elif not item.is_dir and not isinstance(item, Dir) and item.extension is not None:
                     # ============================ MISC  =============================== #
                     os.makedirs(os.path.join(output_dir, "Misc"), exist_ok=True)
                     output = os.path.join(output_dir, "Misc")
@@ -413,9 +377,7 @@ def main(input_dir, output_dir):
                             filename = os.path.split(output_file_path)[-1][:-4]
                             output_file_name = f"{filename}_{count}{item.extension}"
                             output_file_path = os.path.join(output, output_file_name)
-                            shutil.move(
-                                item.path, output_file_path, copy_function=shutil.copy2
-                            )
+                            shutil.move(item.path, output_file_path, copy_function=shutil.copy2)
                             break
                         except Exception as e:
                             print("Error:", e)

@@ -14,13 +14,9 @@ def parse_args():
     --------
          args: The parsed arguments.
     """
-    parser = argparse.ArgumentParser(
-        description="Detect the encoding of a text based file"
-    )
+    parser = argparse.ArgumentParser(description="Detect the encoding of a text based file")
     parser.add_argument("file_path", type=str, help="The path to the text file")
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose mode"
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose mode")
     return parser.parse_args()
 
 

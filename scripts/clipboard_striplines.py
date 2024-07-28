@@ -62,13 +62,9 @@ def parse_args():
         default=" ",
     )
 
-    parser.add_argument(
-        "--lstrip", help="Only strip from the left", action="store_true"
-    )
+    parser.add_argument("--lstrip", help="Only strip from the left", action="store_true")
 
-    parser.add_argument(
-        "--rstrip", help="Only strip from the right", action="store_true"
-    )
+    parser.add_argument("--rstrip", help="Only strip from the right", action="store_true")
     parser.add_argument("-l", "--list", help="List presets", action="store_true")
     parser.add_argument(
         "--preset",

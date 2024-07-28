@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """Prints the total count of each file type in a given directory"""
 
+import argparse
 import os
 import sys
 from collections import defaultdict
-import argparse
 
 from ExecutionTimer import ExecutionTimer
-from fsutils.mimecfg import FILE_TYPES
 from fsutils import Dir
+from fsutils.mimecfg import FILE_TYPES
 from ProgressBar import ProgressBar
 
 IGNORED = FILE_TYPES.get("ignored", [])
 
 DIRECTORY = os.getcwd()
+
+path = Dir("./")
 
 
 def count_file_types(directory: str, ignore=False) -> dict:

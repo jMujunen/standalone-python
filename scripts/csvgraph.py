@@ -3,21 +3,14 @@
 # gcsv.py - Generate a graph from a list of numbers
 
 
-import sys
 import argparse
 import re
+import sys
 
 import matplotlib.pyplot as plt
 
 DIGITS_RE = re.compile(r"(\d+(\.\d+)?)")
-ALL_COLUMNS_KEYWORDS = [
-    "all",
-    "-all",
-    "--all",
-    "-all",
-    "-a",
-    "all_columns",
-]
+ALL_COLUMNS_KEYWORDS = ["all", "-all", "--all", "-all", "-a", "all_columns"]
 
 
 def parse_args():
@@ -56,9 +49,7 @@ def main(args: argparse.Namespace) -> None:
                         column = int(column)
                         numbers = file.readlines()
                         numbers = [(x.split(",")[column]) for x in numbers]
-                        numbers = [
-                            DIGITS_RE.findall(numbers[x]) for x in range(len(numbers))
-                        ]
+                        numbers = [DIGITS_RE.findall(numbers[x]) for x in range(len(numbers))]
                         numbers = [float(x[0][0]) for x in numbers]
                         plt.plot(numbers)
                         plt.show()
@@ -72,10 +63,7 @@ def main(args: argparse.Namespace) -> None:
                         column = h.index(column)
                         numbers = file.readlines()
                         numbers = [float(x.split(",")[column]) for x in numbers]
-                        numbers = [
-                            DIGITS_RE.findall(str(numbers[x]))
-                            for x in range(len(numbers))
-                        ]
+                        numbers = [DIGITS_RE.findall(str(numbers[x])) for x in range(len(numbers))]
                         numbers = [float(x[0][0]) for x in numbers]
                         plt.plot(numbers)
                         plt.show()

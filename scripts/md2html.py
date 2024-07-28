@@ -39,9 +39,7 @@ if mainFileToExport == "":
     )
     quit()
 
-exportDir = os.path.expanduser(
-    "~/export_" + fileToFind.split("/")[-1].replace(".md", "")
-)
+exportDir = os.path.expanduser("~/export_" + fileToFind.split("/")[-1].replace(".md", ""))
 print("Path to export vault: " + str(exportDir) + "\n")
 
 if os.path.exists(exportDir) and os.path.isdir(exportDir):
@@ -93,9 +91,7 @@ def findMdFile(line, currentFile):
 
         ancor = ""
         if len(file.split("#")) > 1:
-            ancor = "#" + file.split("#")[1].replace(" ", "_").replace("(", "").replace(
-                ")", ""
-            )
+            ancor = "#" + file.split("#")[1].replace(" ", "_").replace("(", "").replace(")", "")
         newFile = copyFileToExport(fileOnly + ".md", currentFile, traverse=True)
         if exportToHtml:
             if newFile and len(newFile) > 0:
@@ -137,9 +133,7 @@ def findImages(line, currentFile):
         if exportToHtml:
             style = 'border-radius: 4px;"'
             if "|" in asset:
-                style = (
-                    style + "width:" + asset.split("|")[1] + "px; border-radius: 3px;"
-                )
+                style = style + "width:" + asset.split("|")[1] + "px; border-radius: 3px;"
             line = line.replace(
                 "![[" + asset + "]]",
                 '<img src="./'
@@ -165,12 +159,7 @@ def findImages(line, currentFile):
 
                 style = 'border-radius: 4px;"'
                 if "|" in imglink:
-                    style = (
-                        style
-                        + "width:"
-                        + imglink.split("|")[1]
-                        + "px; border-radius: 3px;"
-                    )
+                    style = style + "width:" + imglink.split("|")[1] + "px; border-radius: 3px;"
                 line = line.replace(
                     "![" + size + "](" + originallink + ")",
                     '<img src="./'
@@ -182,9 +171,7 @@ def findImages(line, currentFile):
                     + '" >',
                 )
             elif downloadImages:
-                imgname = (
-                    "utl_download_" + str(randint(0, 10000)) + imglink.split("/")[-1]
-                )
+                imgname = "utl_download_" + str(randint(0, 10000)) + imglink.split("/")[-1]
                 destFile = os.path.join(exportDir, "downloaded_images", imgname)
                 with urllib.request.urlopen(imglink) as responese:
                     with open(destFile, "wb") as fdest:
@@ -193,11 +180,7 @@ def findImages(line, currentFile):
                 style = 'border-radius: 4px;"'
                 line = line.replace(
                     "![" + size + "](" + imglink + ")",
-                    '<img src="../downloaded_images/'
-                    + imgname
-                    + '" style="'
-                    + style
-                    + '" >',
+                    '<img src="../downloaded_images/' + imgname + '" style="' + style + '" >',
                 )
             else:
                 style = 'border-radius: 4px;"'
@@ -226,9 +209,7 @@ def findLinkInText(line):
     )  # ?=>un-greedy, (?<!...) = negative look behind
 
     for link in re.findall(pattern, line):
-        line = line.replace(
-            link, '<a href="' + link.strip() + '" target="_blank">' + link + "</a>"
-        )
+        line = line.replace(link, '<a href="' + link.strip() + '" target="_blank">' + link + "</a>")
 
     return line
 
@@ -420,9 +401,7 @@ def readFilesRecursive(path):
             outputfile.write("</head>\n")
 
             outputfile.write('<body style="background: #F0F0F0;">\n')
-            outputfile.write(
-                '<div style="margin: 0 auto; width:1380px;  position: relative;" >\n'
-            )
+            outputfile.write('<div style="margin: 0 auto; width:1380px;  position: relative;" >\n')
 
             outputfile.write(
                 '<div style="width:1000px; padding:20px; margin:0px; z-index: 5; text-align:left; background-color: #DCDCDC; border-radius: 5px; position:absolute; top:0; left:340px;">\n'
@@ -482,9 +461,7 @@ def readFilesRecursive(path):
             antalAssets += a
 
     print(
-        "Exported: "
-        + str(path)
-        + (" (" + str(antalAssets) + " images)" if antalAssets > 0 else "")
+        "Exported: " + str(path) + (" (" + str(antalAssets) + " images)" if antalAssets > 0 else "")
     )
 
 
@@ -501,16 +478,12 @@ if exportToHtml:
         outputfile.write("<!DOCTYPE html>\n")
         outputfile.write("<html>\n")
         outputfile.write("<head>\n")
-        outputfile.write(
-            '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>\n'
-        )
+        outputfile.write('<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>\n')
 
         outputfile.write("<head>\n")
         outputfile.write('<base target="_parent">\n')
         outputfile.write("<style>\n")
-        outputfile.write(
-            'ul{ padding-left: 5px; margin-left: 15px; list-style-type: "- "; }\n'
-        )
+        outputfile.write('ul{ padding-left: 5px; margin-left: 15px; list-style-type: "- "; }\n')
         outputfile.write(".folderClass {list-style-type: disc;}\n")
         outputfile.write("</style>\n")
         outputfile.write("</head>\n")
@@ -568,8 +541,4 @@ if exportToHtml:
 
         outputfile.write("</body>\n")
         outputfile.write("</html>\n")
-print(
-    "Done!\n\nPath to export: "
-    + str(exportDir)
-    + ("/index.html" if exportToHtml else "")
-)
+print("Done!\n\nPath to export: " + str(exportDir) + ("/index.html" if exportToHtml else ""))

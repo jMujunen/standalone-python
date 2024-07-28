@@ -15,9 +15,7 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="scp a file",
     )
-    parser.add_argument(
-        "HOST", type=str, help="Host to scp to - Either hostname@ip or hostname"
-    )
+    parser.add_argument("HOST", type=str, help="Host to scp to - Either hostname@ip or hostname")
     parser.add_argument("SOURCE_PATH", type=str, help="Source path", nargs="+")
     parser.add_argument("DEST_PATH", type=str, help="Destination path", nargs="+")
 
@@ -36,7 +34,8 @@ def main(args):
         f"scp {source_files} {args.HOST}:{source_dest}",
         shell=True,
         text=True,
-        capture_output=True, check=False,
+        capture_output=True,
+        check=False,
     )
     error = output.stderr
     out = output.stdout
