@@ -4,7 +4,7 @@
 import argparse
 import os
 from collections import defaultdict
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from fsutils import Dir
 from fsutils.mimecfg import FILE_TYPES
 from ProgressBar import ProgressBar
@@ -14,15 +14,11 @@ IGNORED = FILE_TYPES.get("ignored", [])
 
 def count_file_types(directory: str, ignore=False) -> dict:
     file_types = defaultdict(int)
-    path = Dir(directory)
-    with ProgressBar(len(path)) as progress:
-        for item in path:
+    files = [i for i in Dir(directory).file_objects if i.extension not in IGNORED]
+    with ProgressBar(len(files)) as progress:
+        for item in files:
             progress.increment()
-            ext = item.extension
-            if not ignore and ext and ext not in IGNORED:
-                file_types[ext[1:]] += 1  # remove the dot from the extension
-            elif ext:
-                file_types[ext[1:]] += 1  # remove the dot from the extension
+            file_types[item.extension[1:]] += 1  # remove the dot from the extension
         return dict(sorted(file_types.items(), key=lambda item: item[1]))
 
 

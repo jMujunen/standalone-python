@@ -13,7 +13,7 @@ PRESETS = {
     # Concatenate a multiline string into a single line separated a space
     "whitespace": lambda x: re.sub(r"([^\s]\s+|\n)", "", x, flags=re.MULTILINE),
     # Remove REPL prompt chars "...:"
-    "ipy": lambda x: re.sub(r"\.\.\.:", "", x, flags=re.MULTILINE),
+    "ipy": lambda x: re.sub(r"(\.\.\.:|(In|Out) \[\d+\]:\s)", "", x, flags=re.MULTILINE),
 }
 
 

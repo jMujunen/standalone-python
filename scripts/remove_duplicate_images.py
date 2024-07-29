@@ -41,9 +41,9 @@ def process_file(item: Img) -> tuple[imagehash.ImageHash | None, str] | None:
     return
 
 
-def find_duplicates():
+def find_duplicates(path: str) -> OrderedDict:
     hashes = OrderedDict()
-    directory = Dir(args.path)
+    directory = Dir(path)
     files = len(directory.files) + 1
 
     cprint(f"Found {files - 1} files", fg.green, style.bold)
@@ -64,8 +64,9 @@ def find_duplicates():
     return hashes
 
 
-def remove_duplicates(hashes):
+def remove_duplicates(hashes: OrderedDict) -> None:
     corrupted_files = []
+    duplicate_files = []
     for k, v in hashes.items():
         # No hash means file is corrupt, or in otherwords, flag for removal
         if k is None:
@@ -73,7 +74,7 @@ def remove_duplicates(hashes):
             # Remove for memory efficiancy
             del hashes[k]
         if len(v) >= 3:
-            hashes.append(v)
+            duplicate_files.append(v)
             if not args.dry_run:
                 # Remove without confirmation prompt
                 if args.no_confirm:
@@ -117,7 +118,7 @@ def remove_duplicates(hashes):
 
 def main(args: argparse.Namespace) -> None:
     with ExecutionTimer():
-        hashes = find_duplicates()
+        hashes = find_duplicates(args.path)
         num_dupes = [v for v in hashes.values() if len(v) > 1]
         cprint(f"\nDuplicates found: {len(num_dupes)}", fg.cyan, style.bold)
 
