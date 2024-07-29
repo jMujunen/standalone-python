@@ -5,28 +5,14 @@ import argparse
 import os
 from collections import defaultdict
 
-from ProgressBar import ProgressBar
-
 from fsutils import Dir
 from fsutils.mimecfg import FILE_TYPES
+from ProgressBar import ProgressBar
 
 IGNORED = FILE_TYPES.get("ignored", [])
 
 
 def count_file_types(directory: str, ignore=False) -> dict:
-    """
-    Counts the total number of each file type in a given directory and its subdirectories.
-
-    Args:
-        directory (str): The path to the directory to be counted.
-        ignore (bool): If True, ignores specific file types as specified in FILE_TYPES configuration.
-
-    Returns:
-        dict: A dictionary where keys are file extensions (without a leading dot) and values are their counts.
-
-    This function uses the fsutils library to traverse through the directory tree. It keeps track of each file type's count,
-    optionally ignoring certain types based on configuration settings from FILE_TYPES. The results are returned as a sorted dictionary.
-    """
     file_types = defaultdict(int)
     path = Dir(directory)
     with ProgressBar(len(path)) as progress:

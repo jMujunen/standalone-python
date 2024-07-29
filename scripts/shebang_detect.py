@@ -6,7 +6,7 @@ import argparse
 import re
 
 from Color import cprint, fg
-from fsutils import DirNode, ScriptFile
+from fsutils import Dir, Exe
 
 SHEBANG_REGEX = re.compile(r"#!.*")
 
@@ -64,11 +64,11 @@ def parse_args():
 
 
 def main(args):
-    directory = DirNode.Dir(args.directory)
+    directory = Dir(args.directory)
     for item in directory:
-        if isinstance(item, ScriptFile.Exe) and item.extension.strip(".") == args.file:
+        if isinstance(item, Exe) and item.extension.strip(".") == args.file:
             shebang = item.shebang
-            new_shebang = SHEBANG_REGEX.sub(spec.get(args.file), shebang)  # Convert to python3
+            new_shebang = SHEBANG_REGEX.sub(spec.get(args.file, ""), shebang)  # Convert to python3
             if args.verbose:
                 # Print the file name and shebang
                 cprint(item.basename, fg.yellow)

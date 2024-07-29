@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # TODO
-# - Improve performance by using multithreading/multiprocessing
+# - [ ] Improve performance by using multithreading/multiprocessing
 
 import argparse
 import os
@@ -72,25 +72,9 @@ def screenshots(output_dir, image_object):
         )
 
 
-def remove_file(image_object):
-    try:
-        os.remove(image_object.path)
-    except FileNotFoundError:
-        cprint(f"{image_object.path} doesnt exsist", fg.red)
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Organize images into directories by year, based on the original capture date"
-    )
-    parser.add_argument("input", type=str, help="Path to the directory containing the images")
-    parser.add_argument("output", type=str, help="Path to the output directory")
-    return parser.parse_args()
-
-
 def cleanup(input_dir):
     # Cleanup function to be called upon completion of script execution
-    # Check to make sure no files are left behind and remove the dolr dir tree
+    # Check to make sure no files are left behind and remove the dir dir tree
     print("\nCleaning up...")
     old_files = [file for root, dirs, files in os.walk(input_dir) for file in files]
     if not old_files:
@@ -109,6 +93,19 @@ def rm_empty_folders(folder: str) -> None:
             os.rmdir(folder)
     except (FileNotFoundError, NotADirectoryError):
         pass
+
+
+def catagorize(instance: File):
+    pass
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Organize images into directories by year, based on the original capture date"
+    )
+    parser.add_argument("input", type=str, help="Path to the directory containing the images")
+    parser.add_argument("output", type=str, help="Path to the output directory")
+    return parser.parse_args()
 
 
 def main(input_dir, output_dir):
@@ -440,7 +437,7 @@ if __name__ == "__main__":
     cleanup(args.input)
     if dupes:
         cprint("Duplicates found:", fg.orange)
-        print("\n".join([i for i in dupes]))
+        print("\n".join(list(dupes)))
     if input("Save to file?: 1") == "y":
         with open("output.txt", "w+") as f:
             f.write(str(dupes))

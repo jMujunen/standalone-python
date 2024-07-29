@@ -3,42 +3,64 @@
 
 import os
 
-from size import Converter
-from fsutils import Video, Dir
 from Color import cprint, style
+from fsutils import Dir, Video
 from ProgressBar import ProgressBar
+from size import Converter
 
 FOLDERS = {
     "PLAYERUNKNOWN'S BATTLEGROUNDS": "PUBG",
 }
+
 OUTPUT_PATH = "/mnt/ssd/OBS/Joona"
+INPUT_PATH = "/mnt/win_ssd/Users/Joona/Videos/NVIDIA/"
 
 
-def main():
-    path = Dir("/mnt/win_ssd/Users/Joona/Videos/NVIDIA/")
-    size_before = 0
-    size_after = 0
+def main(input_dir: str, output_dir: str) -> None:
+    """Compress videos specified by input dir and save them to  output dir.
+
+    This script iterates over all directories in the input path,
+    compresses video files found within those directories,
+    and saves the compressed versions to the output directory.
+
+    Once compressed, it removes the original
+    Compression is successful and the file is not corrupt.
+
+    Prints the total amount of space saved from the compression process
+
+    Paramters:
+    ---------
+        input_dir (str): The path to the directory containing the videos to be compressed.
+        output_dir (str): The path where the compressed video files will be saved.
+
+    """
+    path = Dir(input_dir)
+    SIZE_BEFORE = 0
+    SIZE_AFTER = 0
+    # Iterate over all directories in path, compressing videos
+    # and removing original files if compression was successful.
     with ProgressBar(len(path.videos)) as p:
         for directory in path.dirs:
             if isinstance(directory, Dir):
                 if directory.is_empty:
                     continue
-                output_dir = os.path.join(OUTPUT_PATH, directory.basename)
-                if directory.basename in FOLDERS:
-                    output_dir = os.path.join("/mnt/ssd/OBS/Joona", FOLDERS[directory.basename])
-
-                if not os.path.exists(output_dir):
+                # Modify the name of the folder to match the spec
+                output_folder = os.path.join(
+                    output_dir, FOLDERS.get(directory.basename, directory.basename)
+                )
+                if not os.path.exists(output_folder):
                     os.makedirs(output_dir, exist_ok=True)
                 for vid in directory.videos:
                     p.increment()
-                    size_before += vid.size
-                    vid.compress(output_dir)
-                    new = Video(os.path.join(output_dir, vid.basename))
-                    size_after += new.size
-                    if not new.is_corrupt:
+                    output_path = os.path.join(output_folder, vid.basename)
+                    SIZE_BEFORE += vid.size
+                    vid.compress(output_path)
+                    new_video_object = Video(output_path)
+                    SIZE_AFTER += new_video_object.size
+                    if not new_video_object.is_corrupt:
                         os.remove(vid.path)
-    cprint(f"Space saved: {Converter(size_before - size_after)}", style.bold)
+    cprint(f"Space saved: {Converter(SIZE_BEFORE - SIZE_AFTER)}", style.bold)
 
 
 if __name__ == "__main__":
-    main()
+    main(INPUT_PATH, OUTPUT_PATH)
