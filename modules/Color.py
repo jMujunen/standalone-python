@@ -192,8 +192,7 @@ class ForegroundColor(metaclass=ColorMeta):
 
 
 class Attributes(metaclass=ColorMeta):
-    """
-    Attribute styler.
+    """Attribute styler.
 
     Attributes:
     ----------

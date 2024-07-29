@@ -174,4 +174,3 @@ if __name__ == "__main__":
     except IndexError:
         print("Usage:")
         print("sms.py <destination>")
-        print("sms.py <destination>")

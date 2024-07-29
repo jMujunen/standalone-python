@@ -13,20 +13,19 @@ class Styler:
 
     Attributes:
     ----------
-        command (str): The command to be run.
-        positional_arguments (str): Positional arguments for the command.
-        flags (str): Flags for the command.
+        `command` (str) : The command to be run.
+        `positional_arguments` (str) : Positional arguments for the command.
+        `flags` (str): Flags for the command.
 
     Methods:
     ----------
-        __init__(command, **kwargs): Init object
-        styles(): Applies styles to the command
-        body_style(pattern, color): Applies a style (color) to all instances of a specific pattern in the command
-        run_command(): Runs the command and captures its output
-        colorized_command_output(style): Returns the colorized command output
+    >>> styles():                       # Applies styles to the command
+        body_style(pattern, color):     # Applies a style (color) to all instances of a specific pattern in the command
+        run_command():                  # Runs the command and captures its output
+        colorized_command_output(style): # Returns the colorized command output
     """
 
-    def __init__(self, command, **kwargs):
+    def __init__(self, command: str, **kwargs: Union[List[str], Tuple[str]]) -> None:
         # Initialization of the Styler object with a command and optional positional arguments or flags.
         self.command = command
         self._styles = []
@@ -120,7 +119,9 @@ class Styler:
             sorted_rows = sorted(rows)
         return "\n".join(sorted_rows).replace("\n\n", "\n")
 
-    def colorized_command_output(self, style) -> str:
+    def colorized_command_output(
+        self, style: Union[Tuple[re.Pattern, str], List[re.Pattern]]
+    ) -> str:
         """
         Applies a list of styles to the command output and returns it.
 
@@ -134,11 +135,8 @@ class Styler:
             str: The colorized version of the command's stdout. Each instance of
             the patterns in the style tuples are replaced with the corresponding color codes.
         """
-
-        if not isinstance(style, list):
+        if not isinstance(style[0], tuple):
             style = [style]
-            print("\033[1;31mError at line 1 in Styler.py[\033[0m]")
-
         for s in style:
             regex, color_prefix, color_suffix = s
             matches = re.findall(regex, self.command_output)
