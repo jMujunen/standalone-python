@@ -345,7 +345,7 @@ def cprint(text, *styles, end="\n"):
 
     Example:
     -------
-        >>> cprint('Hello, World!', fg.orange, style.bold)
+        >>> cprint("Hello, World!", fg.orange, style.bold)
     """
     print(str(Parse(text, *styles)), end=end)
 

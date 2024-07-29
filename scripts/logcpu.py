@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-from time import sleep
 import argparse
 import os
+from time import sleep
 
-from hwdata import CPU
+from hwutils import CPU
 
 
 def parse_args():

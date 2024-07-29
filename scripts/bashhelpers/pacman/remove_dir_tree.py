@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-
-# remove_dir_tree.py - Places all files in a directory tree into a single location
-# and removes the original directory tree.
+"""Places all files in a directory tree into a single location"""
 
 import argparse
 import os
@@ -26,7 +24,6 @@ def parse_args():
         "OUTPUT_DIRECTORY",
         help="output directory",
         type=str,
-        default=".",
     )
     parser.add_argument(
         "v",
