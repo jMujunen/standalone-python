@@ -4,7 +4,7 @@ import argparse
 import os
 import re
 
-from fsutils import Dir
+from fsutils import FileManager
 
 
 def parse_args():
@@ -12,7 +12,7 @@ def parse_args():
         description="This script is used as a redneck way to hardlink a directory and its subdirectories",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("dir", help="The directory to be hardlinked.", default=".")
+    parser.add_argument("FileManager", help="The directory to be hardlinked.", default=".")
     parser.add_argument(
         "-o",
         "--output",
@@ -77,7 +77,7 @@ def cleanup(output_path):
         output_path (str): path to the directory to be cleaned up
     """
     for root, dirs, files in os.walk(output_path, topdown=False):
-        directory = Dir(root)
+        directory = FileManager(root)
         if directory.is_empty:
             print(f"Removing empty directory: {root}")
             try:
@@ -105,12 +105,12 @@ def main(input_path, output_path, pattern):
         output_path (str): path to the link: Default: pwd
         pattern (str): The pattern (PCRE) to match files against.
     """
-    dir = Dir(input_path)
-    # Create parents for the output dir if they doisn't exist
+    FileManager = FileManager(input_path)
+    # Create parents for the output FileManager if they doisn't exist
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     # Create the directory tree for output path
-    for folder in dir.rel_directories:
+    for folder in FileManager.rel_directories:
         try:
             new_folder = os.path.abspath(os.path.join(output_path, folder))
             os.makedirs(new_folder, exist_ok=True)
@@ -126,4 +126,4 @@ def main(input_path, output_path, pattern):
 # Example
 if __name__ == "__main__":
     args = parse_args()
-    main(args.dir, args.output, args.pattern)
+    main(args.FileManager, args.output, args.pattern)

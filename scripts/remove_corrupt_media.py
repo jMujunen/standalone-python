@@ -5,7 +5,7 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 
-from fsutils import Dir, Img
+from fsutils import FileManager, Img
 from ExecutionTimer import ExecutionTimer
 from ProgressBar import ProgressBar
 from Color import cprint, style, fg
@@ -30,7 +30,7 @@ def main(path: str, dry_run: bool) -> None:
     with ExecutionTimer():
         corrupted_files = []
 
-        images = Dir(path).images
+        images = FileManager(path).images
         num_images = len(images)
         with ProgressBar(num_images) as progress:
             cprint(f"Found {num_images - 1} files", fg.green, style.bold)

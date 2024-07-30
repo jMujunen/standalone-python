@@ -11,7 +11,7 @@ import sys
 
 from Color import bg, cprint, fg, style
 from ExecutionTimer import ExecutionTimer
-from fsutils import Dir, File, Img, Log, Video, mimecfg
+from fsutils import File, FileManager, Img, Log, Video, mimecfg
 from ProgressBar import ProgressBar
 
 SPECIAL_FILES = {
@@ -74,7 +74,7 @@ def screenshots(output_dir, image_object):
 
 def cleanup(input_dir):
     # Cleanup function to be called upon completion of script execution
-    # Check to make sure no files are left behind and remove the dir dir tree
+    # Check to make sure no files are left behind and remove the FileManager FileManager tree
     print("\nCleaning up...")
     old_files = [file for root, dirs, files in os.walk(input_dir) for file in files]
     if not old_files:
@@ -112,7 +112,7 @@ def main(input_dir, output_dir):
     with ExecutionTimer():
         duplicates = []
         # Initialize objects and variables
-        d = Dir(input_dir)
+        d = FileManager(input_dir)
         items = len(d)
         removed = 0
         # Create a directory for the images without metadata
@@ -353,7 +353,11 @@ def main(input_dir, output_dir):
                     rm_empty_folders(item.dir_name)
                 elif item.is_dir:
                     rm_empty_folders(item.path)
-                elif not item.is_dir and not isinstance(item, Dir) and item.extension is not None:
+                elif (
+                    not item.is_dir
+                    and not isinstance(item, FileManager)
+                    and item.extension is not None
+                ):
                     # ============================ MISC  =============================== #
                     os.makedirs(os.path.join(output_dir, "Misc"), exist_ok=True)
                     output = os.path.join(output_dir, "Misc")
@@ -411,8 +415,8 @@ if __name__ == "__main__":
     try:
         removed, items, dupes = main(args.input, args.output)
         # cprint("Checking validity...")
-        # _old = Dir(args.input)
-        # _new = Dir(args.output)
+        # _old = FileManager(args.input)
+        # _new = FileManager(args.output)
         # _items = len(_old)
         # progress = ProgressBar(_items)
         # for item in _old:

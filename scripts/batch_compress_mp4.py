@@ -10,7 +10,7 @@ from typing import List
 
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
-from fsutils import Dir, Video
+from fsutils import FileManager, Video
 from ProgressBar import ProgressBar
 from size import Converter
 
@@ -38,8 +38,8 @@ def main(
     # List of file objects
     old_files = []
     new_files = []
-    input_dir = Dir(input_directory)
-    outdir = Dir(output_directory)
+    input_dir = FileManager(input_directory)
+    outdir = FileManager(output_directory)
 
     try:
         # for folder_path in indir.rel_directories:

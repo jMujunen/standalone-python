@@ -12,8 +12,9 @@ Examples:
 
 """
 
-import requests
 import sys
+
+import requests
 
 
 class Weather:

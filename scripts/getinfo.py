@@ -4,8 +4,8 @@
 import argparse
 import os
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from fsutils import Dir
+
+from fsutils import FileManager
 from fsutils.mimecfg import FILE_TYPES
 from ProgressBar import ProgressBar
 
@@ -13,8 +13,9 @@ IGNORED = FILE_TYPES.get("ignored", [])
 
 
 def count_file_types(directory: str, ignore=False) -> dict:
+    # TODO : Implement ignored flag
     file_types = defaultdict(int)
-    files = [i for i in Dir(directory).file_objects if i.extension not in IGNORED]
+    files = [i for i in FileManager(directory).file_objects if i.extension not in IGNORED]
     with ProgressBar(len(files)) as progress:
         for item in files:
             progress.increment()
