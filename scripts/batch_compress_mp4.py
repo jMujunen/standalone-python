@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-# bp_mp4_cs.py - Batch process all .mp4 files in a directory
+"""Batch process all .mp4 files in a directory."""
 
 import argparse
 import os
 import shutil
 import subprocess
-from typing import List
 
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
@@ -14,12 +13,30 @@ from fsutils import FileManager, Video
 from ProgressBar import ProgressBar
 from size import Converter
 
-# TODO
+"""This script provides functionality to batch process all MP4 video files in a specified directory.
+
+Usage:
+    python batch_compress_mp4.py [ARGS] PATH...
+
+Options:
+    -h, --help          Show this help message and exit.
+    -d DIRECTORY, --directory DIRECTORY
+                        Specify the directory containing MP4 files to be processed.
+    -o OUTPUT_DIR, --output-dir OUTPUT_DIR
+                        Specify the output directory for the processed videos.
+                        If not specified, the original videos will be overwritten.
+    -c CONVERSION_FORMAT, --conversion-format CONVERSION_FORMAT
+                        Specify the format to convert MP4 files to (e.g., mp4, avi).
+    -s SIZE, --size SIZE  Specify the size to which the video should be resized (e.g., 1920x1080).
+    -v, --verbose       Enable verbose output for detailed processing information.
+"""
+
 # - Check for corrupt files
 # - Remove old files
 
 
 def parse_arguments() -> argparse.Namespace:
+    """Parse args."""
     parser = argparse.ArgumentParser(description="Batch process all .mp4 files in a directory")
     parser.add_argument(
         "input_directory",
@@ -27,14 +44,19 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument("output_directory", help="Output directory")
     parser.add_argument(
-        "--rate", help="Ensure bitrate (per second) is under this value", default="500000", type=int
+        "--rate",
+        help="Ensure bitrate (per second) is under this value",
+        default="500000",
+        type=int,
     )
     return parser.parse_args()
 
 
 def main(
-    input_directory: str, output_directory: str, rate: int
-) -> tuple[None | List[Video], None | List[Video]]:
+    input_directory: str,
+    output_directory: str,
+    rate: int,
+) -> tuple[None | list[Video], None | list[Video]]:
     # List of file objects
     old_files = []
     new_files = []
@@ -97,7 +119,7 @@ def main(
                                 print(item.size)
                                 print(item.basename)
                                 # Rename the file: "input_file.mp4" -> "input_file_1.mp4"
-                                new_path = f"{output_file_path[:-4]}_{str(count)}.mp4"
+                                new_path = f"{output_file_path[:-4]}_{count!s}.mp4"
                                 shutil.move(item.path, new_path)
                                 item = Video(new_path)
                                 break
@@ -110,7 +132,9 @@ def main(
                             os.remove(item.path)
                             if not item.is_corrupt
                             else cprint(
-                                "FATAL ERROR: Manual intervention required", fg.red, style.underline
+                                "FATAL ERROR: Manual intervention required",
+                                fg.red,
+                                style.underline,
                             )
                         )
                         continue
@@ -181,4 +205,4 @@ if __name__ == "__main__":
                     cprint(f"\n{e}", fg.red, style.underline)
                     continue
 
-        print("")
+        print()

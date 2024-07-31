@@ -29,8 +29,8 @@ from dataclasses import dataclass
 class ColorMeta(type):
     """Metaclass base for creating the interface for printing colored text in the terminal."""
 
-    def __getattr__(self, item):
-        return f"{self.STYLE[item]}"
+    def __getattr__(cls, item):
+        return f"{cls.STYLE[item]}"
 
 
 class BackgroundColor(metaclass=ColorMeta):

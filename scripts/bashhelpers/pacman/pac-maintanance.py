@@ -47,7 +47,7 @@ def main(args: argparse.Namespace) -> int:
     cprint("Checking file properties...", style.bold, style.underline)
     cfp_code = check_file_properties()
     cprint("Listing broken packages...", style.bold, style.underline)
-    broken = list_broken(args.paccheck)
+    list_broken(args.paccheck)
     return cc_code + cs_code + ro_code + cfp_code
 
 

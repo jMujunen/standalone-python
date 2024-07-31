@@ -38,7 +38,6 @@ def main(args):
         check=False,
     )
     error = output.stderr
-    out = output.stdout
     if error:
         print(error)
         exit(1)

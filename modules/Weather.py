@@ -116,7 +116,7 @@ class Weather:
     @property
     def sunset(self):
         """Returns the time of sunset in seconds since the Unix epoch."""
-        return f"Current Temperature in {self.location}: {self.kelvin2celsius(self.max_temperature)}°C\nDescription: {self.data['weather'][0]['description'].capitalize()}"
+        return f"Current Temperature in {self.location}: {self.kelvin2celsius(self.max_temperature)}°C\nDescription: {self.data["weather"][0]["description"].capitalize()}"
 
     def kelvin2celsius(self, kelvin):
         """Converts Kelvin to Celsius

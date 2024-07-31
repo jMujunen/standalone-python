@@ -24,7 +24,7 @@ def main(file: str) -> None:
     common_files = find_lists(content)
 
     for item in common_files:
-        cprint(f"{'=' * 20}| {item[-1]} |{'=' * 20}", style.bold)
+        cprint(f"{"=" * 20}| {item[-1]} |{"=" * 20}", style.bold)
         for img in item:
             subprocess.run(
                 f'kitten icat --use-window-size 100,100,500,100 "{img}"',

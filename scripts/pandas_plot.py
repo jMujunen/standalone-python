@@ -64,7 +64,7 @@ def main(filepath: str, window_size: int, columns):
     df = pd.read_csv(filepath, sep=r",")
     missing_columns = [col for col in columns if col not in df.columns]
     if missing_columns:
-        raise ValueError(f"Columns {', '.join(missing_columns)} do not exist in the file.")
+        raise ValueError(f"Columns {", ".join(missing_columns)} do not exist in the file.")
 
     if any(col not in df.columns for col in columns):
         raise ValueError("One or more of the columns do not exist.")
@@ -103,7 +103,7 @@ def main(filepath: str, window_size: int, columns):
         new_smooth_df.plot(ax=ax, grid=True)
 
     # ani = FuncAnimation(fig, animate, frames=100, interval=200)
-    ani = FuncAnimation(
+    FuncAnimation(
         fig, animate, frames=100, interval=200
     )  # Update every 1000 milliseconds (1 second)
     plt.show()

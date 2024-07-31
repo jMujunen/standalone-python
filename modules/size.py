@@ -34,7 +34,7 @@ class Converter:
                 return f"{size:.2f} {unit}"
             size /= 1024
 
-        return f"{size/1024:.2f} {units[-1]}"  # Last unit is TB
+        return f"{size / 1024:.2f} {units[-1]}"  # Last unit is TB
 
     def __str__(self):
         return self._size_str

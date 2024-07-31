@@ -39,7 +39,7 @@ def main(args):
         new_extention = ""
     directory = args.DIR
     if args.recursive:
-        for root, dirs, files in os.walk(directory):
+        for root, _dirs, files in os.walk(directory):
             for file in files:
                 if file.endswith(old_extention):
                     os.rename(

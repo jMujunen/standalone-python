@@ -148,7 +148,7 @@ class Client(metaclass=MetaClient):
         --------
             HTTPError: If an error occurs during the HTTP request, it will raise an HTTPError.
         """
-        base_url = f"http://{kwargs.get('host')}:8123/api/services"
+        base_url = f"http://{kwargs.get("host")}:8123/api/services"
         url = f"{base_url}/{domain}/{service}"
         data = {"entity_id": entity_id} if entity_id else {}
         response = requests.post(

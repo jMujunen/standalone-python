@@ -120,7 +120,7 @@ def main():
             sys.exit(1)
 
     with open(args.output, "w") as f:
-        f.write(f"{','.join(header)}\n")
+        f.write(f"{",".join(header)}\n")
         f.close()
     # Get data and append to `data` in csv format
     # TODO - Print difrerent color for header
@@ -129,7 +129,7 @@ def main():
             f"[\033[38;2;57;206;196m {i + 1}/{args.duration} \033[0m] \033[1;32m {data[i]} \033[0m"
         )
         with open(args.output, "a") as f:
-            f.write(f"{','.join(query_cpu_clocks())}\n")
+            f.write(f"{",".join(query_cpu_clocks())}\n")
         data.append(",".join(query_cpu_clocks()))
         sleep(args.interval)
 

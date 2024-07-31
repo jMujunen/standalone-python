@@ -41,7 +41,7 @@ def main(csv_file):
             sys.exit(0)
 
         else:  # Multiple columns
-            data = list(zip(*reader))  # Transpose the data so we can access by column
+            data = list(zip(*reader, strict=False))  # Transpose the data so we can access by column
 
     for i, col in enumerate(header):
         if i == 0:

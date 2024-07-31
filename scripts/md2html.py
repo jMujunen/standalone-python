@@ -439,7 +439,7 @@ def readFilesRecursive(path):
                     line = html.escape(line)
                 outputfile.write(line)
             outputfile.write("</div>\n")
-            b = str(findRelPath(".", path))
+            str(findRelPath(".", path))
             outputfile.write(
                 '<div style="width:345px; padding-top: 20px;; position:absolute; top:0; left:0; overflow:auto;">\n'
             )
@@ -514,7 +514,7 @@ if exportToHtml:
                     if len(lastFilePath) > 0 and currFolder == lastFilePath[0]:
                         del lastFilePath[0]
                     else:
-                        for addedSublist in lastFilePath[:-1]:  # close previous lists
+                        for _addedSublist in lastFilePath[:-1]:  # close previous lists
                             outputfile.write("</ul>\n")
                         lastFilePath = ""
                         if ".md" in currFolder:
@@ -536,7 +536,7 @@ if exportToHtml:
                 lastFilePath = str(currFile).replace("\\", "/").split("/")
             first = False
 
-        for i in str(filesAllreadyCopied[-1]).replace("\\", "/").split("/"):
+        for _i in str(filesAllreadyCopied[-1]).replace("\\", "/").split("/"):
             outputfile.write("</ul>")
 
         outputfile.write("</body>\n")

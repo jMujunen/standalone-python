@@ -20,7 +20,7 @@ def get_xkcd_comic():
     if img_tag:
         for tag in img_tag:
             if PATTERN.match(tag["src"]):
-                url = f'https:{tag['src']}'
+                url = f'https:{tag["src"]}'
                 return url
 
     raise Exception("No img tag found for the following cfg. `<img src=.*imgs.xkcd.com/comics/.*>`")

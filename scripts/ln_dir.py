@@ -76,7 +76,7 @@ def cleanup(output_path):
     ----------
         output_path (str): path to the directory to be cleaned up
     """
-    for root, dirs, files in os.walk(output_path, topdown=False):
+    for root, _dirs, _files in os.walk(output_path, topdown=False):
         directory = FileManager(root)
         if directory.is_empty:
             print(f"Removing empty directory: {root}")
