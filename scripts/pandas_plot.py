@@ -2,19 +2,23 @@
 
 # pandas_plot.py - Plot pandas dataframes
 
-import os
 import argparse
+import os
+import pandas as pd
+from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from matplotlib.animation import FuncAnimation
 
 FILE = "/tmp/hwinfo.csv"
+
 GROUPS = {
     "misc": [" ping", " ram_usage", " gpu_core_usage"],
     "gpu": [" gpu_temp", " gpu_core_usage", " gpu_power"],
     "temps": [" system_temp", " gpu_temp", " cpu_temp"],
+    "cpu_clocks": [" cpu_max_clock", " cpu_avg_clock"],
+    "volts": [" gpu_volage", " cpu_voltage"],
 }
 
 
@@ -44,21 +48,8 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(filepath: str, window_size: int, columns):
-    """Main entry point for the program.
-
-    Args:
-        filepath (str): Path to the csv file to plot.
-        window_size (int, optional): Window size for the moving average. Defaults to 100.
-        columns (list, optional): Columns to plot. Defaults to ['cpu_temp', 'gpu_temp', 'system_temp', 'ping'].
-
-    Raises:
-        FileNotFoundError: If the file does not exist.
-        ValueError: If any of the columns do not exist.
-
-    Returns:
-        None
-    """
+def main(filepath: str, window_size: int, columns: list[str]) -> None:
+    """Main entry point for the program."""
     if not os.path.isfile(filepath):
         raise FileNotFoundError(f"File {filepath} not found.")
     df = pd.read_csv(filepath, sep=r",")

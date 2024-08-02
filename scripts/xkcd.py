@@ -10,8 +10,8 @@ from bs4 import BeautifulSoup
 PATTERN = pattern = re.compile(r".*imgs.xkcd.com/comics/.*")
 
 
-def get_xkcd_comic():
-    # Send HTTP request
+def get_xkcd_comic() -> str:
+    """Process the HTTP request."""
     page = requests.get("https://c.xkcd.com/random/comic/")
     # Parse the content with BeautifulSoup
     soup = BeautifulSoup(page.content, "html.parser")
@@ -32,13 +32,13 @@ if __name__ == "__main__":
     reponse = requests.get(url)
     page_content = reponse.content
     try:
-        # Try to open the image with default application
+        # Save to tmpfs and attempt to render with kitty
         with open("/tmp/xkcd.png", "wb") as f:
             f.write(page_content)
         subprocess.run(
-            "kitten icat /tmp/xkcd.png",
+            ["kitten", "icat", "/tmp/xkcd.png"],
             shell=True,
             check=False,
         )
-    except:
-        print(f"Failed to save/open {url}")
+    except Exception as e:
+        print(f"Failed to save/open {url}:\n\n{e}")

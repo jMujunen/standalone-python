@@ -47,26 +47,27 @@ def find_duplicates(path: str) -> OrderedDict:
     files = len(directory.files) + 1
 
     cprint(f"Found {files - 1} files", fg.green, style.bold)
-    progress = ProgressBar(files)
-
-    with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(process_file, file) for file in directory.images]
-        for future in as_completed(futures):
-            result = future.result()
-            if result:
-                progress.increment()
-                hash_value, file = result
-                if hash_value not in hashes:
-                    hashes[hash_value] = [file]
-                else:
-                    hashes[hash_value].append(file)
+    with ProgressBar(files) as progress:
+        with ThreadPoolExecutor() as executor:
+            futures = [executor.submit(process_file, file) for file in directory.images]
+            for future in as_completed(futures):
+                result = future.result()
+                if result:
+                    progress.increment()
+                    hash_value, file = result
+                    if hash_value not in hashes:
+                        hashes[hash_value] = [file]
+                    else:
+                        hashes[hash_value].append(file)
 
     return hashes
 
 
 def remove_duplicates(hashes: OrderedDict) -> None:
+    # FIXME: C901 - Function too complex
     corrupted_files = []
     duplicate_files = []
+
     for k, v in hashes.items():
         # No hash means file is corrupt, or in otherwords, flag for removal
         if k is None:

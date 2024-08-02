@@ -9,30 +9,10 @@ import subprocess
 
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
-from fsutils import FileManager, Video
 from ProgressBar import ProgressBar
 from size import Converter
 
-"""This script provides functionality to batch process all MP4 video files in a specified directory.
-
-Usage:
-    python batch_compress_mp4.py [ARGS] PATH...
-
-Options:
-    -h, --help          Show this help message and exit.
-    -d DIRECTORY, --directory DIRECTORY
-                        Specify the directory containing MP4 files to be processed.
-    -o OUTPUT_DIR, --output-dir OUTPUT_DIR
-                        Specify the output directory for the processed videos.
-                        If not specified, the original videos will be overwritten.
-    -c CONVERSION_FORMAT, --conversion-format CONVERSION_FORMAT
-                        Specify the format to convert MP4 files to (e.g., mp4, avi).
-    -s SIZE, --size SIZE  Specify the size to which the video should be resized (e.g., 1920x1080).
-    -v, --verbose       Enable verbose output for detailed processing information.
-"""
-
-# - Check for corrupt files
-# - Remove old files
+from fsutils import FileManager, Video
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -45,7 +25,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("output_directory", help="Output directory")
     parser.add_argument(
         "--rate",
-        help="Ensure bitrate (per second) is under this value",
+        help="Ensure bitrate (per second) is under this value\n\nNOT IMPLEMENTED",
         default="500000",
         type=int,
     )

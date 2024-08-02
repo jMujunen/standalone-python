@@ -1,95 +1,46 @@
 #!/usr/bin/env python3
-
-# ascii_color.py - Convert hex or RGB color codes to ANSI escape codes
+"""Convert hex or RGB color codes to ANSI escape codes"""
 
 import argparse
-import re
-import pyperclip
 import random
+import re
+
+import clipboard
 
 
-def rgb_to_ansi(r, g, b):
-    """
-    Convert RGB color values to an ANSI escape code.
+def rgb_to_ansi(r: int, g: int, b: int) -> str:
+    r"""Convert RGB color values to an ANSI escape code.
 
-    Parameters:
-        r (int): Red component of the color, in range 0-255.
-        g (int): Green component of the color, in range 0-255.
-        b (int): Blue component of the color, in range 0-255.
-
-
-    Returns:
-        str: ANSI escape code string for the given RGB color.
-
-    Example:
-        >>> rgb_to_ansi(255, 0, 0)
-        Returns: '\x1b[38;2;255;0;0m'
-    """
-    # if isinstance(args[0], str) and len(args[0]) > 5:
-    #     r, g, b = args[0].split(',')
-    # r, g, b = args
+    >>> rgb_to_ansi(255, 0, 0)
+    $ '\x1b[38;2;255;0;0m'"""
     return f"\033[38;2;{r};{g};{b}m"
 
 
-def random_hex():
-    """
-    Generate a random hexadecimal color code.
-
-    Returns:
-        str: A randomly generated hexadecimal color code in the format "#RRGGBB", where RR, GG, and BB represent random integers between 0 and 255.
-
-    Example:
-        >>> random_hex()
-        '#e0c1f8'
-    """
-    return "#%02x%02x%02x" % (
-        random.randint(0, 255),
-        random.randint(0, 255),
-        random.randint(0, 255),
-    )
+def random_hex() -> str:
+    """Generate a random hexadecimal color code."""
+    return f"#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}"
 
 
-def hex_to_rgb(hex_code):
-    """
-    Convert a hex color code to a tuple of RGB color values.
+def hex_to_rgb(hex_code: str) -> tuple[int, ...]:
+    """Convert a hex color code to a tuple of RGB color values.
 
-    Parameters:
-        hex_code (str): Hex color code string starting with '#'.
-
-    Returns:
-        tuple: Tuple of integers representing the RGB components of the color.
-
-    Example:
-        >>> hex_to_rgb("#FFFFFF")
-        Reurns:  (255, 255, 255)
-
-    """
+    >>> hex_to_rgb("#FFFFFF")
+    $ (255, 255, 255)"""
     hex_code = hex_code.lstrip("#")
     return tuple(int(hex_code[i : i + 2], 16) for i in (0, 2, 4))
 
 
-def hex_to_ansi(hex_code):
-    """
-    Convert a hexadecimal color code to its ANSI equivalent.
+def hex_to_ansi(hex_code: str) -> str:
+    r"""Convert a hexadecimal color code to its ANSI equivalent.
 
-    Parameters:
-        hex_code (str): The hexadecimal color code to convert.
-
-    Returns:
-        str: The ANSI color code equivalent.
-
-    Example:
-        >>> hex_to_ansi("#FF0000")
-        Returns: '\x1b[38;2;255;0;0m'
-
-        '\x1b[38;2;255;0;0m'
-    """
+    >>> hex_to_ansi("#FF0000")
+    $ '\x1b[38;2;255;0;0m'"""
     rgb = hex_to_rgb(hex_code)
     return rgb_to_ansi(*rgb)
 
 
-def main(color):
-    # Parse the color input based on the format (RGB or Hex)
+def main(color: str) -> None:
+    """Parse the color input based on the format (RGB or Hex)"""
     color_input = color
 
     if re.match(r"^\d{1,3},\s*\d{1,3},\s*\d{1,3}$", color_input):
@@ -110,16 +61,11 @@ def main(color):
         return
     stripped_ansi_code = ansi_code.replace("\033", "")
     print(f"{ansi_code}{stripped_ansi_code}\033[0m")
-    pyperclip.copy(stripped_ansi_code)
+    clipboard.copy(stripped_ansi_code)
 
 
-def parse_arguments():
-    """
-    Parse command line arguments.
-
-    Returns:
-        Parsed arguments.
-    """
+def parse_arguments() -> argparse.Namespace:
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Convert hex or RGB color codes to ANSI escape codes."
     )
@@ -133,3 +79,6 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
     main(args.color)
+
+    Returns:
+        Parsed arguments.

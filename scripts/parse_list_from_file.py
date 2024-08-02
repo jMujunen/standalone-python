@@ -1,26 +1,14 @@
 #!/usr/bin/env python3
 """Parse data structures from arbitrary text"""
 
+import ast
 import os
 import sys
-import ast
 
 
 # Define a function to recursively parse lists within square brackets
 def find_lists(text: str) -> list:
-    """
-    Parses and extracts nested lists from a given string using Python's ast module.
-
-    This function scans through the input text looking for square brackets containing potentially nested lists.
-    It uses a stack to keep track of the positions where lists start, ensuring that it correctly identifies and parses all levels of nesting.
-
-    Parameters:
-    -----------
-        text (str): The input string from which to extract nested lists.
-
-    Returns:
-    --------
-        list: A list containing parsed lists found within the input text. If no valid lists are found, it returns an empty list.
+    """Parses and extracts nested lists from a given string using Python's ast module.
 
     Example:
     -------
@@ -53,7 +41,7 @@ def find_lists(text: str) -> list:
 
 def main(file: str) -> list | None:
     if os.path.exists(file):
-        with open(file, "r") as f:
+        with open(file) as f:
             content = f.read()
         return find_lists(content)
 

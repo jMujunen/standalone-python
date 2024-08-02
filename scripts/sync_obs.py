@@ -54,7 +54,7 @@ def main(input_dir: str, output_dir: str) -> None:
                     p.increment()
                     output_path = os.path.join(output_folder, vid.basename)
                     SIZE_BEFORE += vid.size
-                    vid.compress(output_path)
+                    vid.compress(output=output_path)
                     new_video_object = Video(output_path)
                     SIZE_AFTER += new_video_object.size
                     if not new_video_object.is_corrupt:
