@@ -4,7 +4,7 @@
 import os
 
 from Color import cprint, style
-from fsutils import FileManager, Video
+from fsutils import Dir, Video
 from ProgressBar import ProgressBar
 from size import Converter
 
@@ -17,31 +17,19 @@ INPUT_PATH = "/mnt/win_ssd/Users/Joona/Videos/NVIDIA/"
 
 
 def main(input_dir: str, output_dir: str) -> None:
-    """Compress videos specified by input FileManager and save them to  output FileManager.
+    """Compress videos specified by input Dir and save them to output Dir.
 
-    This script iterates over all directories in the input path,
-    compresses video files found within those directories,
-    and saves the compressed versions to the output directory.
-
-    Once compressed, it removes the original
+    Once compressed, it removes the original.
     Compression is successful and the file is not corrupt.
-
-    Prints the total amount of space saved from the compression process
-
-    Paramters:
-    ---------
-        input_dir (str): The path to the directory containing the videos to be compressed.
-        output_dir (str): The path where the compressed video files will be saved.
-
     """
-    path = FileManager(input_dir)
+    path = Dir(input_dir)
     SIZE_BEFORE = 0
     SIZE_AFTER = 0
     # Iterate over all directories in path, compressing videos
     # and removing original files if compression was successful.
     with ProgressBar(len(path.videos)) as p:
         for directory in path.dirs:
-            if isinstance(directory, FileManager):
+            if isinstance(directory, Dir):
                 if directory.is_empty:
                     continue
                 # Modify the name of the folder to match the spec

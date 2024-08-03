@@ -6,7 +6,7 @@ import argparse
 import re
 
 from Color import cprint, fg
-from fsutils import FileManager, Exe
+from fsutils import Dir, Exe
 
 SHEBANG_REGEX = re.compile(r"#!.*")
 
@@ -64,7 +64,7 @@ def parse_args():
 
 
 def main(args):
-    directory = FileManager(args.directory)
+    directory = Dir(args.directory)
     for item in directory:
         if isinstance(item, Exe) and item.extension.strip(".") == args.file:
             shebang = item.shebang

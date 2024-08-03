@@ -11,7 +11,7 @@ from pprint import pformat
 import imagehash
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
-from fsutils import FileManager, Img
+from fsutils import Dir, Img
 from ProgressBar import ProgressBar
 
 IGNORED_DIRS = [".Trash-1000"]
@@ -43,7 +43,7 @@ def process_file(item: Img) -> tuple[imagehash.ImageHash | None, str] | None:
 
 def find_duplicates(path: str) -> OrderedDict:
     hashes = OrderedDict()
-    directory = FileManager(path)
+    directory = Dir(path)
     files = len(directory.files) + 1
 
     cprint(f"Found {files - 1} files", fg.green, style.bold)

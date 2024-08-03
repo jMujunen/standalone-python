@@ -79,6 +79,3 @@ def parse_arguments() -> argparse.Namespace:
 if __name__ == "__main__":
     args = parse_arguments()
     main(args.color)
-
-    Returns:
-        Parsed arguments.

@@ -9,10 +9,9 @@ import subprocess
 
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
+from fsutils import Dir, Video
 from ProgressBar import ProgressBar
 from size import Converter
-
-from fsutils import FileManager, Video
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -40,8 +39,8 @@ def main(
     # List of file objects
     old_files = []
     new_files = []
-    input_dir = FileManager(input_directory)
-    outdir = FileManager(output_directory)
+    input_dir = Dir(input_directory)
+    outdir = Dir(output_directory)
 
     try:
         # for folder_path in indir.rel_directories:

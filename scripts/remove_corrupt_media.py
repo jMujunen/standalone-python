@@ -2,13 +2,13 @@
 """Finds and removes corrupt images and videos."""
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from fsutils import FileManager, Img
+from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
+from fsutils import Dir, Img
 from ProgressBar import ProgressBar
-from Color import cprint, style, fg
 
 
 def parse_arguments():
@@ -30,7 +30,7 @@ def main(path: str, dry_run: bool) -> None:
     with ExecutionTimer():
         corrupted_files = []
 
-        images = FileManager(path).images
+        images = Dir(path).images
         num_images = len(images)
         with ProgressBar(num_images) as progress:
             cprint(f"Found {num_images - 1} files", fg.green, style.bold)

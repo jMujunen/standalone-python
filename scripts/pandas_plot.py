@@ -5,7 +5,6 @@
 import argparse
 import os
 import pandas as pd
-from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,18 +30,14 @@ def parse_args():
         "-f", "--file", help="Path to the csv file", type=str, default="/tmp/hwinfo.csv"
     )
     parser.add_argument(
-        "-w",
-        "--window",
-        help="Window size for the moving average",
-        type=int,
-        default=100,
+        "-w", "--window", help="Window size for the moving average", type=int, default=100
     )
     parser.add_argument(
         "COLUMNS",
         help="""Columns to plot
         Supports groups, such as 'cpu' or 'gpu' or 'temps' .""",
         nargs="*",
-        default=["temps"],  # , 'system_temp', 'gpu_usage', 'gpu_power', 'gpu_memory_usage']
+        default=[],
     )
     # TODO: Add support for limiting the range of the x-axis (time)
     return parser.parse_args()
@@ -54,17 +49,15 @@ def main(filepath: str, window_size: int, columns: list[str]) -> None:
         raise FileNotFoundError(f"File {filepath} not found.")
     df = pd.read_csv(filepath, sep=r",")
     missing_columns = [col for col in columns if col not in df.columns]
+
     if missing_columns:
         raise ValueError(f"Columns {", ".join(missing_columns)} do not exist in the file.")
 
-    if any(col not in df.columns for col in columns):
-        raise ValueError("One or more of the columns do not exist.")
-
-    # smooth_data = {}
-    # for column in columns:
-    #     smooth_data[column] = np.convolve(
-    #         df[column], np.ones(window_size) / window_size, mode="valid"
-    #     )
+    smooth_data = {}
+    for column in columns:
+        smooth_data[column] = np.convolve(
+            df[column], np.ones(window_size) / window_size, mode="valid"
+        )
     smooth_data = {}
     for column in columns:
         smooth_data[column] = np.convolve(
@@ -74,6 +67,7 @@ def main(filepath: str, window_size: int, columns: list[str]) -> None:
 
     fig, ax = plt.subplots(figsize=(10, 6))
     line = ax.plot([], [], label=columns[0])  # Changed to use the first column for the label
+    (line,) = ax.plot([], [], label=columns[0])  # Changed to use the first column for the label
 
     def init():
         ax.set_xlim(left=0, right=len(df))
@@ -97,6 +91,7 @@ def main(filepath: str, window_size: int, columns: list[str]) -> None:
     FuncAnimation(
         fig, animate, frames=100, interval=200
     )  # Update every 1000 milliseconds (1 second)
+    ani = FuncAnimation(fig, animate, frames=100, interval=200)
     plt.show()
 
 

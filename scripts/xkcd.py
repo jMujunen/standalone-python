@@ -7,7 +7,7 @@ import subprocess
 import requests
 from bs4 import BeautifulSoup
 
-PATTERN = pattern = re.compile(r".*imgs.xkcd.com/comics/.*")
+PATTERN = re.compile(r".*imgs.xkcd.com/comics/.*")
 
 
 def get_xkcd_comic() -> str:
