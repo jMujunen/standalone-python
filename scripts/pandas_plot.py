@@ -53,6 +53,7 @@ def main(filepath: str, window_size: int, columns: list[str]) -> None:
     if missing_columns:
         raise ValueError(f"Columns {", ".join(missing_columns)} do not exist in the file.")
 
+    # Replace the non-numeric values with NaNs and convert floats
     smooth_data = {}
     for column in columns:
         smooth_data[column] = np.convolve(

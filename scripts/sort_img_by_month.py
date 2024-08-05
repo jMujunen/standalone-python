@@ -122,7 +122,7 @@ def main(input_dir, output_dir):
         os.makedirs(os.path.join(output_dir, "Videos", ""), exist_ok=True)
         with ProgressBar(items - 1) as progress:
             # Iterate over all files in the directory
-            for item in d.objects():
+            for item in d.objects:
                 progress.increment()
                 if item.extension in JUNK:
                     os.remove(item.path)

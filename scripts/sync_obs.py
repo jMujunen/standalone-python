@@ -20,7 +20,6 @@ def main(input_dir: str, output_dir: str) -> None:
     """Compress videos specified by input Dir and save them to output Dir.
 
     Once compressed, it removes the original.
-    Compression is successful and the file is not corrupt.
     """
     path = Dir(input_dir)
     SIZE_BEFORE = 0
