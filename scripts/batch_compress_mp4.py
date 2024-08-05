@@ -88,15 +88,7 @@ if __name__ == "__main__":
         old_files, new_files, before, after = main(args.input_directory, args.output_directory)
         if not old_files or not new_files:
             cprint("Nothing to convert. Exiting...", fg.yellow)
-            # exit(1)
-
-        # Output how much data was saved in the conversion
-        # total_preproccessed_size = 0
-        # total_processed_size = 0
-        # for vid in old_files:
-        #     total_preproccessed_size += vid.size
-        # for vid in new_files:
-        #     total_processed_size += vid.size
+            exit()
 
         space_saved = Converter(before - after)
 

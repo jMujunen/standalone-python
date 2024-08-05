@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
-from fsutils import Dir, Img
+from fsutils import Dir, Img, Video
 from ProgressBar import ProgressBar
 
 
@@ -22,7 +22,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def process_file(item: Img):
+def process_file(item: Img | Video):
     return (item.is_corrupt, item.path)
 
 
@@ -31,11 +31,17 @@ def main(path: str, dry_run: bool) -> None:
         corrupted_files = []
 
         images = Dir(path).images
+        videos = Dir(path).videos
         num_images = len(images)
-        with ProgressBar(num_images) as progress:
-            cprint(f"Found {num_images - 1} files", fg.green, style.bold)
+        num_videos = len(videos)
+
+        media = images + videos
+        num_media = num_images + num_videos
+
+        with ProgressBar(num_media) as progress:
+            cprint(f"{num_images} images, {num_videos} videos", fg.green, style.bold)
             with ThreadPoolExecutor() as executor:
-                futures = [executor.submit(process_file, img) for img in images]
+                futures = [executor.submit(process_file, m) for m in media]
                 for future in as_completed(futures):
                     try:
                         result = future.result()

@@ -38,13 +38,11 @@ text = f"""{" ".ljust(10)}{"Used".ljust(10)}{"Cached".ljust(10)}
 
 free = Styler(text)
 
-free.colorized_command_output(
-    [
-        free.body_style(r"([1-4]\d\.\d%)", fg.green),
-        free.body_style(r"([5-7]\d\.\d%)", fg.yellow),
-        free.body_style(r"([8-9]\d\.\d%)", fg.red),
-        free.body_style(r"^([\s]+.*)\n", style.bold),
-    ]
-)
+free.colorized_command_output([
+    free.body_style(r"([1-4]\d\.\d%)", fg.green),
+    free.body_style(r"([5-7]\d\.\d%)", fg.yellow),
+    free.body_style(r"([8-9]\d\.\d%)", fg.red),
+    free.body_style(r"^([\s]+.*)\n", style.bold),
+])
 
 print(free.sort())
