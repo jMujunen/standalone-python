@@ -50,16 +50,17 @@ def parse_args():
         """,
     )
     parser.add_argument(
+        "PATTERN",
+        nargs="?",
+        metavar="PATTERN",
+        help="Pattern to search for and remove from each line",
+        default=r"(^\s+|\s+$)",
+    )
+    parser.add_argument(
         "-r",
         "--replace",
         help="Replace character with this instead of stripping.",
-        default="",
-    )
-    parser.add_argument(
-        "-p",
-        "--pattern",
-        help="PCRE - Perl compatiable regex patterns to search for",
-        default=" ",
+        type=str,
     )
 
     parser.add_argument("--lstrip", help="Only strip from the left", action="store_true")
@@ -86,16 +87,17 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(char, replacement) -> str:
-    """
-    Strips a character from each line in the clipboard content.
+def main(char: str, replacement: str) -> str:
+    """Strips a character from each line in the clipboard content.
 
     Paramters:
     ---------
-        char(str): Character or pattern to strip. Can be any valid PCRE.
-        replacement(str): Optional replacement string.
+        - `char(str)`: Character or pattern to strip. Can be any valid PCRE.
+        - `replacement(str)`: Optional replacement string.
     """
     try:
+        if not replacement:
+            replacement = ""
         pattern = re.compile(char)
         text = pyperclip.paste()
         # Split the text into individual lines
@@ -121,6 +123,6 @@ def main(char, replacement) -> str:
 # Example usage:
 if __name__ == "__main__":
     args = parse_args()
-    output = main(args.pattern, args.replace)
+    output = main(args.PATTERN, args.replace)
     pyperclip.copy(output)
     print(output)
