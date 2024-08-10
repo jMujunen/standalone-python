@@ -4,7 +4,7 @@
 import os
 import shutil
 
-from Color import cprint, style
+from Color import cprint, fg, style
 from fsutils import Dir, Video
 from ProgressBar import ProgressBar
 from size import Converter
@@ -33,7 +33,7 @@ def main(input_dir: str, output_dir: str) -> None:
     path = Dir(input_dir)
     SIZE_BEFORE = 0
     SIZE_AFTER = 0
-
+    os.makedirs("/mnt/hdd/ffmpeg_tests")
     # Iterate over all directories in path, compressing videos
     # and removing original files if compression was successful.
     with ProgressBar(len(path.videos)) as p:
@@ -47,15 +47,16 @@ def main(input_dir: str, output_dir: str) -> None:
                 )
                 for vid in directory.videos:
                     p.increment()
-                    output_path = os.path.join(output_folder, vid.basename)
-                    SIZE_BEFORE += vid.size
-                    vid.compress(output=output_path)
-                    new_video_object = Video(output_path)
-                    SIZE_AFTER += new_video_object.size
-                    if not new_video_object.is_corrupt:
-                        os.makedirs("/mnt/hdd/ffmpeg_tests")
-                        shutil.move(vid.path, "/mnt/hdd/ffmpeg_tests", copy_function=shutil.copy2)
-                        # os.remove(vid.path)
+                    try:
+                        output_path = os.path.join(output_folder, vid.basename)
+                        compressed = vid.compress(output=output_path)
+                        SIZE_BEFORE += vid.size
+                        SIZE_AFTER += compressed.size
+                        if compressed.exists and not compressed.is_corrupt:
+                            os.remove(vid.path)
+
+                    except Exception as e:
+                        cprint(f"Error compressing video {vid}: {e}", fg.orange)
     cprint(f"Space saved: {Converter(SIZE_BEFORE - SIZE_AFTER)}", style.bold)
 
 

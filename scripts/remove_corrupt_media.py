@@ -76,6 +76,11 @@ def main(path: str, dry_run: bool) -> None:
 
     print(f"\nDone: {len(corrupted_files)} successfully removed")
 
+    # Cleanup the temporary directory
+    os.remove("temp/corrupted_image.jpg")
+    os.remove("temp/corrupted_video.mp4")
+    os.rmdir("temp")
+
 
 if __name__ == "__main__":
     with ExecutionTimer():
