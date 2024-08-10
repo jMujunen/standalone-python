@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-
 """Batch process all .mp4 files in a directory."""
 
 import argparse
 import os
-import shutil
 
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
@@ -21,17 +19,15 @@ def parse_arguments() -> argparse.Namespace:
     """Parse args."""
     parser = argparse.ArgumentParser(description="Batch process all .mp4 files in a directory")
     parser.add_argument(
-        "input_directory",
+        "INPUT",
         help="Input directory",
     )
-    parser.add_argument("output_directory", help="Output directory")
+    parser.add_argument("OUTPUT", help="Output directory")
+    parser.add_argument("--keep", help="Keep original file", action="store_true", default=False)
     return parser.parse_args()
 
 
-def main(
-    input_directory: str,
-    output_directory: str,
-) -> tuple[list[Video], list[Video], int, int]:
+def main(input_dir: str, output_dir: str) -> tuple[list[Video], list[Video], int, int]:
     # List of file objects
     original_files = []
     compressed_files = []
@@ -39,18 +35,18 @@ def main(
     size_before = 0
     size_after = 0
 
-    videos = Dir(input_directory).videos
-    outdir = Dir(output_directory)
+    videos = Dir(input_dir).videos
+    outdir = Dir(output_dir)
 
     try:
-        # for folder_path in indir.rel_directories:
+        # for folder_path in input_dir.rel_directories:
         # Create the output directories if they don't exist
         os.makedirs(outdir.path, exist_ok=True)
     except OSError as e:
         print(f"[\033[31m Error creating output directory '{outdir}': {e} \033[0m]")
         exit(1)
 
-    # Initialize progress bar
+    # Initialize progress bar vars
     number_of_files = len(videos)
     cprint(f"1/{number_of_files}", style.bold, style.underline, end="\n\n")
 
@@ -74,6 +70,7 @@ def main(
                     fg.red,
                     style.bold,
                 )
+
             progress.increment()
     # Notify user of completion
     cprint("\nBatch conversion completed.", fg.green)
@@ -81,11 +78,9 @@ def main(
 
 
 if __name__ == "__main__":
-    # Context manager is perfect for an Execution timer
     with ExecutionTimer():
         args = parse_arguments()
-        # Run the main function
-        old_files, new_files, before, after = main(args.input_directory, args.output_directory)
+        old_files, new_files, before, after = main(args.INPUT, args.OUTPUT)
         if not old_files or not new_files:
             cprint("Nothing to convert. Exiting...", fg.yellow)
             exit()
@@ -93,6 +88,12 @@ if __name__ == "__main__":
         space_saved = Converter(before - after)
 
         cprint(f"\nSpace saved: {space_saved}", fg.green, style.bold)
-        with open("./compression_log.log", "w") as f:
-            f.write("\n".join([i.path for i in old_files]))
-        print()
+        if not args.keep:
+            # remove old uncompressed files
+            for file in old_files:
+                try:
+                    os.remove(file.path)
+                except OSError as e:
+                    print(e)  # remove error message
+                except Exception:
+                    pass
