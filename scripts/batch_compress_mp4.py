@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import shutil
 
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
@@ -23,11 +24,18 @@ def parse_arguments() -> argparse.Namespace:
         help="Input directory",
     )
     parser.add_argument("OUTPUT", help="Output directory")
+    parser.add_argument(
+        "-n",
+        "--num",
+        help="Number of of files to compress in one sitting",
+        type=int,
+        default=-1,
+    )
     parser.add_argument("--keep", help="Keep original file", action="store_true", default=False)
     return parser.parse_args()
 
 
-def main(input_dir: str, output_dir: str) -> tuple[list[Video], list[Video], int, int]:
+def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[Video], int, int]:
     # List of file objects
     original_files = []
     compressed_files = []
@@ -35,7 +43,7 @@ def main(input_dir: str, output_dir: str) -> tuple[list[Video], list[Video], int
     size_before = 0
     size_after = 0
 
-    videos = Dir(input_dir).videos
+    videos = Dir(input_dir).videos[:num]
     outdir = Dir(output_dir)
 
     try:
@@ -53,7 +61,10 @@ def main(input_dir: str, output_dir: str) -> tuple[list[Video], list[Video], int
     with ProgressBar(number_of_files) as progress:
         for vid in videos:
             print("\n")
-            cprint(vid.basename, style.bold, style.underline)
+            cprint(vid.basename, style.bold, style)
+            print(f"Originial bitrate: {vid.bitrate_human}")
+            if vid.bitrate < 8000000:
+                continue
             # for k, v in RENAME_SPEC.items():
             #     if k in vid.basename:
             #         output_file_name = f"{v}{vid.capture_date}".replace(" ", "_")
@@ -64,6 +75,15 @@ def main(input_dir: str, output_dir: str) -> tuple[list[Video], list[Video], int
                 size_before += vid.size
                 size_after += output_file_object.size
                 original_files.append(vid)
+                print("Stat".ljust(10), "Before".ljust(25), "After".ljust(25), sep=":".center(2))
+                print(
+                    "Size:".ljust(10), f"{vid.size_human:<25} : {output_file_object.size_human:<25}"
+                )
+                print(
+                    "Bitrate:".ljust(10),
+                    f"{vid.bitrate_human:<25} : {output_file_object.bitrate_human:<25}",
+                )
+
             except Exception as e:
                 cprint(
                     f"\n{vid.basename} could not be converted. Error code: {e}",
@@ -78,22 +98,21 @@ def main(input_dir: str, output_dir: str) -> tuple[list[Video], list[Video], int
 
 
 if __name__ == "__main__":
-    with ExecutionTimer():
-        args = parse_arguments()
-        old_files, new_files, before, after = main(args.INPUT, args.OUTPUT)
-        if not old_files or not new_files:
-            cprint("Nothing to convert. Exiting...", fg.yellow)
-            exit()
+    args = parse_arguments()
+    old_files, new_files, before, after = main(args.INPUT, args.OUTPUT, args.num)
+    if not old_files or not new_files:
+        cprint("Nothing to convert. Exiting...", fg.yellow)
+        exit()
 
-        space_saved = Converter(before - after)
+    space_saved = Converter(before - after)
 
-        cprint(f"\nSpace saved: {space_saved}", fg.green, style.bold)
-        if not args.keep:
-            # remove old uncompressed files
-            for file in old_files:
-                try:
-                    os.remove(file.path)
-                except OSError as e:
-                    print(e)  # remove error message
-                except Exception:
-                    pass
+    cprint(f"\nSpace saved: {space_saved}", fg.green, style.bold)
+    if not args.keep:
+        # remove old uncompressed files
+        for file in old_files:
+            try:
+                os.remove(file.path)
+            except OSError as e:
+                print(e)  # remove error message
+            except Exception:
+                pass
