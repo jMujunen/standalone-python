@@ -30,7 +30,7 @@ def process_file(file: File, second: Dir) -> tuple[str, str] | None:
 def main(first: Dir, second: Dir) -> None:
     dupes = []
     # pool = Pool()
-    with ProgressBar(len(second)) as p:
+    with ProgressBar(len(first)) as p:
         with ThreadPoolExecutor() as executer:
             futures = [executer.submit(process_file, file, second) for file in first]
             for future in as_completed(futures):
@@ -38,8 +38,8 @@ def main(first: Dir, second: Dir) -> None:
                 result = future.result()
                 if result:
                     dupes.append(result)
-                if len(dupes) % 100 == 0:
-                    cprint(f"Dupes: {len(dupes)}", style.bold, style.underline)
+                if len(dupes) % 100 == 0 and len(dupes) != 0:
+                    cprint(f"Dupes: {len(dupes)}", style.bold, style.underline, end="\r")
                     with open(f"{first.path}-DUPES.log", "a") as f:
                         f.write("\n".join(dupes))
                         dupes = []
