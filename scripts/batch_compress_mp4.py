@@ -78,11 +78,15 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
                 vid.codec == "hevc"
                 and vid.bitrate < 30000000
                 or vid.codec == "h264"
-                and vid.bitrate < 15000000
+                and vid.bitrate < 20000000
             ):
-                logger.info(f"Skipping low-quality file: {vid} ")
+                logger.info(f"Skipping low-quality file: {vid.path} {vid.bitrate_human} ")
                 progress.increment()
-                shutil.copy2(vid.path, os.path.join(outdir.path, f"_{vid.basename}"))
+                shutil.move(
+                    vid.path,
+                    os.path.join(outdir.path, f"_{vid.basename}"),
+                    copy_function=shutil.copy2,
+                )
                 sleep(1)  # Give us a buffer to KeyboardIntterupt in case of undesred behaviour
                 continue
 

@@ -2,7 +2,7 @@
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from Color import cprint, fg
+from Color import cprint, fg, style
 from fsutils import Dir, File
 from ProgressBar import ProgressBar
 
@@ -17,28 +17,32 @@ def parser_args() -> argparse.Namespace:
     return args
 
 
-def process_file(file: File) -> tuple[File, File] | None:
+def process_file(file: File, second: Dir) -> tuple[str, str] | None:
     try:
         if file.exists and file in second:
             other = second.file_info(file.basename)
             if other and file == other:
-                return other, file
+                return other.path, file.path
     except Exception as e:
         cprint(e, fg.red)
 
 
-def main(first: Dir, second: Dir) -> list[str]:
+def main(first: Dir, second: Dir) -> None:
     dupes = []
     # pool = Pool()
     with ProgressBar(len(second)) as p:
         with ThreadPoolExecutor() as executer:
-            futures = [executer.submit(process_file, file) for file in first]
+            futures = [executer.submit(process_file, file, second) for file in first]
             for future in as_completed(futures):
                 p.increment()
                 result = future.result()
                 if result:
                     dupes.append(result)
-    return dupes
+                if len(dupes) % 100 == 0:
+                    cprint(f"Dupes: {len(dupes)}", style.bold, style.underline)
+                    with open(f"{first.path}-DUPES.log", "a") as f:
+                        f.write("\n".join(dupes))
+                        dupes = []
 
 
 if __name__ == "__main__":
@@ -47,4 +51,3 @@ if __name__ == "__main__":
     second = Dir(args.OTHER_PATH)
     dupes = main(first, second)
     # with open("dupes.log", "w") as f:
-    print("\n".join(dupes))
