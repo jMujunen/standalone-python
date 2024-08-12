@@ -78,7 +78,7 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
                 vid.codec == "hevc"
                 and vid.bitrate < 30000000
                 or vid.codec == "h264"
-                and vid.bitrate < 20000000
+                and vid.bitrate < 25000000
             ):
                 logger.info(f"Skipping low-quality file: {vid.path} {vid.bitrate_human} ")
                 progress.increment()

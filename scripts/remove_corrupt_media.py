@@ -51,27 +51,28 @@ def main(path: str, dry_run: bool) -> None:
             #     except Exception as e:
             #         cprint(e, fg.red)
             # else:
-            if len(corrupted_files) % 10 == 0:
-                with open(f"{path}_CORRUPT_FILES.log", "w") as f:
-                    f.write("\n".join(corrupted_files))
-    # if not dry_run and corrupted_files:
-    #     if input("Are you sure you want to remove these files? [y/N]: ") in [
-    #         "y",
-    #         "Y",
-    #     ]:
-    #         os.system("clear")
-    #         remove_progress = ProgressBar(len(corrupted_files))
-    #         for f in corrupted_files:
-    #             remove_progress.increment()
-    #             try:
-    #                 os.remove(f)
-    #             except KeyboardInterrupt:
-    #                 break
-    #             except Exception as e:
-    #                 cprint(f"\n{e}", fg.red, style.bold)
-    #                 continue
+            # if len(corrupted_files) % 10 == 0:
+            #     with open(f"{path}_CORRUPT_FILES.log", "w") as f:
+            #         f.write("\n".join(corrupted_files))
+    if not dry_run and corrupted_files:
+        print("\n".join(corrupted_files))
+        if input("Are you sure you want to remove these files? [y/N]: ") in [
+            "y",
+            "Y",
+        ]:
+            os.system("clear")
+            remove_progress = ProgressBar(len(corrupted_files))
+            for f in corrupted_files:
+                remove_progress.increment()
+                try:
+                    os.remove(f)
+                except KeyboardInterrupt:
+                    break
+                except Exception as e:
+                    cprint(f"\n{e}", fg.red, style.bold)
+                    continue
 
-    # print(f"\nDone: {len(corrupted_files)} successfully removed")
+        print(f"\nDone: {len(corrupted_files)} successfully removed")
     cprint(f"Done!: {len(corrupted_files)}/{num_media} corrupt...", fg.yellow)
 
 

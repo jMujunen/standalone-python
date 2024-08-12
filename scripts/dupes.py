@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import pprint
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from Color import cprint, fg, style
@@ -29,6 +30,8 @@ def process_file(file: File, second: Dir) -> tuple[str, str] | None:
 
 def main(first: Dir, second: Dir) -> None:
     dupes = []
+    jobs = len(first)
+    print(f"Found {jobs} files")
     # pool = Pool()
     with ProgressBar(len(first)) as p:
         with ThreadPoolExecutor() as executer:
@@ -41,7 +44,7 @@ def main(first: Dir, second: Dir) -> None:
                 if len(dupes) % 100 == 0 and len(dupes) != 0:
                     cprint(f"Dupes: {len(dupes)}", style.bold, style.underline, end="\r")
                     with open(f"{first.path}-DUPES.log", "a") as f:
-                        f.write("\n".join(dupes))
+                        f.write(pprint.pformat(dupes))
                         dupes = []
 
 
