@@ -301,14 +301,7 @@ class bg(BackgroundColor):
 
 
 class Parse:
-    """
-    Parses text with given styles.
-
-    Methods:
-    -------
-        __init__(): Initializes the class with text and styles.
-        __str__(): Returns the text with applied styles.
-    """
+    """Parses text with given styles."""
 
     def __init__(self, text: str, *styles: list) -> None:
         """Initializes the class with text and styles.

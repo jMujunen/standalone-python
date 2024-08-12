@@ -4,7 +4,7 @@
 import json
 import subprocess
 from os import environ
-from typing import Any, Dict, List
+from typing import Any
 
 import requests
 
@@ -29,7 +29,7 @@ def call_service(domain: str, service: str, entity_id=None, **kwargs) -> request
     return response
 
 
-def domains() -> List[str]:
+def domains() -> list[str]:
     """Get a list of all domains available on the Home Assistant API."""
     return []
 
@@ -87,11 +87,11 @@ class Client(metaclass=MetaClient):
         )
 
     @property
-    def head(self) -> Dict[str, str]:
+    def head(self) -> dict[str, str]:
         return {"Authorization": "Bearer " + self.token}
 
     @property
-    def api_reference(self) -> Dict[str, str]:
+    def api_reference(self) -> dict[str, str]:
         self.head["content-type"] = "application/json"
         response = requests.get(self.base_url, headers=self.head)
         self._domains = json.loads(response.content)
@@ -99,7 +99,7 @@ class Client(metaclass=MetaClient):
         return self._domains
 
     @property
-    def domains(self) -> List[str]:
+    def domains(self) -> list[str]:
         """Get a list of all available domains."""
         return [domain for domain in self._dict.keys()]
 

@@ -4,6 +4,7 @@
 
 
 import argparse
+import pandas as pd
 import re
 import sys
 
@@ -18,7 +19,12 @@ def parse_args():
         description="Generate a graph from numbers in a file.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("FILE", help="Enter the file name", type=str)
+    parser.add_argument(
+        "FILE",
+        help="Enter the file name",
+        nargs="?",
+        default="/tmp/hwinfo.csv",
+    )
     parser.add_argument(
         "-c",
         "--column",
@@ -28,58 +34,44 @@ def parse_args():
                 - graph.py /tmp/cpu_data.csv -c 1
                 - graph.py /tmp/cpu_data.csv -c "average_clock"''',
         nargs="+",
+        default="all",
     )
 
     return parser.parse_args()
 
 
-def main(args: argparse.Namespace) -> None:
+def main(args):
     try:
-        with open(args.FILE) as file:
-            header = next(file)
-            """
-            TODO: Add support for column range including all
-            for column in args.column:
-                # Processes all columns if `all|-all|--all` ...  is passed
-               if column in ALL_COLUMNS_KEYWORDS:
-            """
-            if args.column:
-                for column in args.column:
-                    try:
-                        column = int(column)
-                        numbers = file.readlines()
-                        numbers = [(x.split(",")[column]) for x in numbers]
-                        numbers = [DIGITS_RE.findall(numbers[x]) for x in range(len(numbers))]
-                        numbers = [float(x[0][0]) for x in numbers]
-                        plt.plot(numbers)
-                        plt.show()
-                    except Exception:
-                        try:
-                            args.column = str(column)
-                        except Exception:
-                            print("Invalid column type")
-                            return
-                        h = header.split(", ")
-                        column = h.index(column)
-                        numbers = file.readlines()
-                        numbers = [float(x.split(",")[column]) for x in numbers]
-                        numbers = [DIGITS_RE.findall(str(numbers[x])) for x in range(len(numbers))]
-                        numbers = [float(x[0][0]) for x in numbers]
-                        plt.plot(numbers)
-                        plt.show()
-                print("Invalid column type")
+        df = pd.read_csv(args.FILE)
+
+        if args.column in ALL_COLUMNS_KEYWORDS or not args.column:
+            columns = [DIGITS_RE.findall(str(df[col])) for col in df.columns]
+            valid_columns = [[float(x[0][0]) for x in cols if len(x) == 1] for cols in columns]
+            valid_columns = [col for col in valid_columns if len(col) > 0]
+
+            if not valid_columns:
+                print("Error: No valid number columns found.")
                 sys.exit(1)
-            else:
-                numbers = file.readlines()
-                numbers = [float(x) for x in numbers[1:] if len(x) < 20]
-                plt.plot(numbers)
-                plt.show()
-        sys.exit(0)
+
+            plt.figure(figsize=(8, 6))
+            for i, col in enumerate(valid_columns):
+                plt.plot(*col, label=df.columns[i], drawstyle="steps-mid")
+            if len(valid_columns) > 1:
+                plt.legend()
+        else:
+            numbers = df.iloc[:, int(args.column)]
+            plt.figure(figsize=(8, 6))
+            plt.plot(numbers, drawstyle="steps-mid")
+
+        plt.title("Graph from file")
+        plt.xlabel("Index")
+        plt.ylabel("Value")
+        plt.show()
     except KeyboardInterrupt:
-        sys.exit(1)
+        print("\nOperation interrupted by user.")
+        sys.exit(127)
 
 
-# Example
 if __name__ == "__main__":
     args = parse_args()
     main(args)

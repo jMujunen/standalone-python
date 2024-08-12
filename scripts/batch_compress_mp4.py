@@ -2,11 +2,12 @@
 """Batch process all .mp4 files in a directory."""
 
 import argparse
+import logging
 import os
 import shutil
+from time import sleep
 
 from Color import cprint, fg, style
-from ExecutionTimer import ExecutionTimer
 from fsutils import Dir, Video
 from ProgressBar import ProgressBar
 from size import Converter
@@ -14,6 +15,14 @@ from size import Converter
 RENAME_SPEC = {
     "PLAYERUNKNOWN": "PUBG",
 }
+
+# Create a logger that writes to a file named 'batch_compress.log'
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler("batch_compress.log")
+formatter = logging.Formatter("%(asctime)s [%(levelname)s] - %(message)s")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)  # Set the level of the logger to INFO
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -61,10 +70,22 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
     with ProgressBar(number_of_files) as progress:
         for vid in videos:
             print("\n")
-            cprint(vid.basename, style.bold, style)
-            print(f"Originial bitrate: {vid.bitrate_human}")
-            if vid.bitrate < 8000000:
+            cprint(vid.basename, style.bold)
+            print(
+                f"Original: bitrate={vid.bitrate_human}, size={vid.size_human}, codec={vid.codec}"
+            )
+            if (
+                vid.codec == "hevc"
+                and vid.bitrate < 30000000
+                or vid.codec == "h264"
+                and vid.bitrate < 15000000
+            ):
+                logger.info(f"Skipping low-quality file: {vid} ")
+                progress.increment()
+                shutil.copy2(vid.path, os.path.join(outdir.path, f"_{vid.basename}"))
+                sleep(1)  # Give us a buffer to KeyboardIntterupt in case of undesred behaviour
                 continue
+
             # for k, v in RENAME_SPEC.items():
             #     if k in vid.basename:
             #         output_file_name = f"{v}{vid.capture_date}".replace(" ", "_")
@@ -75,7 +96,7 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
                 size_before += vid.size
                 size_after += output_file_object.size
                 original_files.append(vid)
-                print("Stat".ljust(10), "Before".ljust(25), "After".ljust(25), sep=":".center(2))
+
                 print(
                     "Size:".ljust(10), f"{vid.size_human:<25} : {output_file_object.size_human:<25}"
                 )
@@ -99,10 +120,14 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
 
 if __name__ == "__main__":
     args = parse_arguments()
-    old_files, new_files, before, after = main(args.INPUT, args.OUTPUT, args.num)
-    if not old_files or not new_files:
-        cprint("Nothing to convert. Exiting...", fg.yellow)
-        exit()
+    try:
+        old_files, new_files, before, after = main(args.INPUT, args.OUTPUT, args.num)
+        if not old_files or not new_files:
+            cprint("Nothing to convert. Exiting...", fg.yellow)
+            exit()
+    except KeyboardInterrupt:
+        cprint("KeyboardInterrupt", fg.red)
+        exit(127)
 
     space_saved = Converter(before - after)
 
