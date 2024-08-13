@@ -358,7 +358,7 @@ def findLines(line):
 
 
 def readFilesRecursive(path):
-    with open(path, "r", encoding="utf-8") as readfile:
+    with open(path, encoding="utf-8") as readfile:
         data = readfile.readlines()
 
     antalAssets = 0

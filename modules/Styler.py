@@ -25,7 +25,7 @@ class Styler:
         colorized_command_output(style): # Returns the colorized command output
     """
 
-    def __init__(self, command: str, **kwargs: Union[List[str], Tuple[str]]) -> None:
+    def __init__(self, command: str, **kwargs: list[str] | tuple[str]) -> None:
         # Initialization of the Styler object with a command and optional positional arguments or flags.
         self.command = command
         self._styles = []
@@ -42,11 +42,11 @@ class Styler:
         self.command_output = self.run_command()
 
     @property
-    def styles(self) -> List[str]:
+    def styles(self) -> list[str]:
         # Property for getting the list of styles applied to the command output.
         return self._styles
 
-    def body_style(self, pattern: str, color: Union[int, str]) -> Tuple[re.Pattern[str], str, str]:
+    def body_style(self, pattern: str, color: int | str) -> tuple[re.Pattern[str], str, str]:
         """
         Applies a style (color) to all instances of a specific pattern in the command output.
 
@@ -120,7 +120,7 @@ class Styler:
         return "\n".join(sorted_rows).replace("\n\n", "\n")
 
     def colorized_command_output(
-        self, style: Union[Tuple[re.Pattern, str], List[re.Pattern]]
+        self, style: tuple[re.Pattern, str] | list[re.Pattern]
     ) -> str:
         """
         Applies a list of styles to the command output and returns it.
@@ -191,7 +191,7 @@ class Styler:
             return
         self.command_output = "\n".join(lines)
 
-    def style_column(self, column: int, color: Union[int, str]) -> None:
+    def style_column(self, column: int, color: int | str) -> None:
         """
         Applies a style (color) to all instances of a specific column in the command output.
 
@@ -214,7 +214,7 @@ class Styler:
             lines[i] = " ".join(line)
         self.command_output = "\n".join(lines)
 
-    def style_row(self, row: int, color: Union[int, str]) -> None:
+    def style_row(self, row: int, color: int | str) -> None:
         """
         Applies a style (color) to all instances of a specific row in the command output.
 

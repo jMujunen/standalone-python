@@ -59,10 +59,34 @@ def find_duplicates(path: str) -> OrderedDict:
 
     return hashes
 
-def render_group(images: list) -> str:
+
+def process_group(images: list[str]) -> str:
+    num_remove = 1
+    for img in images:
+        print("{:<30} {:<30}".format(" ", img))
+        subprocess.run(
+            f'kitten icat --use-window-size 100,100,500,100 "{img}"',
+            shell=True,
+            check=False,
+        )
+    # Prompt for confirmation before removal
+    reply = input("\033[33mRemove these files? [Y/n]: \033[0m")
+    if reply.lower() == "y" or reply == "" or reply in ["1", "2", "3", "11"]:
+        try:
+            num_remove = len(images) - int(reply) - 1
+        except ValueError:
+            pass
+        for i, img in enumerate(images):
+            # Skip the first 2 or specified value
+            if i > num_remove:
+                try:
+                    os.remove(img)
+                    cprint(f"{img} removed", fg.green, style.bold)
+                except FileNotFoundError:
+                    cprint(f"{img} not found", fg.red, style.bold)
+
 
 def remove_duplicates(hashes: OrderedDict) -> None:
-    # FIXME: C901 - Function too complex
     corrupted_files = []
     duplicate_files = []
 
@@ -74,43 +98,19 @@ def remove_duplicates(hashes: OrderedDict) -> None:
             del hashes[k]
         if len(v) >= 3:
             duplicate_files.append(v)
-            if not args.dry_run:
+            if not args.dry_run and args.no_confirm:
                 # Remove without confirmation prompt
-                if args.no_confirm:
-                    for img in v:
-                        for i, img in enumerate(v):
-                            if i >= 2:
-                                try:
-                                    os.remove(img)
-                                    cprint(f"{img} removed", fg.green, style.bold)
-                                except FileNotFoundError:
-                                    continue
-                            else:
-                                cprint(f"Keeping {img}", fg.green)
-                # Render duplicate sets
-                for img in v:
-                    print("{:<30} {:<30}".format(" ", img))
-                    subprocess.run(
-                        f'kitten icat --use-window-size 100,100,500,100 "{img}"',
-                        shell=True,
-                        check=False,
-                    )
-                # Prompt for confirmation before removal
-                num_remove = 1
-                reply = input("\033[33mRemove these files? [Y/n]: \033[0m")
-                if reply.lower() == "y" or reply == "" or reply in ["1", "2", "3", "11"]:
+                for i, _img in enumerate(v):
+                    if i < 2:  # Skip the first two files
+                        continue
                     try:
-                        num_remove = len(v) - int(reply) - 1
-                    except ValueError:
-                        pass
-                    for i, img in enumerate(v):
-                        # Skip the first 2 or specified value
-                        if i > num_remove:
-                            try:
-                                os.remove(img)
-                                cprint(f"{img} removed", fg.green, style.bold)
-                            except FileNotFoundError:
-                                cprint(f"{img} not found", fg.red, style.bold)
+                        os.remove(_img)
+                        cprint(f"{_img} removed", fg.green, style.bold)
+                    except FileNotFoundError:
+                        continue
+                    except Exception as e:
+                        cprint(f"Error (line{}) removing file: {_img}\n{e}", fg.red, style.bold)
+
                 else:
                     os.system("clear")
 

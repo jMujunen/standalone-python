@@ -18,7 +18,7 @@ def main(file: str) -> None:
         - `file (str)` : The path to the file containing image lists.
             Each list represents a group of images, and each line in a list is an image path.
     """
-    with open(file, "r") as f:
+    with open(file) as f:
         content = f.read()
 
     common_files = find_lists(content)

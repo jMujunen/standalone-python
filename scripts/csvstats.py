@@ -30,7 +30,7 @@ def main(csv_file):
     table.add_column("Mean", style="yellow on grey30", justify="right")
     table.add_column("Max", style="red on grey30", justify="right")
 
-    with open(csv_file, "r") as f:
+    with open(csv_file) as f:
         reader = csv.reader(f)
         header = next(reader)
 
