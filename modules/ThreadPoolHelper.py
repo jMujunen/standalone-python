@@ -5,19 +5,20 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 # DEBUG: Remove after
 from fsutils import Dir
 from fsutils.ImageFile import Img, imagehash
+
 from ProgressBar import ProgressBar
 
 
 class Pool(ProgressBar):
-    def __init__(self, num_threads=20, progress_bar=True):
+    def __init__(self, num_threads=20):
         self.num_threads = num_threads
 
     def execute(
-        self, callback_function: Callable, data_source: Iterable, progress_bar=True
+        self, callback_function: Callable, data_source: Iterable, *args, progress_bar=True
     ) -> Generator:
         with ProgressBar(len(data_source)) as pb:
             with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
-                futures = [executor.submit(callback_function, item) for item in data_source]
+                futures = [executor.submit(callback_function, item, *args) for item in data_source]
                 for future in as_completed(futures):
                     try:
                         result = future.result()

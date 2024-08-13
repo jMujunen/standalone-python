@@ -11,6 +11,7 @@ from Color import cprint, fg, style
 from fsutils import Dir, Video
 from ProgressBar import ProgressBar
 from size import Converter
+from ThreadPoolHelper import Pool
 
 RENAME_SPEC = {
     "PLAYERUNKNOWN": "PUBG",
@@ -44,6 +45,43 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def compress_file(file: Video, output_dir: str) -> Video | None:
+    """Process a single .mp4 file."""
+    output_file_path = os.path.join(output_dir, f"_{file.basename}")
+    output_file_object = Video(output_file_path)
+    try:
+        compressed = file.compress(output=output_file_path)
+        print("Size:".ljust(10), f"{file.size_human:<25} : {output_file_object.size_human:<25}")
+        print(
+            "Bitrate:".ljust(10),
+            f"{file.bitrate_human:<25} : {output_file_object.bitrate_human:<25}",
+        )
+        return compressed
+    except Exception as e:
+        cprint(
+            f"\n{file.basename} could not be converted. Error code: {e}",
+            fg.red,
+            style.bold,
+        )
+
+
+def process_file(file: Video, output_dir: str) -> Video | None:
+    """If video codec is HEVC and bitrate is greater than 30MB/s, keep it;
+    otherwise, move it to the output directory."""
+    try:
+        if file.codec == "hevc" and file.bitrate > 30000000:
+            return file
+        else:
+            shutil.move(
+                file.path,
+                os.path.join(output_dir, f"_{file.basename}"),
+                copy_function=shutil.copy2,
+            )
+    except Exception as e:
+        cprint(f"\n{file.basename} could not be processed. Error code: {e}", fg.red, style.bold)
+    return
+
+
 def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[Video], int, int]:
     # List of file objects
     original_files = []
@@ -66,57 +104,15 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
     # Initialize progress bar vars
     number_of_files = len(videos)
     cprint(f"1/{number_of_files}", style.bold, style.underline, end="\n\n")
-
-    with ProgressBar(number_of_files) as progress:
-        for vid in videos:
-            print("\n")
-            cprint(vid.basename, style.bold)
-            print(
-                f"Original: bitrate={vid.bitrate_human}, size={vid.size_human}, codec={vid.codec}"
-            )
-            if (
-                vid.codec == "hevc"
-                and vid.bitrate < 30000000
-                or vid.codec == "h264"
-                and vid.bitrate < 25000000
-            ):
-                logger.info(f"Skipping low-quality file: {vid.path} {vid.bitrate_human} ")
-                progress.increment()
-                shutil.move(
-                    vid.path,
-                    os.path.join(outdir.path, f"_{vid.basename}"),
-                    copy_function=shutil.copy2,
-                )
-                sleep(1)  # Give us a buffer to KeyboardIntterupt in case of undesred behaviour
-                continue
-
-            # for k, v in RENAME_SPEC.items():
-            #     if k in vid.basename:
-            #         output_file_name = f"{v}{vid.capture_date}".replace(" ", "_")
-            output_file_path = os.path.join(outdir.path, f"_{vid.basename}")
-            output_file_object = Video(output_file_path)
-            try:
-                compressed_files.append(vid.compress(output=output_file_path))
-                size_before += vid.size
-                size_after += output_file_object.size
-                original_files.append(vid)
-
-                print(
-                    "Size:".ljust(10), f"{vid.size_human:<25} : {output_file_object.size_human:<25}"
-                )
-                print(
-                    "Bitrate:".ljust(10),
-                    f"{vid.bitrate_human:<25} : {output_file_object.bitrate_human:<25}",
-                )
-
-            except Exception as e:
-                cprint(
-                    f"\n{vid.basename} could not be converted. Error code: {e}",
-                    fg.red,
-                    style.bold,
-                )
-
-            progress.increment()
+    pool = Pool()
+    for result in pool.execute(process_file, videos, outdir.path, progress_bar=True):
+        if result is not None:
+            compressed = compress_file(result, outdir.path)
+            if compressed is not None:
+                compressed_files.append(compressed)
+                original_files.append(result)
+                size_before += result.size
+                size_after += compressed.size
     # Notify user of completion
     cprint("\nBatch conversion completed.", fg.green)
     return original_files, compressed_files, size_before, size_after
