@@ -5,7 +5,6 @@ import argparse
 import os
 import subprocess
 from collections import OrderedDict
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pprint import pformat
 
 import imagehash
@@ -13,6 +12,7 @@ from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
 from fsutils import Dir, Img
 from ProgressBar import ProgressBar
+from ThreadPoolHelper import Pool
 
 IGNORED_DIRS = [".Trash-1000"]
 
@@ -47,21 +47,19 @@ def find_duplicates(path: str) -> OrderedDict:
     files = len(directory.files) + 1
 
     cprint(f"Found {files - 1} files", fg.green, style.bold)
-    with ProgressBar(files) as progress:
-        with ThreadPoolExecutor() as executor:
-            futures = [executor.submit(process_file, file) for file in directory.images]
-            for future in as_completed(futures):
-                result = future.result()
-                if result:
-                    progress.increment()
-                    hash_value, file = result
-                    if hash_value not in hashes:
-                        hashes[hash_value] = [file]
-                    else:
-                        hashes[hash_value].append(file)
+
+    pool = Pool()
+    for result in pool.execute(process_file, directory.images, progress_bar=True):
+        if result is not None:
+            image_hash, image_path = result
+            if image_hash not in hashes:
+                hashes[image_hash] = [image_path]
+            else:
+                hashes[image_hash].append(image_path)
 
     return hashes
 
+def render_group(images: list) -> str:
 
 def remove_duplicates(hashes: OrderedDict) -> None:
     # FIXME: C901 - Function too complex

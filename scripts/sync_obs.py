@@ -18,8 +18,8 @@ FOLDERS = {
 
 OUTPUT_PATH = "/mnt/ssd/OBS/Joona"
 INPUT_PATH = "/mnt/win_ssd/Users/Joona/Videos/NVIDIA/"
-LOGS_INPUT_PATH = "/mnt/win_ssd/Users/Joona/Documents/Logs"
-LOGS_OUTPUT_PATH = "/home/joona/Logs"
+# [ ] : Implement LOGS_INPUT_PATH = "/mnt/win_ssd/Users/Joona/Documents/Logs"
+# [ ] :  LOGS_OUTPUT_PATH = "/home/joona/Logs"
 
 
 # @staticmethod
@@ -33,7 +33,6 @@ def main(input_dir: str, output_dir: str) -> None:
     path = Dir(input_dir)
     SIZE_BEFORE = 0
     SIZE_AFTER = 0
-    os.makedirs("/mnt/hdd/ffmpeg_tests")
     # Iterate over all directories in path, compressing videos
     # and removing original files if compression was successful.
     with ProgressBar(len(path.videos)) as p:
@@ -45,6 +44,7 @@ def main(input_dir: str, output_dir: str) -> None:
                 output_folder = os.path.join(
                     output_dir, FOLDERS.get(directory.basename, directory.basename)
                 )
+                os.makedirs(output_folder, exist_ok=True)
                 for vid in directory.videos:
                     p.increment()
                     try:
@@ -56,7 +56,7 @@ def main(input_dir: str, output_dir: str) -> None:
                             os.remove(vid.path)
 
                     except Exception as e:
-                        cprint(f"Error compressing video {vid}: {e}", fg.orange)
+                        cprint(f"Error compressing video {vid.basename}: {e}", fg.orange)
     cprint(f"Space saved: {Converter(SIZE_BEFORE - SIZE_AFTER)}", style.bold)
 
 
