@@ -5,9 +5,10 @@ import os
 import shutil
 
 from Color import cprint, fg, style
-from fsutils import Dir, Video
 from ProgressBar import ProgressBar
 from size import Converter
+
+from fsutils import Dir, Video
 
 # CMD = ffmpeg -hwaccel cuda -i input.mp4 -c:v libx265 -preset veryslow -tune hq -x265-params "lossless=1"
 

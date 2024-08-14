@@ -71,7 +71,15 @@ def process_item(item: Video | Img, target_root: str) -> str | None:
 
 
 def main(root: str, dest: str) -> None:
-    videos = Dir(root).videos
+    path = Dir(root)
+    if root == dest:
+        videos = [
+            obj(os.path.join(path.path, i))
+            for i in path.content
+            if i.endswith((".mp4", ".mov", "mkv"))
+        ]
+    else:
+        videos = Dir(root).videos
     pool = Pool()
     for result in pool.execute(process_item, videos, dest, progress_bar=True):
         if not result:
