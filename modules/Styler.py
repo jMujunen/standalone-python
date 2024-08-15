@@ -2,7 +2,6 @@
 
 import re
 import subprocess
-from typing import List, Tuple, Union
 
 ESCAPE_REGEX = re.compile(r"(\d+;?)+")
 
@@ -19,10 +18,10 @@ class Styler:
 
     Methods:
     ----------
-    >>> styles():                       # Applies styles to the command
-        body_style(pattern, color):     # Applies a style (color) to all instances of a specific pattern in the command
-        run_command():                  # Runs the command and captures its output
-        colorized_command_output(style): # Returns the colorized command output
+        `styles()` : Applies styles to the command
+        `body_style(pattern, color)` : Applies a style (color) to all instances of a specific pattern in the command
+        `run_command()` :  Runs the command and captures its output
+        `colorized_command_output(style)` : # Returns the colorized command output
     """
 
     def __init__(self, command: str, **kwargs: list[str] | tuple[str]) -> None:
@@ -120,7 +119,7 @@ class Styler:
         return "\n".join(sorted_rows).replace("\n\n", "\n")
 
     def colorized_command_output(
-        self, style: tuple[re.Pattern, str] | list[re.Pattern]
+        self, style: tuple[re.Pattern[str], str] | list[re.Pattern[str]]
     ) -> str:
         """
         Applies a list of styles to the command output and returns it.

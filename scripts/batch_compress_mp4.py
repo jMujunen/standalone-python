@@ -2,28 +2,17 @@
 """Batch process all .mp4 files in a directory."""
 
 import argparse
-import logging
 import os
 import shutil
-from time import sleep
 
 from Color import cprint, fg, style
 from fsutils import Dir, Video
-from ProgressBar import ProgressBar
 from size import Converter
 from ThreadPoolHelper import Pool
 
 RENAME_SPEC = {
     "PLAYERUNKNOWN": "PUBG",
 }
-
-# Create a logger that writes to a file named 'batch_compress.log'
-logger = logging.getLogger(__name__)
-handler = logging.FileHandler("batch_compress.log")
-formatter = logging.Formatter("%(asctime)s [%(levelname)s] - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.setLevel(logging.INFO)  # Set the level of the logger to INFO
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -83,6 +72,14 @@ def process_file(file: Video, output_dir: str) -> Video | None:
 
 
 def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[Video], int, int]:
+    # formula = (S - s) / (B - b)
+    #
+    # S = Originial size
+    # s = Compressed size
+    # -------------------
+    # B = Original bitrate
+    # b = compressed bitrate
+
     # List of file objects
     original_files = []
     compressed_files = []
@@ -100,7 +97,7 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
     except OSError as e:
         print(f"[\033[31m Error creating output directory '{outdir}': {e} \033[0m]")
         exit(1)
-
+    # formula = (S - s) / (B - b)
     # Initialize progress bar vars
     number_of_files = len(videos)
     cprint(f"1/{number_of_files}", style.bold, style.underline, end="\n\n")
@@ -110,6 +107,10 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
             compressed = compress_file(result, outdir.path)
             if compressed is not None:
                 compressed_files.append(compressed)
+                size_ratio = (result.size - compressed.size) / (result.bitrate - compressed.bitrate)
+                print(
+                    f"File size decreased {style.bold}{size_ratio}x{style.reset} more than bitrate"
+                )
                 original_files.append(result)
                 size_before += result.size
                 size_after += compressed.size

@@ -2,13 +2,12 @@
 """This script mounts the windows ssd, compresses the OBS clips by outputting to local storage"""
 
 import os
-import shutil
 
 from Color import cprint, fg, style
 from ProgressBar import ProgressBar
 from size import Converter
 
-from fsutils import Dir, Video
+from fsutils import Dir
 
 # CMD = ffmpeg -hwaccel cuda -i input.mp4 -c:v libx265 -preset veryslow -tune hq -x265-params "lossless=1"
 

@@ -1,3 +1,5 @@
-from . import Profiler, cProfiler, fProfiler
+from .ClassProfiler import Profiler as cProfiler
+from .FunctionProfiler import Profiler as fProfiler
+from .Profiler import Profiler as Profiler
 
-all = ["Profiler", "cProfiler", "fProfiler"]
+__all__ = ["Profiler", "cProfiler", "fProfiler"]
