@@ -5,6 +5,8 @@ import subprocess
 
 ESCAPE_REGEX = re.compile(r"(\d+;?)+")
 
+#
+
 
 class Styler:
     """
@@ -119,7 +121,7 @@ class Styler:
         return "\n".join(sorted_rows).replace("\n\n", "\n")
 
     def colorized_command_output(
-        self, style: tuple[re.Pattern[str], str] | list[re.Pattern[str]]
+        self, style: list[tuple[re.Pattern[str], str, str]] | list[re.Pattern[str]]
     ) -> str:
         """
         Applies a list of styles to the command output and returns it.

@@ -4,10 +4,9 @@
 import os
 
 from Color import cprint, fg, style
+from fsutils import Dir
 from ProgressBar import ProgressBar
 from size import Converter
-
-from fsutils import Dir
 
 # CMD = ffmpeg -hwaccel cuda -i input.mp4 -c:v libx265 -preset veryslow -tune hq -x265-params "lossless=1"
 
@@ -50,13 +49,17 @@ def main(input_dir: str, output_dir: str) -> None:
                     try:
                         output_path = os.path.join(output_folder, vid.basename)
                         compressed = vid.compress(output=output_path)
-                        SIZE_BEFORE += vid.size
-                        SIZE_AFTER += compressed.size
+                    except Exception as e:
+                        cprint(f"Error compressing video {vid.basename}: {e!r}", fg.orange)
+                        continue
+                    SIZE_BEFORE += vid.size
+                    SIZE_AFTER += compressed.size
+                    try:
                         if compressed.exists and not compressed.is_corrupt:
                             os.remove(vid.path)
 
                     except Exception as e:
-                        cprint(f"Error compressing video {vid.basename}: {e}", fg.orange)
+                        cprint(f"Error removing original video {vid.basename}: {e}", fg.red)
     cprint(f"Space saved: {Converter(SIZE_BEFORE - SIZE_AFTER)}", style.bold)
 
 

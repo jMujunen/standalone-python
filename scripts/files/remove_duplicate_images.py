@@ -11,7 +11,6 @@ import imagehash
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
 from fsutils import Dir, Img
-from ProgressBar import ProgressBar
 from ThreadPoolHelper import Pool
 
 IGNORED_DIRS = [".Trash-1000"]
@@ -109,7 +108,7 @@ def remove_duplicates(hashes: OrderedDict) -> None:
                     except FileNotFoundError:
                         continue
                     except Exception as e:
-                        cprint(f"Error (line{}) removing file: {_img}\n{e}", fg.red, style.bold)
+                        cprint(f"Error removing file: {_img}\n{e}", fg.red, style.bold)
 
                 else:
                     os.system("clear")

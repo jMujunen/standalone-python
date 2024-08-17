@@ -5,7 +5,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 # DEBUG: Remove after
 from fsutils import Dir
 from fsutils.ImageFile import Img, imagehash
-
 from ProgressBar import ProgressBar
 
 

@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-
-# free.py - Color wrapper for 'free -h'
+"""free.py - Colorized wrapper for gnu 'free -h'"""
 
 import subprocess
-from Styler import Styler
-from Color import fg, style
 
+from Color import fg, style
+from Styler import Styler
 
 command_output = subprocess.run(
     'free | grep -oP "(Mem|Swap):.*"', shell=True, capture_output=True, text=True, check=False
