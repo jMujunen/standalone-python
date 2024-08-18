@@ -17,8 +17,8 @@ FOLDERS = {
 
 OUTPUT_PATH = "/mnt/ssd/OBS/Joona"
 INPUT_PATH = "/mnt/win_ssd/Users/Joona/Videos/NVIDIA/"
-# [ ] : Implement LOGS_INPUT_PATH = "/mnt/win_ssd/Users/Joona/Documents/Logs"
-# [ ] :  LOGS_OUTPUT_PATH = "/home/joona/Logs"
+LOGS_INPUT_PATH = "/mnt/win_ssd/Users/Joona/Documents"
+LOGS_OUTPUT_PATH = "/home/joona/Logs/win_hwlogs"
 
 
 # @staticmethod
@@ -44,7 +44,13 @@ def main(input_dir: str, output_dir: str) -> None:
                     output_dir, FOLDERS.get(directory.basename, directory.basename)
                 )
                 os.makedirs(output_folder, exist_ok=True)
+                out = Dir(output_folder)
                 for vid in directory.videos:
+                    if vid.basename.strip("_") in out.videos:
+                        cprint(
+                            f"Skipping {vid.basename} because it already exists in the destination."
+                        )
+                        continue
                     p.increment()
                     try:
                         output_path = os.path.join(output_folder, vid.basename)
@@ -55,9 +61,14 @@ def main(input_dir: str, output_dir: str) -> None:
                     SIZE_BEFORE += vid.size
                     SIZE_AFTER += compressed.size
                     try:
+                        size_ratio = (vid.size - compressed.size) / (
+                            vid.bitrate - compressed.bitrate
+                        )
+                        print(
+                            f"File size decreased {style.bold}{size_ratio}x{style.reset} more than bitrate"
+                        )
                         if compressed.exists and not compressed.is_corrupt:
                             os.remove(vid.path)
-
                     except Exception as e:
                         cprint(f"Error removing original video {vid.basename}: {e}", fg.red)
     cprint(f"Space saved: {Converter(SIZE_BEFORE - SIZE_AFTER)}", style.bold)

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Find duplicate files of all types"""
+
 import argparse
 import pprint
 from concurrent.futures import ThreadPoolExecutor, as_completed

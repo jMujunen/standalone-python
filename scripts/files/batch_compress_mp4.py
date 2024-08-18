@@ -55,7 +55,7 @@ def compress_file(file: Video, output_dir: str) -> Video | None:
 
 
 def process_file(file: Video, output_dir: str) -> Video | None:
-    """If video codec is HEVC and bitrate is greater than 30MB/s, keep it;
+    """If video codec is HEVC and bitrate is greater than 30MB/s, compress;
     otherwise, move it to the output directory."""
     try:
         if file.codec == "hevc" and file.bitrate > 30000000:
@@ -109,7 +109,10 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
                 compressed_files.append(compressed)
                 size_ratio = (result.size - compressed.size) / (result.bitrate - compressed.bitrate)
                 print(
-                    f"File size decreased {style.bold}{size_ratio}x{style.reset} more than bitrate"
+                    f"""File size decreased {style.bold}{size_ratio}x{style.reset} more than bitrate
+                    Bitrate: Original:{fg.red}{Converter(result.bitrate)} {style.reset} -> {fg.green}{Converter(compressed.bitrate)}{style.reset})
+                    File Size: Original:{fg.red}{Converter(result.size)}  {style.reset} -> {fg.green}{Converter(compressed.size)}{style.reset}
+                    """
                 )
                 original_files.append(result)
                 size_before += result.size
