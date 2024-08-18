@@ -1,134 +1,157 @@
 #!/usr/bin/env python3
-""" "remove_duplicate_media.py - Finds and removes duplicate images and videos."""
+""" "remove_duplicate_media.py - Finds and removes duplicate files and videos."""
 
 import argparse
 import os
-import subprocess
 from collections import OrderedDict
-from pprint import pformat
 
-import imagehash
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
-from fsutils import Dir, Img
+from fsutils import Dir, File, Img
 from ThreadPoolHelper import Pool
 
 IGNORED_DIRS = [".Trash-1000"]
 
 
+def process_file(file: File) -> tuple[int, str] | None:
+    """Function for concurrent processing. This is called from the ThreadPool."""
+    if any(ignored in file.path for ignored in IGNORED_DIRS) or not file.exists:
+        return
+    return (hash(file), file.path)
+
+
+def generate_hash_map(path: str, images=False, videos=False) -> tuple[OrderedDict, int]:
+    """Find duplicate files based on their hash representation"""
+    if images and not videos:
+        files = Dir(path).images
+    elif videos and not images:
+        files = Dir(path).videos
+    elif images and videos:
+        p = Dir(path)
+        files = p.videos
+        files.extend(p.images)
+    else:
+        files = Dir(path).file_objects
+    hashes = OrderedDict()
+    num_files = len(files)
+    num_duplicates = 0
+    cprint(f"Found {num_files} files", fg.green, style.bold)
+    # Create a thread pool for concurrent processing
+    pool = Pool()
+    for result in pool.execute(process_file, files, progress_bar=True):
+        try:
+            if result is not None:
+                # Unpack the hash and path from the result
+                file_hash, file_path = result
+                try:
+                    hashes[file_hash].append(file_path)
+                    num_duplicates += 1
+                except (IndexError, KeyError):
+                    hashes[file_hash] = [file_path]
+        except TypeError:
+            pass  # Ignore exceptions from trying to read bytes object as string
+    return hashes, num_duplicates
+
+
+# def generate_hashes(path: str) -> OrderedDict:
+#     """Generate a dictionary of file hashes for all image files under path."""
+#     hashes = OrderedDict()
+#     # Create a directory object for the given path
+#     files = Dir(path).file_objects
+#     with Pool() as pool:
+#         for result in pool.execute(process_file, files):
+#             if result is not None:
+#                 # Unpack the hash and path from the result
+#                 image_hash, image_path = result
+#                 try:
+#                     hashes[image_hash].append(image_path)
+#                 except (IndexError, KeyError):
+#                     hashes[image_hash] = [image_path]
+#     return hashes
+
+
+def remove_group(duplicate_group: list[str]) -> bool:
+    """Process the hashes object returned from find_duplicates()
+
+    If not in dry run mode and the removal is confirmed, it deletes the extra files
+    starting from the third occurrence
+    """
+    for i, _file in enumerate(duplicate_group):
+        if i <= 1:  # Skip the first two files
+            continue
+        try:
+            os.remove(_file)
+            cprint(f"{_file} removed", fg.green, style.bold)
+        except FileNotFoundError:
+            continue
+        except Exception as e:
+            cprint(f"Error removing {_file}: {e!r}\n", fg.red, style.bold)
+    print()  # Newline after removing group
+    return True
+
+
+def remove_with_confirmation(duplicate_group: list[str], images=False):
+    for file in duplicate_group:
+        if images:
+            Img.show(file)
+        else:
+            print(file)
+    reply = input(
+        "\n\033[1mAre you sure you want to remove all but 2 of these files? (y/N)\033[0m: "
+    ).lower()
+    if reply in ["y", "yes"]:
+        return remove_group(duplicate_group)
+    return False
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Compares hash values of images and removes any duplicates"
+        description="Remove duplicate image files from a folder.",
     )
     parser.add_argument("path", help="Path to the directory")
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Only print the duplicate images that would be removed",
+        help="Only print the duplicate files that would be removed",
     )
     parser.add_argument("--no-confirm", help="Remove without confirmation", action="store_true")
+    parser.add_argument("--images", help="Only process image files", action="store_true")
+    parser.add_argument("--videos", help="Only process video files", action="store_true")
     return parser.parse_args()
-
-
-def process_file(item: Img) -> tuple[imagehash.ImageHash | None, str] | None:
-    """Function for concurrent processing"""
-    if any(ignored in item.path for ignored in IGNORED_DIRS):
-        return
-    if item.is_file and item.is_image:
-        h = item.calculate_hash()
-        return (h, item.path)
-    return
-
-
-def find_duplicates(path: str) -> OrderedDict:
-    hashes = OrderedDict()
-    directory = Dir(path)
-    files = len(directory.files) + 1
-
-    cprint(f"Found {files - 1} files", fg.green, style.bold)
-
-    pool = Pool()
-    for result in pool.execute(process_file, directory.images, progress_bar=True):
-        if result is not None:
-            image_hash, image_path = result
-            if image_hash not in hashes:
-                hashes[image_hash] = [image_path]
-            else:
-                hashes[image_hash].append(image_path)
-
-    return hashes
-
-
-def process_group(images: list[str]) -> str:
-    num_remove = 1
-    for img in images:
-        print("{:<30} {:<30}".format(" ", img))
-        subprocess.run(
-            f'kitten icat --use-window-size 100,100,500,100 "{img}"',
-            shell=True,
-            check=False,
-        )
-    # Prompt for confirmation before removal
-    reply = input("\033[33mRemove these files? [Y/n]: \033[0m")
-    if reply.lower() == "y" or reply == "" or reply in ["1", "2", "3", "11"]:
-        try:
-            num_remove = len(images) - int(reply) - 1
-        except ValueError:
-            pass
-        for i, img in enumerate(images):
-            # Skip the first 2 or specified value
-            if i > num_remove:
-                try:
-                    os.remove(img)
-                    cprint(f"{img} removed", fg.green, style.bold)
-                except FileNotFoundError:
-                    cprint(f"{img} not found", fg.red, style.bold)
-
-
-def remove_duplicates(hashes: OrderedDict) -> None:
-    corrupted_files = []
-    duplicate_files = []
-
-    for k, v in hashes.items():
-        # No hash means file is corrupt, or in otherwords, flag for removal
-        if k is None:
-            corrupted_files.extend(v)
-            # Remove for memory efficiancy
-            del hashes[k]
-        if len(v) >= 3:
-            duplicate_files.append(v)
-            if not args.dry_run and args.no_confirm:
-                # Remove without confirmation prompt
-                for i, _img in enumerate(v):
-                    if i < 2:  # Skip the first two files
-                        continue
-                    try:
-                        os.remove(_img)
-                        cprint(f"{_img} removed", fg.green, style.bold)
-                    except FileNotFoundError:
-                        continue
-                    except Exception as e:
-                        cprint(f"Error removing file: {_img}\n{e}", fg.red, style.bold)
-
-                else:
-                    os.system("clear")
 
 
 def main(args: argparse.Namespace) -> None:
     with ExecutionTimer():
-        hashes = find_duplicates(args.path)
-        num_dupes = [v for v in hashes.values() if len(v) > 1]
-        cprint(f"\nDuplicates found: {len(num_dupes)}", fg.cyan, style.bold)
+        _counter = 0
+        # Create a dict mapping of hashed values to their associated files
+        hashes, num_dupes = generate_hash_map(args.path, images=args.images, videos=args.videos)
+        cprint(f"\n{num_dupes} duplicates found:", fg.cyan, style.bold)
+        duplicate_files = [v for v in hashes.values() if len(v) >= 3]
+        # Use a threadpool to remove duplicates if no_confirm  is set (for speed)
+        if not args.dry_run and args.no_confirm:
+            pool = Pool()
+            for result in pool.execute(remove_group, duplicate_files):
+                if result:
+                    _counter += 1
+        elif not args.dry_run and not args.no_confirm:
+            for group in duplicate_files:
+                remove_with_confirmation(group, images=args.images)
+        else:
+            for group in duplicate_files:
+                for i, file in enumerate(group):
+                    basename = os.path.split(file)[-1]
+                    if i <= 1:
+                        cprint(f"[DRY-RUN] Keeping {file}", fg.green)
+                    else:
+                        cprint(f"[DRY-RUN] removing {file}", fg.orange)
+                print("-" * 50)
 
-        log_file = os.path.join(os.getcwd(), "common_files.log")
-        # content = ",\n".join([f"{i} {v}" for i, v in enumerate(duplicate_files)])
-        # content = f"{content}\n\n{"="*60}\n\nCorrupted files:\n{'\n'.join(corrupted_files)}"
-        with open(log_file, "w") as f:
-            f.write(f"common_files = {pformat(num_dupes)}")
-
-        cprint(f"Log file saved to {log_file}\n", fg.blue, style.bold, end="\n\n")
+    return None
 
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args)
+    try:
+        main(args)
+    except KeyboardInterrupt:
+        exit(0)

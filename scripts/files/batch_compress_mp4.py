@@ -38,17 +38,20 @@ def compress_file(file: Video, output_dir: str) -> Video | None:
     """Process a single .mp4 file."""
     output_file_path = os.path.join(output_dir, f"_{file.basename}")
     output_file_object = Video(output_file_path)
+    if output_file_object.exists and output_file_object.size < file.size:
+        return
+        # TODO: Implement FFMpegManager context manager
     try:
         compressed = file.compress(output=output_file_path)
-        print("Size:".ljust(10), f"{file.size_human:<25} : {output_file_object.size_human:<25}")
-        print(
-            "Bitrate:".ljust(10),
-            f"{file.bitrate_human:<25} : {output_file_object.bitrate_human:<25}",
-        )
+        # print("Size:".ljust(10), f"{file.size_human:<25} : {output_file_object.size_human:<25}")
+        # print(
+        #     "Bitrate:".ljust(10),
+        #     f"{file.bitrate_human:<25} : {output_file_object.bitrate_human:<25}",
+        # )
         return compressed
     except Exception as e:
         cprint(
-            f"\n{file.basename} could not be converted. Error code: {e}",
+            f"{e!r}: {file.basename} could not be converted ({e})",
             fg.red,
             style.bold,
         )

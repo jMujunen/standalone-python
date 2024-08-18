@@ -6,6 +6,7 @@ import sys
 
 from Color import cprint, fg, style
 from ProgressBar import ProgressBar
+from ThreadPoolHelper import Pool
 
 from parse_list_from_file import find_lists
 
