@@ -101,7 +101,7 @@ class Client(metaclass=MetaClient):
     @property
     def domains(self) -> list[str]:
         """Get a list of all available domains."""
-        return [domain for domain in self._dict.keys()]
+        return list(self._dict.keys())
 
     @property
     def entities(self):

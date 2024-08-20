@@ -238,7 +238,7 @@ class style(Attributes):
         """Similar to listall() but it renders the style as well."""
         for k, v in style.STYLE.items():
             print(f"{v}{k}", end=f"{style.reset}\t")
-        return [v for v in style.STYLE.values()]
+        return list(style.STYLE.values())
 
 
 class fg(ForegroundColor):
@@ -260,12 +260,12 @@ class fg(ForegroundColor):
     pass
 
     def listall():
-        print(" ".join([k for k in fg.STYLE.keys()]))
+        print(" ".join(list(fg.STYLE.keys())))
 
     def showall():
         for k, v in fg.STYLE.items():
             print(f"{v}{k}", end=f"{style.reset}\t")
-        return [v for v in fg.STYLE.values()]
+        return list(fg.STYLE.values())
 
 
 class bg(BackgroundColor):
@@ -289,7 +289,7 @@ class bg(BackgroundColor):
     def listall():
         """Prints all available attributes."""
 
-        print(" ".join([k for k in bg.STYLE.keys()]))
+        print(" ".join(list(bg.STYLE.keys())))
 
     def showall():
         """Similar to listall() but it renders the style as well."""
@@ -297,7 +297,7 @@ class bg(BackgroundColor):
         for k, v in bg.STYLE.items():
             print(f"{v}{k}", end=f"{style.reset}\t")
 
-        return [v for v in bg.STYLE.values()]
+        return list(bg.STYLE.values())
 
 
 class Parse:

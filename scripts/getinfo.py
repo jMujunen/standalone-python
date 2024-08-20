@@ -13,9 +13,10 @@ IGNORED = FILE_TYPES.get("ignored", [])
 
 
 def count_file_types(directory: str, ignore=False) -> dict:
-    # TODO : Implement ignored flag
     file_types = defaultdict(int)
-    files = [i for i in Dir(directory).file_objects if i.extension not in IGNORED]
+    files = [
+        i for i in Dir(directory).file_objects if not all((i.extension not in IGNORED, ignore))
+    ]
     with ProgressBar(len(files)) as progress:
         for item in files:
             progress.increment()

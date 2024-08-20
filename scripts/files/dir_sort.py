@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
+import datetime
 import os
 import re
 import shutil
 
-from fsutils import Img, Video
+from fsutils import File, Img, Video
 from fsutils.DirNode import Dir, obj
 from ThreadPoolHelper import Pool
 
@@ -38,36 +39,38 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def process_item(item: Video | Img, target_root: str) -> str | None:
-    try:
+def process_item(item: File, target_root: str) -> str | None:
+    if isinstance(item, Img | Video):
         capture_date = item.capture_date
-        year, month, day = (
-            capture_date.year,
-            capture_date.strftime("%B").capitalize(),
-            capture_date.day,
-        )
-        dest_folder = os.path.join(target_root, str(year), month, str(day))
-        dest_path = os.path.join(
-            dest_folder, f'{capture_date.strftime("%H:%M.%S")}{item.extension}'
-        )
-        if not os.path.exists(dest_folder):
-            os.makedirs(dest_folder, exist_ok=True)
-        count = 1
-        while os.path.exists(dest_path):
-            dest_object = obj(dest_path)
-            if item == dest_object:
-                os.remove(item.path)
-                break
-            else:
-                dest_path = os.path.join(
-                    dest_folder, f'{capture_date.strftime("%H:%M.%S")}_{count}{item.extension}'
-                )
-                count += 1
-        shutil.move(item.path, dest_path, copy_function=shutil.copy2)
-        return item.basename
-    except Exception as e:
-        print(e)
-    return
+    elif isinstance(item, Dir):
+        if item.is_empty:
+            os.rmdir(item.path)
+        return
+    else:
+        capture_date = datetime.datetime.fromtimestamp(os.stat(item.path).st_mtime)
+
+    year, month, day = (
+        capture_date.year,
+        capture_date.strftime("%B").capitalize(),
+        capture_date.day,
+    )  # type : ignore
+    dest_folder = os.path.join(target_root, str(year), month, str(day))
+    dest_path = os.path.join(dest_folder, f'{capture_date.strftime("%H:%M.%S")}{item.extension}')
+    if not os.path.exists(dest_folder):
+        os.makedirs(dest_folder, exist_ok=True)
+    count = 1
+    while os.path.exists(dest_path):
+        dest_object = obj(dest_path)
+        if item == dest_object:
+            os.remove(item.path)
+            break
+        else:
+            dest_path = os.path.join(
+                dest_folder, f'{capture_date.strftime("%H:%M.%S")}_{count}{item.extension}'
+            )
+            count += 1
+    shutil.move(item.path, dest_path, copy_function=shutil.copy2)
+    return item.basename
 
 
 def main(root: str, dest: str) -> None:

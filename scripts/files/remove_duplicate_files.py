@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-""" "remove_duplicate_media.py - Finds and removes duplicate files and videos."""
+"""remove_duplicate_media.py - Finds and removes duplicate files and videos."""
 
 import argparse
+import datetime
 import os
 from collections import OrderedDict
 
@@ -15,59 +16,42 @@ IGNORED_DIRS = [".Trash-1000"]
 
 def process_file(file: File) -> tuple[int, str] | None:
     """Function for concurrent processing. This is called from the ThreadPool."""
-    if any(ignored in file.path for ignored in IGNORED_DIRS) or not file.exists:
+    if (ignored in file.path for ignored in IGNORED_DIRS) or not file.exists:
         return
     return (hash(file), file.path)
 
 
-def generate_hash_map(path: str, images=False, videos=False) -> tuple[OrderedDict, int]:
+def generate_hash_map(path: str, images=False, videos=False) -> OrderedDict:
     """Find duplicate files based on their hash representation"""
-    if images and not videos:
-        files = Dir(path).images
-    elif videos and not images:
-        files = Dir(path).videos
-    elif images and videos:
-        p = Dir(path)
-        files = p.videos
-        files.extend(p.images)
-    else:
-        files = Dir(path).file_objects
+
+    def filter(images: bool, videos: bool):
+        match (images, videos):
+            case (True, False):
+                yield from Dir(path).images
+            case (False, True):
+                yield from Dir(path).videos
+            case _:
+                yield from Dir(path).file_objects
+
+    # Create a generator that yields the specified (optional) types of files in the directory
+    files = filter(images, videos)
     hashes = OrderedDict()
-    num_files = len(files)
-    num_duplicates = 0
-    cprint(f"Found {num_files} files", fg.green, style.bold)
     # Create a thread pool for concurrent processing
     pool = Pool()
-    for result in pool.execute(process_file, files, progress_bar=True):
+    for result in pool.execute(process_file, list(files), progress_bar=True):
         try:
             if result is not None:
                 # Unpack the hash and path from the result
                 file_hash, file_path = result
                 try:
+                    # Try to append the current file path to the list of paths for this hash.
                     hashes[file_hash].append(file_path)
-                    num_duplicates += 1
                 except (IndexError, KeyError):
+                    # Create key if key and set the value if key does not exist yet.
                     hashes[file_hash] = [file_path]
         except TypeError:
             pass  # Ignore exceptions from trying to read bytes object as string
-    return hashes, num_duplicates
-
-
-# def generate_hashes(path: str) -> OrderedDict:
-#     """Generate a dictionary of file hashes for all image files under path."""
-#     hashes = OrderedDict()
-#     # Create a directory object for the given path
-#     files = Dir(path).file_objects
-#     with Pool() as pool:
-#         for result in pool.execute(process_file, files):
-#             if result is not None:
-#                 # Unpack the hash and path from the result
-#                 image_hash, image_path = result
-#                 try:
-#                     hashes[image_hash].append(image_path)
-#                 except (IndexError, KeyError):
-#                     hashes[image_hash] = [image_path]
-#     return hashes
+    return hashes
 
 
 def remove_group(duplicate_group: list[str]) -> bool:
@@ -76,7 +60,8 @@ def remove_group(duplicate_group: list[str]) -> bool:
     If not in dry run mode and the removal is confirmed, it deletes the extra files
     starting from the third occurrence
     """
-    for i, _file in enumerate(duplicate_group):
+    sorted_files = sorted(duplicate_group, key=lambda x: os.path.getmtime(x[1][0]), reverse=False)
+    for i, _file in enumerate(sorted_files):
         if i <= 1:  # Skip the first two files
             continue
         try:
@@ -91,7 +76,8 @@ def remove_group(duplicate_group: list[str]) -> bool:
 
 
 def remove_with_confirmation(duplicate_group: list[str], images=False):
-    for file in duplicate_group:
+    sorted_files = sorted(duplicate_group, key=lambda x: os.path.getmtime(x[1][0]), reverse=False)
+    for file in sorted_files:
         if images:
             Img.show(file)
         else:
@@ -124,9 +110,9 @@ def main(args: argparse.Namespace) -> None:
     with ExecutionTimer():
         _counter = 0
         # Create a dict mapping of hashed values to their associated files
-        hashes, num_dupes = generate_hash_map(args.path, images=args.images, videos=args.videos)
-        cprint(f"\n{num_dupes} duplicates found:", fg.cyan, style.bold)
+        hashes = generate_hash_map(args.path, images=args.images, videos=args.videos)
         duplicate_files = [v for v in hashes.values() if len(v) >= 3]
+        cprint(f"\n{len(duplicate_files)} duplicates found:", fg.cyan, style.bold)
         # Use a threadpool to remove duplicates if no_confirm  is set (for speed)
         if not args.dry_run and args.no_confirm:
             pool = Pool()
@@ -138,12 +124,21 @@ def main(args: argparse.Namespace) -> None:
                 remove_with_confirmation(group, images=args.images)
         else:
             for group in duplicate_files:
-                for i, file in enumerate(group):
-                    basename = os.path.split(file)[-1]
+                sorted_group = sorted(group, key=lambda x: os.path.getmtime(x), reverse=False)
+                for i, file in enumerate(sorted_group):
+                    os.path.split(file)[-1]
                     if i <= 1:
-                        cprint(f"[DRY-RUN] Keeping {file}", fg.green)
+                        cprint(
+                            f"[DRY-RUN] Keeping {file:<100} {datetime.datetime.fromtimestamp(os.path.getmtime(file)).strftime(
+                "%Y-%m-%d %H:%M:%S")}",
+                            fg.green,
+                        )
                     else:
-                        cprint(f"[DRY-RUN] removing {file}", fg.orange)
+                        cprint(
+                            f"[DRY-RUN] removing {file:<100}  {datetime.datetime.fromtimestamp(os.path.getmtime(file)).strftime(
+                "%Y-%m-%d %H:%M:%S")}",
+                            fg.orange,
+                        )
                 print("-" * 50)
 
     return None

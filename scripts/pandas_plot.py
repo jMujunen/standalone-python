@@ -89,9 +89,6 @@ def main(filepath: str, window_size: int, columns: list[str]) -> None:
         new_smooth_df.plot(ax=ax, grid=True)
 
     # ani = FuncAnimation(fig, animate, frames=100, interval=200)
-    FuncAnimation(
-        fig, animate, frames=100, interval=200
-    )  # Update every 1000 milliseconds (1 second)
     ani = FuncAnimation(fig, animate, frames=100, interval=200)
     plt.show()
 

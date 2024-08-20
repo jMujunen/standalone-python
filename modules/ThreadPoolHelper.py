@@ -10,7 +10,11 @@ class Pool(ProgressBar):
         self.num_threads = num_threads
 
     def execute(
-        self, callback_function: Callable, data_source: Iterable, *args, progress_bar=True
+        self,
+        callback_function: Callable,
+        data_source: Iterable,
+        *args,
+        progress_bar=True,
     ) -> Generator:
         with ProgressBar(len(data_source)) as pb:
             with ThreadPoolExecutor(max_workers=self.num_threads) as executor:

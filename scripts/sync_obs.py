@@ -44,16 +44,16 @@ def main(input_dir: str, output_dir: str) -> None:
                     output_dir, FOLDERS.get(directory.basename, directory.basename)
                 )
                 os.makedirs(output_folder, exist_ok=True)
-                out = Dir(output_folder)
+                outdir = Dir(output_folder)
                 for vid in directory.videos:
-                    if vid.basename.strip("_") in out.videos:
-                        cprint(
-                            f"Skipping {vid.basename} because it already exists in the destination."
-                        )
-                        continue
+                    # if vid in outdir:
+                    #     cprint(
+                    #         f"Skipping {vid.basename} because it already exists in the destination."
+                    #     )
+                    #     continue
                     p.increment()
                     try:
-                        output_path = os.path.join(output_folder, vid.basename)
+                        output_path = os.path.join(output_folder, f"_{vid.basename}")
                         compressed = vid.compress(output=output_path)
                     except Exception as e:
                         cprint(f"Error compressing video {vid.basename}: {e!r}", fg.orange)
@@ -70,7 +70,7 @@ def main(input_dir: str, output_dir: str) -> None:
                         if compressed.exists and not compressed.is_corrupt:
                             os.remove(vid.path)
                     except Exception as e:
-                        cprint(f"Error removing original video {vid.basename}: {e}", fg.red)
+                        cprint(f"Error removing original video {vid.basename}: {e!r}", fg.red)
     cprint(f"Space saved: {Converter(SIZE_BEFORE - SIZE_AFTER)}", style.bold)
 
 
