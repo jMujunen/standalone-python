@@ -43,11 +43,11 @@ def compress_file(file: Video, output_dir: str) -> Video | None:
         # TODO: Implement FFMpegManager context manager
     try:
         compressed = file.compress(output=output_file_path)
-        # print("Size:".ljust(10), f"{file.size_human:<25} : {output_file_object.size_human:<25}")
-        # print(
-        #     "Bitrate:".ljust(10),
-        #     f"{file.bitrate_human:<25} : {output_file_object.bitrate_human:<25}",
-        # )
+        print("Size:".ljust(10), f"{file.size_human:<25} : {output_file_object.size_human:<25}")
+        print(
+            "Bitrate:".ljust(10),
+            f"{file.bitrate_human:<25} : {output_file_object.bitrate_human:<25}",
+        )
         return compressed
     except Exception as e:
         cprint(
@@ -108,15 +108,23 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
     for result in pool.execute(process_file, videos, outdir.path, progress_bar=True):
         if result is not None:
             compressed = compress_file(result, outdir.path)
-            if compressed is not None:
+            if compressed is not None and os.path.exists(compressed.path):
                 compressed_files.append(compressed)
-                size_ratio = (result.size - compressed.size) / (result.bitrate - compressed.bitrate)
+                size_diff, bitrate_diff = (
+                    (result.size - compressed.size),
+                    (result.bitrate - compressed.bitrate),
+                )
+                if any((size_diff < 0, bitrate_diff < 0)):
+                    size_ratio = "\033[31mError: filesize / bitrate increased\033[0m"
+                else:
+                    size_ratio = size_diff / bitrate_diff
                 print(
                     f"""File size decreased {style.bold}{size_ratio}x{style.reset} more than bitrate
                     Bitrate: Original:{fg.red}{Converter(result.bitrate)} {style.reset} -> {fg.green}{Converter(compressed.bitrate)}{style.reset})
                     File Size: Original:{fg.red}{Converter(result.size)}  {style.reset} -> {fg.green}{Converter(compressed.size)}{style.reset}
                     """
                 )
+                print(f"Quality: {compressed.quality}")
                 original_files.append(result)
                 size_before += result.size
                 size_after += compressed.size

@@ -73,7 +73,7 @@ def main(input_dir: str = INPUT_PATH, output_dir: str = OUTPUT_PATH, keep: bool 
                     SIZE_AFTER += compressed.size
                     try:
                         print(
-                            f"\n{style.bold}{vid.basename:<60}{style.reset}{fg.yellow}{vid.size_human:<20}{style.reset}{fg.green}{compressed.size:<20}{style.reset}{fg.yellow}{vid.bitrate_human:<20}{style.reset}{fg.green}{compressed.bitrate_human:<20}{style.reset}{fg.cyan}{compressed.ratio}{style.reset}"
+                            f"\n{style.bold}{vid.basename:<60}{style.reset}{fg.yellow}{vid.size_human:<20}{style.reset}{fg.green}{compressed.size:<20}{style.reset}{fg.yellow}{vid.bitrate_human:<20}{style.reset}{fg.green}{compressed.bitrate_human:<20}{style.reset}{fg.cyan}{compressed.quality}{style.reset}"
                         )
                         if compressed.exists and not compressed.is_corrupt and not keep:
                             os.remove(vid.path)
