@@ -14,7 +14,41 @@ PRESETS = {
     "whitespace": lambda x: re.sub(r"([^\s]\s+|\n)", "", x, flags=re.MULTILINE),
     # Remove REPL prompt chars "...:"
     "ipy": lambda x: re.sub(r"(\.\.\.:|(In|Out) \[\d+\]:\s)", "", x, flags=re.MULTILINE),
+    "none": lambda x: x,
 }
+
+
+def main(char: str, replacement: str) -> str:
+    """Strips a character from each line in the clipboard content.
+
+    Paramters:
+    ---------
+        - `char(str)`: Character or pattern to strip. Can be any valid PCRE.
+        - `replacement(str)`: Optional replacement string.
+    """
+    try:
+        if not replacement:
+            replacement = ""
+        pattern = re.compile(char)
+        text = pyperclip.paste()
+        # Split the text into individual lines
+        lines = text.split("\n")
+        # Initialize an empty list to hold the processed lines
+        output = []
+        if args.preset:
+            text = PRESETS[args.preset](text)
+            return text
+
+        for line in lines:
+            # Strip the character or pattern from each line
+            output.append(re.sub(pattern, replacement, line))
+        # Join the output list back into a single text string
+        text = "\n".join(output)
+        # Update the clipboard with the processed text
+        # Print the processed text for debugging purposes
+        return text
+    except Exception as e:
+        return str(e)
 
 
 def parse_args():
@@ -63,13 +97,17 @@ def parse_args():
         type=str,
     )
 
-    parser.add_argument("--lstrip", help="Only strip from the left", action="store_true")
+    parser.add_argument(
+        "--lstrip", help="Only strip from the left", action="store_true", default=False
+    )
 
-    parser.add_argument("--rstrip", help="Only strip from the right", action="store_true")
-    parser.add_argument("-l", "--list", help="List presets", action="store_true")
+    parser.add_argument(
+        "--rstrip", help="Only strip from the right", action="store_true", default=False
+    )
+    parser.add_argument("-l", "--list", help="List presets", action="store_true", default=False)
     parser.add_argument(
         "--preset",
-        choices=["multiline", "ipy", "whitespace"],
+        choices=["ipy", "off", "none"],
         required=False,
         help="""Presets for common patterns:
         Multiline: Turn a multiline string into a single line
@@ -85,39 +123,6 @@ def parse_args():
     )
 
     return parser.parse_args()
-
-
-def main(char: str, replacement: str) -> str:
-    """Strips a character from each line in the clipboard content.
-
-    Paramters:
-    ---------
-        - `char(str)`: Character or pattern to strip. Can be any valid PCRE.
-        - `replacement(str)`: Optional replacement string.
-    """
-    try:
-        if not replacement:
-            replacement = ""
-        pattern = re.compile(char)
-        text = pyperclip.paste()
-        # Split the text into individual lines
-        lines = text.split("\n")
-        # Initialize an empty list to hold the processed lines
-        output = []
-        if args.preset:
-            text = PRESETS[args.preset](text)
-            return text
-
-        for line in lines:
-            # Strip the character or pattern from each line
-            output.append(re.sub(pattern, replacement, line))
-        # Join the output list back into a single text string
-        text = "\n".join(output)
-        # Update the clipboard with the processed text
-        # Print the processed text for debugging purposes
-        return text
-    except Exception as e:
-        return str(e)
 
 
 # Example usage:

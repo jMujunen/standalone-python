@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """This script mounts the windows ssd, compresses the OBS clips by outputting to local storage"""
 
+import argparse
 import os
 
 from Color import cprint, fg, style
-from fsutils import Dir
+from fsutils import Dir, Video
 from ProgressBar import ProgressBar
 from size import Converter
 
@@ -27,7 +28,7 @@ LOGS_OUTPUT_PATH = "/home/joona/Logs/win_hwlogs"
 #     logs = Dir(LOGS_INPUT_PATH).file_objaects
 
 
-def main(input_dir: str, output_dir: str) -> None:
+def main(input_dir: str = INPUT_PATH, output_dir: str = OUTPUT_PATH, keep: bool = False) -> None:
     """Compress videos specified by input Dir and save them to output Dir."""
     path = Dir(input_dir)
     SIZE_BEFORE = 0
@@ -45,6 +46,16 @@ def main(input_dir: str, output_dir: str) -> None:
                 )
                 os.makedirs(output_folder, exist_ok=True)
                 outdir = Dir(output_folder)
+                print(
+                    "{:<60}{:<20}{:<20}{:<20}{:<20} {}".format(
+                        "\nName",
+                        "Size_Before",
+                        "Size_After",
+                        "Bitrate_Before",
+                        "Bitrate_After",
+                        "Comprehension",
+                    )
+                )
                 for vid in directory.videos:
                     # if vid in outdir:
                     #     cprint(
@@ -61,18 +72,30 @@ def main(input_dir: str, output_dir: str) -> None:
                     SIZE_BEFORE += vid.size
                     SIZE_AFTER += compressed.size
                     try:
-                        size_ratio = (vid.size - compressed.size) / (
-                            vid.bitrate - compressed.bitrate
-                        )
                         print(
-                            f"File size decreased {style.bold}{size_ratio}x{style.reset} more than bitrate"
+                            f"\n{style.bold}{vid.basename:<60}{style.reset}{fg.yellow}{vid.size_human:<20}{style.reset}{fg.green}{compressed.size:<20}{style.reset}{fg.yellow}{vid.bitrate_human:<20}{style.reset}{fg.green}{compressed.bitrate_human:<20}{style.reset}{fg.cyan}{compressed.ratio}{style.reset}"
                         )
-                        if compressed.exists and not compressed.is_corrupt:
+                        if compressed.exists and not compressed.is_corrupt and not keep:
                             os.remove(vid.path)
+                        else:
+                            print(f"Could not remove original video {vid.basename}")
                     except Exception as e:
                         cprint(f"Error removing original video {vid.basename}: {e!r}", fg.red)
     cprint(f"Space saved: {Converter(SIZE_BEFORE - SIZE_AFTER)}", style.bold)
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Sync OBS videos")
+    parser.add_argument(
+        "--keep",
+        "-k",
+        help="Keep originals instead of removing",
+        action="store_true",
+        default=False,
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    main(INPUT_PATH, OUTPUT_PATH)
+    args = parse_args()
+    main(INPUT_PATH, OUTPUT_PATH, args.keep)
