@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 """avgvalue.py - Calculate the average value of a list of numbers"""
 
+import csv
 import os
 import sys
-import csv
 from statistics import mean
 
+from ExecutionTimer import ExecutionTimer
+from rich import box
 from rich.console import Console
 from rich.table import Table
-from rich import box
-
-from ExecutionTimer import ExecutionTimer
-
 
 FILE = "/tmp/hwinfo.csv"
 

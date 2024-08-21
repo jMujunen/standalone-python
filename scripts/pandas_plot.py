@@ -44,7 +44,12 @@ def parse_args():
 
 
 def main(filepath: str, window_size: int, columns: list[str]) -> None:
-    """Main entry point for the program."""
+    """Load CSV file into a dataframe and plot specified columns
+
+    ### Notes:
+        - `window_size` defines moving average or how 'smooth' the line will be.
+
+    """
     if not os.path.isfile(filepath):
         raise FileNotFoundError(f"File {filepath} not found.")
     df = pd.read_csv(filepath, sep=r",")
@@ -89,7 +94,7 @@ def main(filepath: str, window_size: int, columns: list[str]) -> None:
         new_smooth_df.plot(ax=ax, grid=True)
 
     # ani = FuncAnimation(fig, animate, frames=100, interval=200)
-    ani = FuncAnimation(fig, animate, frames=100, interval=200)
+    ani = FuncAnimation(fig, animate, frames=100, interval=200)  # type: ignore
     plt.show()
 
 

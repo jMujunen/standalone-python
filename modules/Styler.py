@@ -4,8 +4,7 @@ import re
 import subprocess
 
 ESCAPE_REGEX = re.compile(r"(\d+;?)+")
-
-#
+ORIGINAL_FORMAT_REGEX = re.compile(r"^([^\s]+(\s+))+")
 
 
 class Styler:
@@ -234,3 +233,9 @@ class Styler:
             color_suffix = "\033[0m"
             lines[row] = f"{color_prefix}{lines[row]}{color_suffix}"
         self.command_output = "\n".join(lines)
+
+    def __str__(self) -> str:
+        return self.command_output
+
+    def __repr__(self) -> str:
+        return self.__class__.__name__ + "(command={command})".format(**vars(self))

@@ -46,7 +46,7 @@ class Converter:
         return int(float(self))
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.__dict__})"
+        return f"{self.__class__.__name__}" + f"(raw={self.size_in_bytes}, human={self._size_str})"
 
 
 if __name__ == "__main__":
