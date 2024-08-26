@@ -39,8 +39,6 @@ class Pool(ProgressBar):
             - Exceptions encountered during task execution are caught and printed.
         """
         if progress_bar:
-            if not isinstance(data_source, list | tuple):
-                data_source = list(data_source)
             with ProgressBar(len(data_source)) as pb:
                 with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
                     futures = [

@@ -9,6 +9,7 @@ import re
 import sys
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 DIGITS_RE = re.compile(r"(\d+(\.\d+)?)")
 ALL_COLUMNS_KEYWORDS = ["all", "-all", "--all", "-all", "-a", "all_columns"]
@@ -23,24 +24,27 @@ def parse_args():
         "FILE",
         help="Enter the file name",
         nargs="?",
-        default="/tmp/hwinfo.csv",
+        default="/home/joona/Logs/Network/tmp2.csv",
+    )
+    parser.add_argument(
+        "-w",
+        "--window",
+        type=int,
+        default=5,
+        help="The size of the window to use for smoothing data. Default is 5.",
     )
     return parser.parse_args()
 
 
 def main(args):
-    with open(args.FILE) as f:
-        content = f.readlines()
-    parsed_data = [(line.strip().split(",")[0], line.strip().split(",")[1]) for line in content]
-    df = pd.DataFrame(parsed_data, columns=["Timestamp", "Value"])
-
-    plt.figure(figsize=(20, 6))
-    plt.plot(df["Timestamp"], df["Value"])
-    plt.legend()
-
+    df = pd.read_csv(args.FILE, sep=",", header=None, names=["Timestamp", "Value"])
+    df["Value"] = np.convolve(df["Value"], np.ones(args.window) / args.window, mode="valid")
+    fig, ax = plt.subplots(figsize=(16, 6))
+    line = ax.plot([], [], label="Ping")  # use the first column for the label
+    (line,) = ax.plot([], [], label="Ping")
     plt.title("Ping Graph")
-    plt.xlabel("Timestamp")
-    plt.ylabel("Value")
+    df.plot(ax=ax, grid=True, kind="line", x="Timestamp", y="Value")
+    # plt.legend()
     plt.show()
 
 

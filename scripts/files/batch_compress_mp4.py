@@ -15,25 +15,6 @@ RENAME_SPEC = {
 }
 
 
-def parse_arguments() -> argparse.Namespace:
-    """Parse args."""
-    parser = argparse.ArgumentParser(description="Batch process all .mp4 files in a directory")
-    parser.add_argument(
-        "INPUT",
-        help="Input directory",
-    )
-    parser.add_argument("OUTPUT", help="Output directory")
-    parser.add_argument(
-        "-n",
-        "--num",
-        help="Number of of files to compress in one sitting",
-        type=int,
-        default=-1,
-    )
-    parser.add_argument("--keep", help="Keep original file", action="store_true", default=False)
-    return parser.parse_args()
-
-
 def compress_file(file: Video, output_dir: str) -> Video | None:
     """Process a single .mp4 file."""
     output_file_path = os.path.join(output_dir, f"_{file.basename}")
@@ -61,7 +42,7 @@ def process_file(file: Video, output_dir: str) -> Video | None:
     """If video codec is HEVC and bitrate is greater than 30MB/s, compress;
     otherwise, move it to the output directory."""
     try:
-        if file.codec == "hevc" and file.bitrate > 30000000:
+        if file.bitrate > 30000000:
             return file
         else:
             shutil.move(
@@ -131,6 +112,25 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
     # Notify user of completion
     cprint("\nBatch conversion completed.", fg.green)
     return original_files, compressed_files, size_before, size_after
+
+
+def parse_arguments() -> argparse.Namespace:
+    """Parse args."""
+    parser = argparse.ArgumentParser(description="Batch process all .mp4 files in a directory")
+    parser.add_argument(
+        "INPUT",
+        help="Input directory",
+    )
+    parser.add_argument("OUTPUT", help="Output directory")
+    parser.add_argument(
+        "-n",
+        "--num",
+        help="Number of of files to compress in one sitting",
+        type=int,
+        default=-1,
+    )
+    parser.add_argument("--keep", help="Keep original file", action="store_true", default=False)
+    return parser.parse_args()
 
 
 if __name__ == "__main__":

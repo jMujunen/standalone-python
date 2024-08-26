@@ -95,8 +95,20 @@ def rm_empty_folders(folder: str) -> None:
         pass
 
 
-def catagorize(instance: File):
-    pass
+def process_file(file: File):
+    if isinstance(file, Img):
+        prefix = "Photos"
+    elif isinstance(file, Video):
+        prefix = "Videos"
+    else:
+        prefix = "Other"
+    # Create a new directory in the output directory for each year of capture date
+    target_dir = os.path.join(output_dir, f"{prefix}_{file.date.year}")
+    os.makedirs(target_dir, exist_ok=True)
+
+    # Move file to new directory based on the original capture date
+    shutil.move(file.path, target_dir)
+    print(f"Moved {file.basename} to {target_dir}")
 
 
 def parse_args():
@@ -113,16 +125,16 @@ def main(input_dir, output_dir):
         duplicates = []
         # Initialize objects and variables
         d = Dir(input_dir)
-        items = len(d)
+        num_items = len(d)
         removed = 0
         # Create a directory for the images without metadata
         os.makedirs(os.path.join(output_dir, "Videos", "Dashcam"), exist_ok=True)
         # os.makedirs(os.path.join(output_dir, "Videos", "NoMetaData"), exist_ok=True)
         os.makedirs(os.path.join(output_dir, "Videos", "Other"), exist_ok=True)
         os.makedirs(os.path.join(output_dir, "Videos", ""), exist_ok=True)
-        with ProgressBar(items - 1) as progress:
+        with ProgressBar(num_items) as progress:
             # Iterate over all files in the directory
-            for item in d.objects:
+            for item in d.file_objects:
                 progress.increment()
                 if item.extension in JUNK:
                     os.remove(item.path)
@@ -402,7 +414,7 @@ def main(input_dir, output_dir):
                 # else:
 
         cprint("Done organizing files", fg.green)
-        return removed, items, duplicates
+        return removed, num_items, duplicates
 
 
 if __name__ == "__main__":
