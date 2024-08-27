@@ -106,7 +106,7 @@ def findMdFile(line, currentFile):
                     + ancor
                     + "</a>",
                 )
-            else:  ##self ref
+            else:  # self ref
                 line = line.replace(
                     "[[" + file + "]]",
                     '<a href="./'

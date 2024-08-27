@@ -45,7 +45,7 @@ def main(input_dir: str = INPUT_PATH, output_dir: str = OUTPUT_PATH, keep: bool 
                     output_dir, FOLDERS.get(directory.basename, directory.basename)
                 )
                 os.makedirs(output_folder, exist_ok=True)
-                outdir = Dir(output_folder)
+                Dir(output_folder)
                 print(
                     "{:<60}{:<20}{:<20}{:<20}{:<20} {}".format(
                         "\nName",

@@ -52,7 +52,7 @@ if __name__ == "__main__":
     # Send a notification
     shell_output = subprocess.run(
         f'kdialog --msgbox "OCR Complete" "{text} --icon=region"',
-        #f'notify-send "Extracted Text:" --icon=spectacle --app-name="OCR" "{text}" ',
+        # f'notify-send "Extracted Text:" --icon=spectacle --app-name="OCR" "{text}" ',
         shell=True,
         check=False,
     )
