@@ -86,8 +86,7 @@ def main(filepath: str, window_size: int, columns: list[str]) -> None:
             pass
         new_smooth_df.plot(ax=ax, grid=True)
 
-    # ani = FuncAnimation(fig, animate, frames=100, interval=200)
-    FuncAnimation(fig, animate, frames=100, interval=200)  # type: ignore
+    ani = FuncAnimation(fig, animate, frames=100, interval=200)  # type: ignore
     plt.xlabel("Time")
     plt.show()
 
