@@ -67,6 +67,9 @@ def remove_group(duplicate_group: list[str]) -> bool:
     for i, _file in enumerate(sorted_files):
         if i <= 1:  # Skip the first two files
             continue
+        # Double check to make sure we are keeping the originals by checking capture date and mtime
+        # if Img(sorted_files[0]).capture_date != sorted_files[i].mtime:
+
         try:
             os.remove(_file)
             _counter += 1

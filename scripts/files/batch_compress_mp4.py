@@ -105,7 +105,7 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
                     File Size: Original:{fg.red}{Converter(result.size)}  {style.reset} -> {fg.green}{Converter(compressed.size)}{style.reset}
                     """
                 )
-                print(f"Quality: {compressed.quality}")
+                print(f"Quality: {compressed.num_frames}")
                 original_files.append(result)
                 size_before += result.size
                 size_after += compressed.size
