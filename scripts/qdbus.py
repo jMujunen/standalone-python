@@ -23,6 +23,8 @@ class Bus:
         service (str): The name of the D-Bus service to interact with.
         """
         self.service = service
+        self.num_objects = len(self.objects())
+        self.num_methods = sum([len(self.methods(obj)) for obj in self.objects()])
 
     def objects(self) -> list:
         """Return a list of available services on the bus.

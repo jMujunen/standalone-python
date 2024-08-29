@@ -3,8 +3,17 @@ import io
 import pstats
 
 
-class Profiler:
-    """Class decorator for profiling code using cProfile."""
+class FuncProfiler:
+    """Function decorator for profiling code using cProfile.
+
+    ### Example:
+    ------------
+    >>> @fProfiler(output_file="profile_stats.txt")
+        def my_method():
+            return
+        my_method()
+
+    """
 
     def __init__(self, output_file=None):
         self.profiler = cProfile.Profile()
@@ -28,11 +37,3 @@ class Profiler:
             return result
 
         return wrapper
-
-
-# TODO: Move this to docstring
-if __name__ == "__main__":
-
-    @Profiler(output_file="profile_stats.txt")
-    def my_method():
-        return
