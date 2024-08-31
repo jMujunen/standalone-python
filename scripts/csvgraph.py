@@ -6,7 +6,6 @@
 import argparse
 import pandas as pd
 import re
-import sys
 
 import matplotlib.pyplot as plt
 import numpy as np

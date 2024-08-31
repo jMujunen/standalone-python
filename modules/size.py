@@ -12,7 +12,7 @@ class Converter:
 
         Parameters:
         ----------
-            `size_in_bytes` (int): Size in bytes."""
+            - `size_in_bytes` (int): Size in bytes."""
 
         self.size_in_bytes = abs(int(size_in_bytes))
         self._size_str = self._convert()
@@ -20,13 +20,7 @@ class Converter:
             self._size_str = "-" + self._size_str
 
     def _convert(self) -> str:
-        """
-        Converts a given size in bytes to the appropriate unit (B, KB, MB, GB, or TB).
-
-        Returns:
-        ---------
-            `str` : A string representation of the size with its corresponding unit attached.
-        """
+        """Convert bytes to the appropriate unit (B, KB, MB, GB, or TB)."""
         size = self.size_in_bytes
         units = ["B", "KB", "MB", "GB", "TB"]
         for unit in units[:-1]:

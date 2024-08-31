@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""additional functionality to `sizeof` bash alias"""
+"""Adds functionality to `sizeof` (du -s) bash alias"""
 
 import argparse
 import os
