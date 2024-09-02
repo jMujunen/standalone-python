@@ -4,7 +4,7 @@
 import sys
 
 
-class Converter:
+class Size:
     """Converts a size in bytes to a human-readable string representation."""
 
     def __init__(self, size_in_bytes: int):
@@ -45,7 +45,12 @@ class Converter:
 
 if __name__ == "__main__":
     try:
-        print(Converter(int(sys.argv[1])))
+        # isatty() returns True if file descriptor is a TTY
+        if not sys.stdin.isatty():
+            arg = sys.stdin.read()
+        else:
+            arg = sys.argv[1]
+        print(Size(int(arg)))
     except (IndexError, ValueError):
         print("Usage: ./size  <size in bytes>")
         sys.exit(1)

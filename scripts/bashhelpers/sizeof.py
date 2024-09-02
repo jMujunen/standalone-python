@@ -6,7 +6,7 @@ import os
 import subprocess
 
 from ExecutionTimer import ExecutionTimer
-from size import Converter
+from size import Size
 
 
 def parse_args():
@@ -49,7 +49,7 @@ def sizeof(path):
         print(stderr)
     for item in stdout.split("\n"):
         size, directory = item.split("\t")
-        print(f"{str(Converter(int(size))).ljust(12)}{directory}")
+        print(f"{str(Size(int(size))).ljust(12)}{directory}")
     return output.stdout if args.all else None
 
 

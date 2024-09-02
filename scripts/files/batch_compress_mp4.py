@@ -7,7 +7,7 @@ import shutil
 
 from Color import cprint, fg, style
 from fsutils import Dir, Video
-from size import Converter
+from size import Size
 from ThreadPoolHelper import Pool
 
 RENAME_SPEC = {
@@ -101,8 +101,8 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
                     size_ratio = size_diff / bitrate_diff
                 print(
                     f"""File size decreased {style.bold}{size_ratio}x{style.reset} more than bitrate
-                    Bitrate: Original:{fg.red}{Converter(result.bitrate)} {style.reset} -> {fg.green}{Converter(compressed.bitrate)}{style.reset})
-                    File Size: Original:{fg.red}{Converter(result.size)}  {style.reset} -> {fg.green}{Converter(compressed.size)}{style.reset}
+                    Bitrate: Original:{fg.red}{Size(result.bitrate)} {style.reset} -> {fg.green}{Size(compressed.bitrate)}{style.reset})
+                    File Size: Original:{fg.red}{Size(result.size)}  {style.reset} -> {fg.green}{Size(compressed.size)}{style.reset}
                     """
                 )
                 print(f"Quality: {compressed.num_frames}")
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         cprint("KeyboardInterrupt", fg.red)
         exit(127)
 
-    space_saved = Converter(before - after)
+    space_saved = Size(before - after)
 
     cprint(f"\nSpace saved: {space_saved}", fg.green, style.bold)
     if not args.keep:

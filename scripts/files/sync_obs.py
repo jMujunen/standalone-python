@@ -7,7 +7,7 @@ import os
 from Color import cprint, fg, style
 from fsutils import Dir, Video
 from ProgressBar import ProgressBar
-from size import Converter
+from size import Size
 
 # CMD = ffmpeg -hwaccel cuda -i input.mp4 -c:v libx265 -preset veryslow -tune hq -x265-params "lossless=1"
 
@@ -81,7 +81,7 @@ def main(input_dir: str = INPUT_PATH, output_dir: str = OUTPUT_PATH, keep: bool 
                             print(f"Could not remove original video {vid.basename}")
                     except Exception as e:
                         cprint(f"Error removing original video {vid.basename}: {e!r}", fg.red)
-    cprint(f"Space saved: {Converter(SIZE_BEFORE - SIZE_AFTER)}", style.bold)
+    cprint(f"Space saved: {Size(SIZE_BEFORE - SIZE_AFTER)}", style.bold)
 
 
 def parse_args() -> argparse.Namespace:
