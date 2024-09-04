@@ -112,6 +112,25 @@ def process_file(file: File):
     print(f"Moved {file.basename} to {target_dir}")
 
 
+def remove_item(file: File, other: File) -> None:
+    pass
+    # """Determine which file is the original and delete the duplicate"""
+    # if isinstance(file, Img):
+    #     # If the file is an image, compare the EXIF data
+    #     if file.exif == other.exif:
+    #         os.remove(other.path)
+    #         print(f"Removed {other.basename} due to identical EXIF data")
+    # elif isinstance(file, Video):
+    #     # If the file is a video, compare the metadata
+    #     if file.metadata == other.metadata:
+    #         os.remove(other.path)
+    #         print(f"Removed {other.basename} due to identical metadata")
+    # else:
+    #     # If the file is neither an image nor a video, delete it
+    #     os.remove(other.path)
+    #     print(f"Removed {other.basename} as it is neither an image nor a video
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Organize images into directories by year, based on the original capture date"
@@ -129,7 +148,7 @@ def main(input_dir, output_dir):
         num_items = len(d)
         removed = 0
         # Create a directory for the images without metadata
-        os.makedirs(os.path.join(output_dir, "Videos", "Dashcam"), exist_ok=True)ti
+        os.makedirs(os.path.join(output_dir, "Videos", "Dashcam"), exist_ok=True)
         # os.makedirs(os.path.join(output_dir, "Videos", "NoMetaData"), exist_ok=True)
         os.makedirs(os.path.join(output_dir, "Videos", "Other"), exist_ok=True)
         os.makedirs(os.path.join(output_dir, "Videos", ""), exist_ok=True)
@@ -166,7 +185,7 @@ def main(input_dir, output_dir):
                                 other = Img(no_meta_data_image)
                                 # If destination file is the same as source and is not corrupted, remove the source file and continue to next item
                                 if not other.is_corrupt and other == item:
-                                    remove_file(item, other)
+                                    remove_item(item, other)
                                 count += 1
                                 # Increment the count until we find a filename that does not exist yet
                                 try:
@@ -208,7 +227,7 @@ def main(input_dir, output_dir):
                                 other = Img(output_file_path)
                                 # If destination file is the same as source and is not corrupted, remove the source file and continue to next item
                                 if not other.is_corrupt and other == item:
-                                    remove_file(item, other)
+                                    remove_item(item, other)
                                     break
                                 count += 1
                                 try:

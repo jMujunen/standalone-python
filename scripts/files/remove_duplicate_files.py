@@ -4,8 +4,6 @@
 import argparse
 import datetime
 import os
-import pickle
-import pprint
 from collections import OrderedDict
 
 from Color import cprint, fg, style
@@ -118,11 +116,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def save_hash_map(hashes):
-    with open("hash_map.pkl", "wb") as f:
-        pickle.dump(hashes, f, protocol=pickle.HIGHEST_PROTOCOL)
-
-
 def main(args: argparse.Namespace) -> None:
     with ExecutionTimer():
         _counter = 0
@@ -162,7 +155,6 @@ def main(args: argparse.Namespace) -> None:
                         print(file)
                 print("-" * 50)
             cprint(f"Found {_counter} duplicates", fg.green)
-            save_hash_map(hashes)
         print("-" * 50)
         print(f"Removed {style.bold}{_counter}{style.reset} files")
     return

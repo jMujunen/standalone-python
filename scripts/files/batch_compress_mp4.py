@@ -38,33 +38,46 @@ def compress_file(file: Video, output_dir: str) -> Video | None:
         )
 
 
-def process_file(file: Video, output_dir: str) -> Video | None:
+def process_file(file: Video, output_dir: str, *args) -> Video | None:
     """If video codec is HEVC and bitrate is greater than 30MB/s, compress;
     otherwise, move it to the output directory."""
     try:
-        if file.bitrate > 30000000:
-            return file
+        if not args:
+            # Define default behavior (only compress files with a bitrate of > 30MB/s)
+            if file.bitrate > 30000000:
+                return file
+            else:
+                shutil.move(
+                    file.path,
+                    os.path.join(output_dir, f"_{file.basename}"),
+                    copy_function=shutil.copy2,
+                )
         else:
-            shutil.move(
-                file.path,
-                os.path.join(output_dir, f"_{file.basename}"),
-                copy_function=shutil.copy2,
-            )
+            # If args are provided, use them to determine whether or not to compress the file
+            filter_key, filter_value = args
+            match filter_key:
+                # Compress files with codec <filter_value>
+                case "codec":
+                    if file.codec == filter_value:
+                        return file
+                # Compress files with bitrate over <filter_value>
+                case "bitrate":
+                    if file.bitrate > filter_value:
+                        return file
+                # Compress files with extension <filter_value>
+                case "extension":
+                    if file.extension == filter_value:
+                        return file
+                case _:
+                    raise ValueError(f"Invalid filter key: {filter_key}")
     except Exception as e:
-        cprint(f"\n{file.basename} could not be processed. Error code: {e}", fg.red, style.bold)
+        cprint(f"{e!r}: {file.basename} could not be processed", fg.red, style.bold)
     return
 
 
-def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[Video], int, int]:
-    # formula = (S - s) / (B - b)
-    #
-    # S = Originial size
-    # s = Compressed size
-    # -------------------
-    # B = Original bitrate
-    # b = compressed bitrate
-
-    # List of file objects
+def main(
+    input_dir: str, output_dir: str, num: int, *args
+) -> tuple[list[Video], list[Video], int, int]:
     original_files = []
     compressed_files = []
 
@@ -74,17 +87,12 @@ def main(input_dir: str, output_dir: str, num: int) -> tuple[list[Video], list[V
     videos = Dir(input_dir).videos[:num]
     outdir = Dir(output_dir)
 
+    # Create the output directories if they don't exist
     try:
-        # for folder_path in input_dir.rel_directories:
-        # Create the output directories if they don't exist
         os.makedirs(outdir.path, exist_ok=True)
     except OSError as e:
         print(f"[\033[31m Error creating output directory '{outdir}': {e} \033[0m]")
         exit(1)
-    # formula = (S - s) / (B - b)
-    # Initialize progress bar vars
-    number_of_files = len(videos)
-    cprint(f"1/{number_of_files}", style.bold, style.underline, end="\n\n")
     pool = Pool()
     for result in pool.execute(process_file, videos, outdir.path, progress_bar=True):
         if result is not None:
@@ -129,12 +137,52 @@ def parse_arguments() -> argparse.Namespace:
         type=int,
         default=-1,
     )
-    parser.add_argument("--keep", help="Keep original file", action="store_true", default=False)
+    parser.add_argument(
+        "--keep",
+        help="Keep original file",
+        action="store_true",
+        default=False,
+    )
+    subparsers = parser.add_subparsers(
+        dest="filter", required=False, help="Specify a filter for the files to compress"
+    )
+    # Filter by codec
+    codec_subparser = subparsers.add_parser("codec", help="Filter by codec")
+    codec_subparser.add_argument(
+        "codec",
+        help="Only compress files with this codec",
+        choices=["h264", "hevc", "mpeg4"],
+    )
+
+    # Filter by bitrate
+    bitrate_subparser = subparsers.add_parser("bitrate", help="Filter by bitrate")
+    bitrate_subparser.add_argument(
+        "bitrate",
+        type=int,
+        help="Only compress files with a bitrate over this value",
+    )
+
+    # Filter by extension
+    extension_subparser = subparsers.add_parser(
+        "extension",
+        help="Filter by file extension",
+    )
+    extension_subparser.add_argument(
+        "extension",
+        help="Only compress files with this extension (e.g., .mp4)",
+        type=str,
+    )
+
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_arguments()
+    print(args)
+    # print(*vars(args).values())
+    # exit()
+
+    main(args.INPUT, args.OUTPUT, args.num, args.keep, args.filter, vars(args)[args.filter])
     try:
         old_files, new_files, before, after = main(args.INPUT, args.OUTPUT, args.num)
         if not old_files or not new_files:
