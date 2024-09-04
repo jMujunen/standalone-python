@@ -42,6 +42,20 @@ class Size:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}" + f"(raw={self.size_in_bytes}, human={self._size_str})"
 
+    def __format__(self, format_spec: str, /) -> str:
+        match format_spec:
+            case "r":
+                return repr(self)
+            case "s":
+                return str(self)
+            case "d":
+                return f"{int(self):d}"
+            case ",":
+                return f"{int(self):,}"
+            case _:
+                return super().__format__(format_spec)
+                raise ValueError("Invalid format specifier")
+
 
 if __name__ == "__main__":
     try:
