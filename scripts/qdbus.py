@@ -72,6 +72,19 @@ class Bus:
         """Generate a sequence of tuples containing object and method pairs."""
         yield from ((obj, list(self.methods(obj, verbose))) for obj in self.objects())
 
+    def get_properties(self, obj: str):  # -> dict[str, str]:
+        """Return a dictionary of properties with their values for the given D-Bus object"""
+        for method in self.methods(obj, verbose=True):
+            if method.split(" ")[0] == "property":
+                try:
+                    method_type, _, return_type, method = method.split(" ")
+                    method_value = subprocess.run(
+                        ["qdbus6", self.service, obj, method], capture_output=True, text=True
+                    ).stdout.strip()
+                    yield (method.split("(")[0].split(".")[-1], method_value)
+                except Exception:
+                    pass
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(service={self.service}, num_objects={len(self.objects())}, num_methods={sum([len(self.methods(obj)) for obj in self.objects()])})"
 
@@ -81,7 +94,7 @@ class Bus:
 
 
 def services():
-    """Yeild all available D-Bus services."""
+    """Yield all available D-Bus services."""
     yield from (
         bus.strip()
         for bus in subprocess.run("qdbus6", shell=True, capture_output=True, text=True, check=False)
