@@ -23,7 +23,12 @@ SPECIAL_FILES = {
 
 MIME = mimecfg.FILE_TYPES
 
-SPECIAL_TAGS = ["original_format-eng", "com.android.version"]
+SPECIAL_TAGS = {
+    "original_format-eng": lambda x: x,
+    "com.android.version": "andriod_phone",
+    "com.apple.quicktime.make": "apple_phone",
+    "comment": "dashcam",
+}
 
 JUNK_FILE_REGEX = re.compile(r"Abakus|.ico$")
 JUNK = MIME["ignored"]
@@ -112,6 +117,10 @@ def process_file(file: File):
     print(f"Moved {file.basename} to {target_dir}")
 
 
+def process_video(video: Video):
+    tags = video.tags
+
+
 def remove_item(file: File, other: File) -> None:
     pass
     # """Determine which file is the original and delete the duplicate"""
@@ -140,7 +149,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(input_dir, output_dir):
+def main(input_dir: str, output_dir: str):
     with ExecutionTimer():
         duplicates = []
         # Initialize objects and variables
