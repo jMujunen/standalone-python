@@ -58,6 +58,8 @@ class ServiceDispatcher:
 
 
 class MetaClient(type):
+    """Metaclass for creating a client with domain dispatchers."""
+
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct)
         # for domain in Client():
@@ -66,7 +68,7 @@ class MetaClient(type):
 
 
 class Client(metaclass=MetaClient):
-    """Base class for interacting with the Home Assistant API"""
+    """Base class for interacting with the Home Assistant API."""
 
     def __init__(self, host=HOST, token=TOKEN) -> None:
         self.base_url = f"http://{host}:8123/api/services"
@@ -104,7 +106,7 @@ class Client(metaclass=MetaClient):
         return list(self._dict.keys())
 
     @property
-    def entities(self):
+    def entities(self) -> None:
         # TODO: Integrate this
         # Extract all unique domains and entities
         entities = set()
