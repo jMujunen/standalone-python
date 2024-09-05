@@ -2,8 +2,9 @@
 
 from datetime import datetime
 from os import environ
+from sys import exit
 
-from requests import Response, post
+from requests import post
 
 HOST = environ.get("HASS_HOST", "")
 TOKEN = environ.get("HASS_TOKEN", "")
@@ -17,4 +18,4 @@ def main(host: str, token: str) -> str:
 
 
 if __name__ == "__main__":
-    main(HOST, TOKEN)
+    exit(main(HOST, TOKEN))
