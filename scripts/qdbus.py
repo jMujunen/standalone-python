@@ -79,7 +79,7 @@ class Bus:
                 try:
                     method_type, _, return_type, method = method.split(" ")
                     method_value = subprocess.run(
-                        ["qdbus6", self.service, obj, method], capture_output=True, text=True
+                        ["qdbus6", self.service, obj, method], capture_output=True, text=True, check=False
                     ).stdout.strip()
                     yield (method.split("(")[0].split(".")[-1], method_value)
                 except Exception:
@@ -126,7 +126,6 @@ def main(scope: list[str], verbose: bool) -> None:
                     cprint(obj, style.bold, style.underline)
                     for method in methods:
                         print(f"\t{method}")
-    return None
 
 
 def parse_args() -> argparse.Namespace:

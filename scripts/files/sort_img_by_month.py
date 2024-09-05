@@ -37,7 +37,7 @@ JUNK = MIME["ignored"]
 def rename_file(output_dir, image_object):
     # If no capture date is found, do nothing
     if not image_object.capture_date:
-        return
+        return None
     capture_date = str(image_object.capture_date).replace(" ", "_")
     capture_year = capture_date[:4]
     if capture_date:

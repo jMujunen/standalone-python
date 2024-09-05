@@ -28,7 +28,7 @@ def main(filepath: str, window_size: int, columns: list[str]) -> None:
         - `window_size` defines moving average or how 'smooth' the line will be.
 
     """
-    if columns[0] in GROUPS.keys():
+    if columns[0] in GROUPS:
         columns = GROUPS[args.COLUMNS[0]]
 
     if not os.path.isfile(filepath):

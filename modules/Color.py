@@ -257,7 +257,6 @@ class fg(ForegroundColor):
         >>> print(f"{fg.red}This is red text{style.reset}")
     """
 
-    pass
 
     def listall():
         print(" ".join(list(fg.STYLE.keys())))
@@ -284,7 +283,6 @@ class bg(BackgroundColor):
         >>> print(f"{bg.red}This is red text{style.reset}")
     """
 
-    pass
 
     def listall():
         """Prints all available attributes."""

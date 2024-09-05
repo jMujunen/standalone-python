@@ -149,11 +149,9 @@ def main(dest: str) -> int:
                 if re.compile(r"[Yy]|^$").match(answer):
                     break
                     # msg successful if instance is True
-                else:
-                    continue
-            else:
-                print(f"{RED}Error getting joke: \n{new_joke.returncode}{RESET}")
-                return 1
+                continue
+            print(f"{RED}Error getting joke: \n{new_joke.returncode}{RESET}")
+            return 1
         except KeyboardInterrupt:
             sys.exit(0)
         except Exception as e:
@@ -163,9 +161,8 @@ def main(dest: str) -> int:
     if com.send(new_joke.stdout, dest) == 0:
         print(f"{GREEN}Success{RESET}")
         return 0
-    else:
-        print(f"{RED}Error sending msg: \n{new_joke.returncode}{RESET}")
-        return 1
+    print(f"{RED}Error sending msg: \n{new_joke.returncode}{RESET}")
+    return 1
 
 
 if __name__ == "__main__":

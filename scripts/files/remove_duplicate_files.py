@@ -17,7 +17,7 @@ IGNORED_DIRS = [".Trash-1000"]
 def process_file(file: File) -> tuple[int, str] | None:
     """Function for concurrent processing. This is called from the ThreadPool instance"""
     if any(ignored in file.path for ignored in IGNORED_DIRS) or not file.exists:
-        return
+        return None
     return (hash(file), file.path)
 
 
@@ -88,10 +88,9 @@ def remove_with_confirmation(duplicate_group: list[str], images=False):
             else:
                 print(file)
             continue
-        else:
-            print(f"{fg.red}{style.bold}[REMOVE]{style.reset}", end=" ")
-            if images:
-                Img(file).render(title=True)
+        print(f"{fg.red}{style.bold}[REMOVE]{style.reset}", end=" ")
+        if images:
+            Img(file).render(title=True)
     reply = input("\n\033[1mAre you sure you want to remove these files? (y/N)\033[0m: ").lower()
     if reply in ["y", "yes"]:
         return remove_group(duplicate_group)
@@ -157,7 +156,6 @@ def main(args: argparse.Namespace) -> None:
             cprint(f"Found {_counter} duplicates", fg.green)
         print("-" * 50)
         print(f"Removed {style.bold}{_counter}{style.reset} files")
-    return
 
 
 if __name__ == "__main__":

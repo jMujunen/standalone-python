@@ -12,7 +12,7 @@ def set_permissions(path: str, fix) -> tuple[str, str, str, bool] | None:
     """Set permissions for file or directory"""
     if not os.path.exists(path):
         cprint(f"{path} does not exist", fg.red)
-        return
+        return None
     fixed = False
     original_mode = os.stat(path).st_mode
     mode = original_mode

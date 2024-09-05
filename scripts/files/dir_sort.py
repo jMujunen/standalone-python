@@ -47,7 +47,7 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
         # Remove the dir if empty
         if item.is_empty:
             os.rmdir(item.path)
-        return
+        return None
     else:
         modification_time = datetime.datetime.fromtimestamp(os.stat(item.path).st_mtime)
 
@@ -72,11 +72,10 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
         if item == dest_object:
             os.remove(item.path)
             break
-        else:
-            dest_path = os.path.join(
-                dest_folder, f'{modification_time.strftime("%H:%M.%S")}_{count}{item.extension}'
-            )
-            count += 1
+        dest_path = os.path.join(
+            dest_folder, f'{modification_time.strftime("%H:%M.%S")}_{count}{item.extension}'
+        )
+        count += 1
     shutil.move(item.path, dest_path, copy_function=shutil.copy2)
     return item.basename
 

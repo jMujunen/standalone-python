@@ -53,8 +53,7 @@ class Size:
             case ",":
                 return f"{int(self):,}"
             case _:
-                return super().__format__(format_spec)
-                raise ValueError("Invalid format specifier")
+                return str(self)
 
 
 if __name__ == "__main__":

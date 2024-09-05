@@ -22,7 +22,7 @@ def get_permissions(file: File) -> tuple[File, bool, int, int] | None:
     """Set permissions for file or directory"""
     if not os.path.exists(file.path):
         cprint(f"{file.path} does not exist", fg.red)
-        return
+        return None
     mode = file.mode
     if file.__class__ in list(SPECS.keys()):
         preferred_mode = SPECS.get(file.__class__, 644)

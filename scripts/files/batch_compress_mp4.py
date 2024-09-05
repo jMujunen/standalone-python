@@ -20,7 +20,7 @@ def compress_file(file: Video, output_dir: str) -> Video | None:
     output_file_path = os.path.join(output_dir, f"_{file.basename}")
     output_file_object = Video(output_file_path)
     if output_file_object.exists and output_file_object.size < file.size:
-        return
+        return None
         # TODO: Implement FFMpegManager context manager
     try:
         compressed = file.compress(output=output_file_path)
@@ -46,12 +46,11 @@ def process_file(file: Video, output_dir: str, *args) -> Video | None:
             # Define default behavior (only compress files with a bitrate of > 30MB/s)
             if file.bitrate > 30000000:
                 return file
-            else:
-                shutil.move(
-                    file.path,
-                    os.path.join(output_dir, f"_{file.basename}"),
-                    copy_function=shutil.copy2,
-                )
+            shutil.move(
+                file.path,
+                os.path.join(output_dir, f"_{file.basename}"),
+                copy_function=shutil.copy2,
+            )
         else:
             # If args are provided, use them to determine whether or not to compress the file
             filter_key, filter_value = args
@@ -72,7 +71,7 @@ def process_file(file: Video, output_dir: str, *args) -> Video | None:
                     raise ValueError(f"Invalid filter key: {filter_key}")
     except Exception as e:
         cprint(f"{e!r}: {file.basename} could not be processed", fg.red, style.bold)
-    return
+    return None
 
 
 def main(
