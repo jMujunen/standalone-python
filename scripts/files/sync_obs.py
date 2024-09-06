@@ -42,7 +42,7 @@ def main(input_dir: str = INPUT_PATH, output_dir: str = OUTPUT_PATH, keep: bool 
                     continue
                 # Modify the name of the folder to match the spec
                 output_folder = os.path.join(
-                    output_dir, FOLDERS.get(directory.basename, directory.basename)
+                    output_dir, FOLDERS.get(directory.filename, directory.filename)
                 )
                 os.makedirs(output_folder, exist_ok=True)
                 Dir(output_folder)
@@ -64,23 +64,23 @@ def main(input_dir: str = INPUT_PATH, output_dir: str = OUTPUT_PATH, keep: bool 
                     #     continue
                     p.increment()
                     try:
-                        output_path = os.path.join(output_folder, f"_{vid.basename}")
+                        output_path = os.path.join(output_folder, f"_{vid.filename}")
                         compressed = vid.compress(output=output_path)
                     except Exception as e:
-                        cprint(f"Error compressing video {vid.basename}: {e!r}", fg.orange)
+                        cprint(f"Error compressing video {vid.filename}: {e!r}", fg.orange)
                         continue
                     SIZE_BEFORE += vid.size
                     SIZE_AFTER += compressed.size
                     try:
                         print(
-                            f"\n{style.bold}{vid.basename:<60}{style.reset}{fg.yellow}{vid.size_human:<20}{style.reset}{fg.green}{compressed.size:<20}{style.reset}{fg.yellow}{vid.bitrate_human:<20}{style.reset}{fg.green}{compressed.bitrate_human:<20}{style.reset}"
+                            f"\n{style.bold}{vid.filename:<60}{style.reset}{fg.yellow}{vid.size_human:<20}{style.reset}{fg.green}{compressed.size:<20}{style.reset}{fg.yellow}{vid.bitrate_human:<20}{style.reset}{fg.green}{compressed.bitrate_human:<20}{style.reset}"
                         )
                         if compressed.exists and not compressed.is_corrupt and not keep:
                             os.remove(vid.path)
                         else:
-                            print(f"Could not remove original video {vid.basename}")
+                            print(f"Could not remove original video {vid.filename}")
                     except Exception as e:
-                        cprint(f"Error removing original video {vid.basename}: {e!r}", fg.red)
+                        cprint(f"Error removing original video {vid.filename}: {e!r}", fg.red)
     cprint(f"Space saved: {Size(SIZE_BEFORE - SIZE_AFTER)}", style.bold)
 
 

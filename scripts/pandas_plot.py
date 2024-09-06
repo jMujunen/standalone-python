@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
 
+()
 FILE = "/tmp/hwinfo.csv"
 
 GROUPS = {
@@ -22,7 +23,7 @@ GROUPS = {
 
 
 def main(filepath: str, window_size: int, columns: list[str]) -> None:
-    """Load CSV file into a dataframe and plot specified columns
+    """Load CSV file into a dataframe and plot specified columns.
 
     ### Notes:
         - `window_size` defines moving average or how 'smooth' the line will be.

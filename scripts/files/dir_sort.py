@@ -63,7 +63,7 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
             dest_folder, f'{modification_time.strftime("%H:%M.%S")}{item.extension}'
         )
     else:
-        dest_path = os.path.join(dest_folder, item.basename)
+        dest_path = os.path.join(dest_folder, item.filename)
     if not os.path.exists(dest_folder):
         os.makedirs(dest_folder, exist_ok=True)
     count = 1
@@ -77,7 +77,7 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
         )
         count += 1
     shutil.move(item.path, dest_path, copy_function=shutil.copy2)
-    return item.basename
+    return item.filename
 
 
 def main(root: str, dest: str) -> None:

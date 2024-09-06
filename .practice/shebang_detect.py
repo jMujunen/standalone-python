@@ -71,7 +71,7 @@ def main(args):
             new_shebang = SHEBANG_REGEX.sub(spec.get(args.file, ""), shebang)  # Convert to python3
             if args.verbose:
                 # Print the file name and shebang
-                cprint(item.basename, fg.yellow)
+                cprint(item.filename, fg.yellow)
                 cprint(f"{shebang}\n", fg.green)
 
             print(args.file)
