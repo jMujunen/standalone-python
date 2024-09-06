@@ -17,7 +17,7 @@ RENAME_SPEC = {
 
 def compress_file(file: Video, output_dir: str) -> Video | None:
     """Process a single .mp4 file."""
-    output_file_path = os.path.join(output_dir, f"_{file.basename}")
+    output_file_path = os.path.join(output_dir, f"_{file.filename}")
     output_file_object = Video(output_file_path)
     if output_file_object.exists and output_file_object.size < file.size:
         return None
@@ -32,7 +32,7 @@ def compress_file(file: Video, output_dir: str) -> Video | None:
         return compressed
     except Exception as e:
         cprint(
-            f"{e!r}: {file.basename} could not be converted ({e})",
+            f"{e!r}: {file.filename} could not be converted ({e})",
             fg.red,
             style.bold,
         )
@@ -48,7 +48,7 @@ def process_file(file: Video, output_dir: str, *args) -> Video | None:
                 return file
             shutil.move(
                 file.path,
-                os.path.join(output_dir, f"_{file.basename}"),
+                os.path.join(output_dir, f"_{file.filename}"),
                 copy_function=shutil.copy2,
             )
         else:
@@ -70,7 +70,7 @@ def process_file(file: Video, output_dir: str, *args) -> Video | None:
                 case _:
                     raise ValueError(f"Invalid filter key: {filter_key}")
     except Exception as e:
-        cprint(f"{e!r}: {file.basename} could not be processed", fg.red, style.bold)
+        cprint(f"{e!r}: {file.filename} could not be processed", fg.red, style.bold)
     return None
 
 
