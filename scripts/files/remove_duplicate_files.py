@@ -10,19 +10,20 @@ from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
 from fsutils import Dir, File, Img
 from ThreadPoolHelper import Pool
+import sys
 
 IGNORED_DIRS = [".Trash-1000"]
 
 
 def process_file(file: File) -> tuple[int, str] | None:
-    """Function for concurrent processing. This is called from the ThreadPool instance"""
+    """Function for concurrent processing. This is called from the ThreadPool instance."""
     if any(ignored in file.path for ignored in IGNORED_DIRS) or not file.exists:
         return None
     return (hash(file), file.path)
 
 
 def generate_hash_map(path: str, images=False, videos=False) -> OrderedDict:
-    """Find duplicate files based on their hash representation"""
+    """Find duplicate files based on their hash representation."""
 
     def filter(images: bool, videos: bool):
         match (images, videos):
@@ -55,7 +56,7 @@ def generate_hash_map(path: str, images=False, videos=False) -> OrderedDict:
 
 
 def remove_group(duplicate_group: list[str]) -> bool:
-    """Process the hashes object returned from find_duplicates()
+    """Process the hashes object returned from find_duplicates().
 
     If not in dry run mode and the removal is confirmed, it deletes the extra files
     starting from the third occurrence
@@ -140,14 +141,20 @@ def main(args: argparse.Namespace) -> None:
                     if not args.quiet and i <= 1:
                         _counter += 1
                         cprint(
-                            f"[DRY-RUN] Keeping {file:<100} {datetime.datetime.fromtimestamp(os.path.getmtime(file)).strftime(
-                "%Y-%m-%d %H:%M:%S")}",
+                            f"[DRY-RUN] Keeping {file:<100} {
+                                datetime.datetime.fromtimestamp(os.path.getmtime(file)).strftime(
+                                    "%Y-%m-%d %H:%M:%S"
+                                )
+                            }",
                             fg.green,
                         )
                     elif not args.quiet and i > 1:
                         cprint(
-                            f"[DRY-RUN] removing {file:<100}  {datetime.datetime.fromtimestamp(os.path.getmtime(file)).strftime(
-                "%Y-%m-%d %H:%M:%S")}",
+                            f"[DRY-RUN] removing {file:<100}  {
+                                datetime.datetime.fromtimestamp(os.path.getmtime(file)).strftime(
+                                    "%Y-%m-%d %H:%M:%S"
+                                )
+                            }",
                             fg.orange,
                         )
                     else:
@@ -163,4 +170,4 @@ if __name__ == "__main__":
     try:
         main(args)
     except KeyboardInterrupt:
-        exit(0)
+        sys.exit(0)

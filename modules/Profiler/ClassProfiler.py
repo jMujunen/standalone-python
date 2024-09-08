@@ -49,10 +49,10 @@ if __name__ == "__main__":
 
     @ClassProfiler(output_file="profile_stats.txt")
     class SomeClass:
-        def method1(self):
+        def method1(self) -> None:
             return
 
-        def method2(self):
+        def method2(self) -> None:
             return
 
     # Creating an instance of `SomeClass`, all methods will be profiled.

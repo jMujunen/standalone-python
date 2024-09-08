@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generates a random RGB color as a tuple"""
+"""Generates a random RGB color as a tuple."""
 
 # rng_rgb.py - Random RGB color generator
 # TLDR:

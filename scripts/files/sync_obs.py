@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""This script mounts the windows ssd, compresses the OBS clips by outputting to local storage"""
+"""This script mounts the windows ssd, compresses the OBS clips by outputting to local storage."""
 
 import argparse
 import os

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prints the total count of each file type in a given directory"""
+"""Prints the total count of each file type in a given directory."""
 
 import argparse
 import os

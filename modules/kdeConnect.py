@@ -11,7 +11,7 @@ RED, GREEN, BLUE, YELLOW = "\033[31m", "\033[32m", "\033[36m", "\033[33m"
 
 class SMS:
     """
-    Send SMS messages using KDE Connect CLI
+    Send SMS messages using KDE Connect CLI.
 
     Attributes:
     -----------

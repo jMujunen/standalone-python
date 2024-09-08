@@ -9,7 +9,7 @@ from ProgressBar import ProgressBar
 
 
 def set_permissions(path: str, fix) -> tuple[str, str, str, bool] | None:
-    """Set permissions for file or directory"""
+    """Set permissions for file or directory."""
     if not os.path.exists(path):
         cprint(f"{path} does not exist", fg.red)
         return None
@@ -56,25 +56,24 @@ def main(path: str, dry_run: bool) -> None:
     num_files = count_items(path)
     real_files = []
     print(f"Found {num_files} files")
-    with ProgressBar(num_files) as pb:
-        with ThreadPoolExecutor() as executor:
-            futures = {
-                executor.submit(set_permissions, os.path.join(root, file), not dry_run): file
-                for root, dirs, files in os.walk(path)
-                for file in files
-            }
-            for future in as_completed(futures):
-                try:
-                    result = future.result()
-                    if result:
-                        path, mode, new_mode, fixed = result
-                        real_files.append((path, mode, new_mode, fixed))
-                        # if fixed:
+    with ProgressBar(num_files) as pb, ThreadPoolExecutor() as executor:
+        futures = {
+            executor.submit(set_permissions, os.path.join(root, file), not dry_run): file
+            for root, dirs, files in os.walk(path)
+            for file in files
+        }
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+                if result:
+                    path, mode, new_mode, fixed = result
+                    real_files.append((path, mode, new_mode, fixed))
+                    # if fixed:
 
-                except Exception as e:
-                    cprint(f"{future}: {e}", fg.red)
-                finally:
-                    pb.increment()
+            except Exception as e:
+                cprint(f"{future}: {e}", fg.red)
+            finally:
+                pb.increment()
     num_fixed = 0
     for path, mode, new_mode, fixed in real_files:
         if fixed:

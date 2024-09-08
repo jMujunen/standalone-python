@@ -2,6 +2,22 @@
 """Convert bytes to a human-readble string"""
 
 import sys
+from dataclasses import dataclass
+from enum import Enum
+
+
+class ByteConverterError(Exception):
+    """Raised when an error is encountered during conversion."""
+
+    pass  # noqa
+
+
+class SizeUnit(Enum):
+    BYTE = 1
+    KILOBYTE = 1024
+    MEGABYTE = 1024**2
+    GIGABYTE = 1024**3
+    TERABYTE = 1024**4
 
 
 class Size:
@@ -29,6 +45,17 @@ class Size:
             size /= 1024
 
         return f"{size / 1024:.2f} {units[-1]}"  # Last unit is TB
+
+    @property
+    def size(self):
+        size = self.size_in_bytes
+        for counter, unit in enumerate(SizeUnit):
+            if counter == 0:  # Skip the first one, it's bytes itself
+                continue
+            if size < unit.KILOBYTE.value:
+                return f"{size:.2f} B"
+            size /= SizeUnit.KILOBYTE.value
+        return f"{size / SizeUnit.TERABYTE.value:.2f} TB"  # Last unit is TB
 
     def __str__(self):
         return self._size_str

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""img2txt.py - Extract text from an image"""
+"""img2txt.py - Extract text from an image."""
 
 import datetime
 import os
@@ -23,9 +23,7 @@ def take_screenshot() -> str:
         shell=True,
         check=False,
     )
-    img_path = "/home/joona/Pictures/Screenshots/OCR/imagegrab.png"
-
-    return img_path
+    return "/home/joona/Pictures/Screenshots/OCR/imagegrab.png"
 
 
 def get_text_from_image(image_path: str) -> str:
@@ -37,10 +35,9 @@ def get_text_from_image(image_path: str) -> str:
     with tempfile.NamedTemporaryFile(delete=True, suffix=".png") as temp_file:
         cv2.imwrite(temp_file.name, gray)
         # Use pytesseract to extract text from the preprocessed image
-        text = pytesseract.image_to_string(Image.open(temp_file.name))
+        return pytesseract.image_to_string(Image.open(temp_file.name))
 
     # Return the extracted text
-    return text
 
 
 if __name__ == "__main__":

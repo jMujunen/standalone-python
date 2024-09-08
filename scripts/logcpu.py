@@ -48,15 +48,9 @@ def parse_args():
     return parser.parse_args()
 
 
-def log_cpu(args):
-    if not args.nostop:
-        count = round(args.time / args.interval)
-    else:
-        count = 0
-    if not args.output:
-        output_file = "/tmp/cpu.csv"
-    else:
-        output_file = args.output
+def log_cpu(args) -> None:
+    count = round(args.time / args.interval) if not args.nostop else 0
+    output_file = "/tmp/cpu.csv" if not args.output else args.output
 
     line = "datetime,voltage,average_clock,max_clock\n"
 

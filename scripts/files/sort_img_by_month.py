@@ -42,9 +42,9 @@ def rename_file(output_dir, image_object):
     capture_year = capture_date[:4]
     if capture_date:
         new_name = f"{capture_date}{image_object.extension}"
-        new_path = os.path.join(output_dir, capture_year, new_name)
-        return new_path
-        # shutil.move(image_object.path, os.path.join(image_object.dir_name, new_name))
+        return os.path.join(output_dir, capture_year, new_name)
+    return None
+    # shutil.move(image_object.path, os.path.join(image_object.dir_name, new_name))
 
 
 def wedding_photos(output_dir, image_object):
@@ -78,7 +78,7 @@ def screenshots(output_dir, image_object):
         )
 
 
-def cleanup(input_dir):
+def cleanup(input_dir) -> None:
     # Cleanup function to be called upon completion of script execution
     # Check to make sure no files are left behind and remove the Dir Dir tree
     print("\nCleaning up...")
@@ -101,7 +101,7 @@ def rm_empty_folders(folder: str) -> None:
         pass
 
 
-def process_file(file: File):
+def process_file(file: File) -> None:
     if isinstance(file, Img):
         prefix = "Photos"
     elif isinstance(file, Video):
@@ -117,8 +117,8 @@ def process_file(file: File):
     print(f"Moved {file.filename} to {target_dir}")
 
 
-def process_video(video: Video):
-    tags = video.tags
+def process_video(video: Video) -> None:
+    pass
 
 
 def remove_item(file: File, other: File) -> None:

@@ -29,9 +29,9 @@ def parse_args():
     return parser.parse_args()
 
 
-def mklinks(src, dst, pattern):
+def mklinks(src, dst, pattern) -> None:
     """
-    Recursively hardlink files in the src directory
+    Recursively hardlink files in the src directory.
 
     Creates a link to each file in the src directory to the dst directory.
     Each time this method finds a directory, it calls itself creating recursion.
@@ -65,12 +65,12 @@ def mklinks(src, dst, pattern):
             mklinks(os.path.join(src, file), os.path.join(dst, file), pattern)
 
 
-def cleanup(output_path):
+def cleanup(output_path) -> None:
     """
     Clean up empty directories.
     Some directories may be empty due to creating directories first, asking questions later.
     This is dependant on the pattern provided since some patterns will return more files than others.
-    Hence, remove empty directories
+    Hence, remove empty directories.
 
     Parameters:
     ----------
@@ -92,7 +92,7 @@ def cleanup(output_path):
             print(f"Keeping non-empty directory: {root}")
 
 
-def main(input_path, output_path, pattern):
+def main(input_path, output_path, pattern) -> None:
     """
     This script is used as a redneck way to hardlink a directory and its subdirectories.
 

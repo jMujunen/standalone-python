@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""free.py - Colorized wrapper for gnu 'free -h'"""
+"""free.py - Colorized wrapper for gnu 'free -h'."""
 
 import argparse
 import subprocess
@@ -9,7 +9,7 @@ from Styler import Styler
 
 
 def parse_data() -> str:
-    r"""Parse the output from `free | grep "Mem\|Swap"`"""
+    r"""Parse the output from `free | grep "Mem\|Swap"`."""
     command_output = subprocess.run(
         'free | grep -oP "(Mem|Swap):.*"', shell=True, capture_output=True, text=True, check=False
     ).stdout.strip()

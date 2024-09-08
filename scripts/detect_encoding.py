@@ -33,8 +33,7 @@ def main(file):
         str: The detected encoding.
     """
     with open(file, "rb") as f:
-        encoding = chardet.detect(f.read())["encoding"]
-    return encoding
+        return chardet.detect(f.read())["encoding"]
 
 
 if __name__ == "__main__":
