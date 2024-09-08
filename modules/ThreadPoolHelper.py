@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from ProgressBar import ProgressBar
 
 
-class Pool(ProgressBar):
+class Pool:
     """A helper class to manage a thread pool for executing tasks concurrently.
 
     ### Attributes:
@@ -21,7 +21,7 @@ class Pool(ProgressBar):
         *args,
         progress_bar=True,
     ) -> Generator:
-        """Executes a callable function concurrently for each item in the data source.
+        """Execute a callable function concurrently for each item in the data source.
 
         ### Parameters:
         --------------
@@ -44,20 +44,19 @@ class Pool(ProgressBar):
         if progress_bar and isinstance(data_source, Generator):
             raise ValueError("Data source cannot be a generator when progress_bar=True")
         if progress_bar:
-            with ProgressBar(len(data_source)) as pb:
-                with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
-                    futures = [
-                        executor.submit(callback_function, item, *args) for item in data_source
-                    ]
-                    for future in as_completed(futures):
-                        try:
-                            result = future.result()
-                            if result:
-                                yield result
-                        except Exception as exc:
-                            print(f"\nException: {exc!r}")
-                        finally:
-                            pb.increment()
+            progress_bar = ProgressBar(len(data_source))  # type: ignore
+            with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
+                futures = [executor.submit(callback_function, item, *args) for item in data_source]
+                for future in as_completed(futures):
+                    try:
+                        result = future.result()
+                        if result:
+                            yield result
+                    except Exception as exc:
+                        print(f"\nException: {exc!r}")
+                    finally:
+                        progress_bar.increment()
+
         else:
             with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
                 futures = [executor.submit(callback_function, item, *args) for item in data_source]
