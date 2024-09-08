@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""avgvalue.py - Calculate the average value of a list of numbers"""
+"""avgvalue.py - Calculate the average value of a list of numbers."""
 
 import csv
 import os
@@ -14,7 +14,7 @@ from rich.table import Table
 FILE = "/tmp/hwinfo.csv"
 
 
-def main(csv_file):
+def main(csv_file) -> None:
     table = Table(
         title=os.path.split(csv_file)[-1],
         show_lines=True,

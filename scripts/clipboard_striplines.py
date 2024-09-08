@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Strips <pattern> from clipboard"""
+"""Strips <pattern> from clipboard."""
 # clipboard_striplines.py - strips a character from each line,
 # using the clipboard as I/O source
 
@@ -36,17 +36,15 @@ def main(char: str, replacement: str) -> str:
         # Initialize an empty list to hold the processed lines
         output = []
         if args.preset:
-            text = PRESETS[args.preset](text)
-            return text
+            return PRESETS[args.preset](text)
 
         for line in lines:
             # Strip the character or pattern from each line
             output.append(re.sub(pattern, replacement, line))
         # Join the output list back into a single text string
-        text = "\n".join(output)
+        return "\n".join(output)
         # Update the clipboard with the processed text
         # Print the processed text for debugging purposes
-        return text
     except Exception as e:
         return str(e)
 

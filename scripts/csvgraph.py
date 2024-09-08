@@ -35,7 +35,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(args):
+def main(args) -> None:
     df = pd.read_csv(args.FILE, sep=",", header=None, names=["Timestamp", "Value"])
     df["Value"] = np.convolve(df["Value"], np.ones(args.window) / args.window, mode="valid")
     fig, ax = plt.subplots(figsize=(16, 6))

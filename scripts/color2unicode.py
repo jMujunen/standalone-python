@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert hex or RGB color codes to ANSI escape codes"""
+"""Convert hex or RGB color codes to ANSI escape codes."""
 
 import argparse
 import random
@@ -40,7 +40,7 @@ def hex_to_ansi(hex_code: str) -> str:
 
 
 def main(color: str) -> None:
-    """Parse the color input based on the format (RGB or Hex)"""
+    """Parse the color input based on the format (RGB or Hex)."""
     color_input = color
 
     if re.match(r"^\d{1,3},\s*\d{1,3},\s*\d{1,3}$", color_input):

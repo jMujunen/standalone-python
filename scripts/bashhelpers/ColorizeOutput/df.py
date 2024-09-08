@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-""" "df.py - Colorize the output of df"""
+""" "df.py - Colorize the output of df."""
 
-from Styler import Styler
 from Color import fg, style
+from Styler import Styler
 
 df = Styler("df -h")
 df.remove_by_row("credentials")

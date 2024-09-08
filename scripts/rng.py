@@ -6,7 +6,7 @@ import random
 import sys
 
 
-def main():
+def main() -> None:
     if len(sys.argv) == 1:
         print(random.randint(0, 1000))
 

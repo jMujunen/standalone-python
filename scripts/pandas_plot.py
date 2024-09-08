@@ -9,6 +9,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
+import sys
 
 ()
 FILE = "/tmp/hwinfo.csv"
@@ -87,7 +88,7 @@ def main(filepath: str, window_size: int, columns: list[str]) -> None:
             pass
         new_smooth_df.plot(ax=ax, grid=True)
 
-    ani = FuncAnimation(fig, animate, frames=100, interval=200)  # type: ignore
+    FuncAnimation(fig, animate, frames=100, interval=200)  # type: ignore
     plt.xlabel("Time")
     plt.show()
 
@@ -121,5 +122,5 @@ if __name__ == "__main__":
         for group in GROUPS:
             print(f"\033[1m{group}\033[0m")
             print(" ", "\n  ".join(GROUPS[group]))
-        exit(0)
+        sys.exit(0)
     main(args.file, args.window, args.COLUMNS)

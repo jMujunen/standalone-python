@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Adds functionality to `sizeof` (du -s) bash alias"""
+"""Adds functionality to `sizeof` (du -s) bash alias."""
 
 import argparse
 import os
@@ -28,8 +28,7 @@ def parse_args():
         help="Skip directories on seperate mount points",
         default=False,
     )
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def sizeof(path):

@@ -36,8 +36,7 @@ def parse_args() -> argparse.Namespace:
         required=False,
     )
     parser.add_argument("--rename", help="Change file name to date based off mtime")
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def process_item(item: File, target_root: str, rename=True) -> str | None:

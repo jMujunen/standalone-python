@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """This script takes an image as input, calculates the hash,
 and compares it to the hashes of all images in a directory.
-Finally, it prints out the names of any images that have a similar hash"""
+Finally, it prints out the names of any images that have a similar hash."""
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -16,12 +16,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("IMG", help="Image to compare")
     parser.add_argument("DIR", help="Directory to compare against")
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def process_img(img: Img) -> tuple[imagehash.ImageHash | None, str, str]:
-    if img.extension == ".nef" or img.extension == ".heic":
+    if img.extension in (".nef", ".heic"):
         return (None, "", "")
     resized = img.resize()
     return (resized.calculate_hash(), img.path, resized.encode())
@@ -32,17 +31,16 @@ def main(reference_img: Img, output: Dir) -> list[tuple[imagehash.ImageHash | No
     ref = reference_img.calculate_hash()
     similar_images = []
 
-    with ProgressBar(len(output)) as pb:
-        with ThreadPoolExecutor() as executor:
-            futures = {executor.submit(process_img, img) for img in output.images}
-            for future in as_completed(futures):
-                try:
-                    result = future.result()
-                    pb.increment()
-                    if result and result[0] == ref:
-                        similar_images.append(result)
-                except Exception as e:
-                    print(f"\n{e}")
+    with ProgressBar(len(output)) as pb, ThreadPoolExecutor() as executor:
+        futures = {executor.submit(process_img, img) for img in output.images}
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+                pb.increment()
+                if result and result[0] == ref:
+                    similar_images.append(result)
+            except Exception as e:
+                print(f"\n{e}")
     return similar_images
 
 

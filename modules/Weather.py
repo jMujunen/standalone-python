@@ -90,17 +90,17 @@ class Weather:
 
     @property
     def humidity(self):
-        """Returns the relative humidity as a percentage"""
+        """Returns the relative humidity as a percentage."""
         return self.data["main"]["humidity"]
 
     @property
     def pressure(self):
-        """Returns the atmospheric pressure in hectopascals"""
+        """Returns the atmospheric pressure in hectopascals."""
         return self.data["main"]["pressure"]
 
     @property
     def wind_speed(self):
-        """Returns the speed of the wind in meters per second"""
+        """Returns the speed of the wind in meters per second."""
         return self.data["wind"]["speed"]
 
     @property
@@ -114,12 +114,12 @@ class Weather:
         return self.data["name"]
 
     @property
-    def sunset(self):
+    def sunset(self) -> str:
         """Returns the time of sunset in seconds since the Unix epoch."""
         return f"Current Temperature in {self.location}: {self.kelvin2celsius(self.max_temperature)}°C\nDescription: {self.data["weather"][0]["description"].capitalize()}"
 
     def kelvin2celsius(self, kelvin):
-        """Converts Kelvin to Celsius
+        """Converts Kelvin to Celsius.
 
         Parameters:
         -----------

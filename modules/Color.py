@@ -213,7 +213,7 @@ class Attributes(metaclass=ColorMeta):
 
 
 class style(Attributes):
-    """
+    r"""
     Applys `style` text formatting.
 
     Methods:
@@ -230,7 +230,7 @@ class style(Attributes):
 
     """
 
-    def listall():
+    def listall() -> None:
         """Prints all available attributes."""
         print(" ".join(list(style.STYLE.keys())))
 
@@ -242,7 +242,7 @@ class style(Attributes):
 
 
 class fg(ForegroundColor):
-    """
+    r"""
     Applys `fg` foreground formatting.
 
     Methods:
@@ -257,8 +257,7 @@ class fg(ForegroundColor):
         >>> print(f"{fg.red}This is red text{style.reset}")
     """
 
-
-    def listall():
+    def listall() -> None:
         print(" ".join(list(fg.STYLE.keys())))
 
     def showall():
@@ -268,7 +267,7 @@ class fg(ForegroundColor):
 
 
 class bg(BackgroundColor):
-    """
+    r"""
     Applys `bg` foreground formatting.
 
     Methods:
@@ -283,8 +282,7 @@ class bg(BackgroundColor):
         >>> print(f"{bg.red}This is red text{style.reset}")
     """
 
-
-    def listall():
+    def listall() -> None:
         """Prints all available attributes."""
 
         print(" ".join(list(bg.STYLE.keys())))
@@ -325,7 +323,7 @@ class Parse:
         return styled_text
 
 
-def cprint(text, *styles, end="\n"):
+def cprint(text, *styles, end="\n") -> None:
     """Prints the text with given styles.
 
     Parameters:

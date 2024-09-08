@@ -101,12 +101,9 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(args):
+def main(args) -> None:
     output_string = ""
-    if args.delimiter in DELIMS:
-        delim = DELIMS[args.delimiter]
-    else:
-        delim = args.delimiter
+    delim = DELIMS.get(args.delimiter, args.delimiter)
 
     # Replace each delimiter in the input string(s) with a newline
     for s in args.INPUT:

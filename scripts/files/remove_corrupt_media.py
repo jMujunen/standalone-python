@@ -7,6 +7,7 @@ import os
 from Color import cprint, fg, style
 from fsutils import Dir, Img, Video
 from ThreadPoolHelper import Pool
+import sys
 
 
 def process_file(item: Img | Video) -> tuple[bool, str]:
@@ -56,4 +57,4 @@ if __name__ == "__main__":
         args = parse_arguments()
         main(args.path, args.dry_run)
     except KeyboardInterrupt:
-        exit(127)
+        sys.exit(127)

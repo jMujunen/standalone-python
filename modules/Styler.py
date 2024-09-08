@@ -1,4 +1,4 @@
-"""Reusable object for manipulating command output"""
+"""Reusable object for manipulating command output."""
 
 import re
 import subprocess
@@ -113,7 +113,7 @@ class Styler:
             header = rows[0]
             rows = rows[1:]
             rows = sorted(rows)
-            sorted_rows = [header] + rows
+            sorted_rows = [header, *rows]
 
         else:
             sorted_rows = sorted(rows)
@@ -205,10 +205,7 @@ class Styler:
         for i in range(len(lines)):
             line = lines[i].split()
             if column < len(line):
-                if ESCAPE_REGEX.match(str(color)):
-                    color_prefix = f"\033[{color}m"
-                else:
-                    color_prefix = color
+                color_prefix = f"\x1b[{color}m" if ESCAPE_REGEX.match(str(color)) else color
                 color_suffix = "\033[0m"
                 line[column] = f"{color_prefix}{line[column]}{color_suffix}"
             lines[i] = " ".join(line)
@@ -226,10 +223,7 @@ class Styler:
         """
         lines = self.command_output.split("\n")
         if row < len(lines):
-            if ESCAPE_REGEX.match(str(color)):
-                color_prefix = f"\033[{color}m"
-            else:
-                color_prefix = color
+            color_prefix = f"\x1b[{color}m" if ESCAPE_REGEX.match(str(color)) else color
             color_suffix = "\033[0m"
             lines[row] = f"{color_prefix}{lines[row]}{color_suffix}"
         self.command_output = "\n".join(lines)

@@ -9,7 +9,7 @@ class Notification:
         self.title = kwargs.get("title", "")
         self.msg = kwargs.get("message", "")
 
-    def notify(self, icon: str | None = "kitty", app_name: str | None = "kitty"):
+    def notify(self, icon: str | None = "kitty", app_name: str | None = "kitty") -> None:
         self.args = ["notify-send", self.title, self.msg]
 
         self.args.extend([a for a in (icon, app_name) if a])

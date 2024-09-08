@@ -14,7 +14,7 @@ if len(sys.argv) != 2 and len(sys.argv) != 3 and len(sys.argv) != 4:
     print(
         "Wrong number of arguments!\nUsage: python3 md2html.py <filename.md> <[y/n](optional) y=default => creates a html-export in export vault> <[y/n](optional) y=default => download extrernal images locally>"
     )
-    quit()
+    sys.exit()
 
 mainFileToExport = ""
 fileToFind = str(sys.argv[1])
@@ -37,7 +37,7 @@ if mainFileToExport == "":
     print(
         "File not found!\nRun this script from the root of obsidian vault\nUsage: python3 md2html.py <filename.md> <[y/n](optional) y=default => creates a html-export in export vault>"
     )
-    quit()
+    sys.exit()
 
 exportDir = os.path.expanduser("~/export_" + fileToFind.split("/")[-1].replace(".md", ""))
 print("Path to export vault: " + str(exportDir) + "\n")
@@ -82,6 +82,7 @@ def copyFileToExport(fileToFind, currentFile, traverse=False):
             filesAllreadyCopied.append(linkedFilePath)
             readFilesRecursive(linkedFilePath)
         return findRelPath(linkedFilePath, currentFile)
+    return None
 
 
 def findMdFile(line, currentFile):
@@ -357,7 +358,7 @@ def findLines(line):
     return line + "\n"
 
 
-def readFilesRecursive(path):
+def readFilesRecursive(path) -> None:
     with open(path, encoding="utf-8") as readfile:
         data = readfile.readlines()
 

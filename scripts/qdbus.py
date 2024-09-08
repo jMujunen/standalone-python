@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A simple wrapper around qdbus6 for querying the D-Bus"""
+"""A simple wrapper around qdbus6 for querying the D-Bus."""
 
 import argparse
 import subprocess
@@ -73,13 +73,16 @@ class Bus:
         yield from ((obj, list(self.methods(obj, verbose))) for obj in self.objects())
 
     def get_properties(self, obj: str):  # -> dict[str, str]:
-        """Return a dictionary of properties with their values for the given D-Bus object"""
+        """Return a dictionary of properties with their values for the given D-Bus object."""
         for method in self.methods(obj, verbose=True):
             if method.split(" ")[0] == "property":
                 try:
                     method_type, _, return_type, method = method.split(" ")
                     method_value = subprocess.run(
-                        ["qdbus6", self.service, obj, method], capture_output=True, text=True, check=False
+                        ["qdbus6", self.service, obj, method],
+                        capture_output=True,
+                        text=True,
+                        check=False,
                     ).stdout.strip()
                     yield (method.split("(")[0].split(".")[-1], method_value)
                 except Exception:
@@ -143,8 +146,7 @@ def parse_args() -> argparse.Namespace:
         help="Verbose output",
         default=False,
     )
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 if __name__ == "__main__":

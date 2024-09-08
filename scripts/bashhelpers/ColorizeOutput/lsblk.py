@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""lsblk.py - Colorize the output of lsblk"""
+"""lsblk.py - Colorize the output of lsblk."""
 
 from Styler import Styler
 

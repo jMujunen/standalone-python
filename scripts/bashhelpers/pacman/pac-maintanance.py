@@ -27,7 +27,7 @@ def clean_syslogs() -> int:
 
 def rm_orphans() -> int:
     return_code = os.system("sudo pacman -Rs $(pacman -Qtdq) 2> /dev/null")
-    return 0 if return_code == 0 or return_code == 256 else return_code
+    return 0 if return_code in (0, 256) else return_code
 
 
 def check_file_properties() -> int:

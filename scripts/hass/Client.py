@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Client for interfacting with Home Assistant API"""
+"""Client for interfacting with Home Assistant API."""
 
 import json
 import subprocess
@@ -21,12 +21,11 @@ def call_service(domain: str, service: str, entity_id=None, **kwargs) -> request
     print(base_url)
     print(url)
     print(data)
-    response = requests.post(
+    return requests.post(
         url,
         headers=headers,
         json=data,
     )
-    return response
 
 
 def domains() -> list[str]:

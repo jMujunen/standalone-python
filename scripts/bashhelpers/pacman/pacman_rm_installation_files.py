@@ -19,7 +19,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(program_name):
+def main(program_name) -> None:
     basename = program_name.split("-")[0]
     print(basename)
     path_regex = re.compile(rf"{basename}.*:\s(.*)\sexists")

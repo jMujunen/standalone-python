@@ -9,6 +9,7 @@ from Color import cprint, fg, style
 from fsutils import Dir, Video
 from size import Size
 from ThreadPoolHelper import Pool
+import sys
 
 RENAME_SPEC = {
     "PLAYERUNKNOWN": "PUBG",
@@ -91,7 +92,7 @@ def main(
         os.makedirs(outdir.path, exist_ok=True)
     except OSError as e:
         print(f"[\033[31m Error creating output directory '{outdir}': {e} \033[0m]")
-        exit(1)
+        sys.exit(1)
     pool = Pool()
     for result in pool.execute(process_file, videos, outdir.path, progress_bar=True):
         if result is not None:
@@ -186,10 +187,10 @@ if __name__ == "__main__":
         old_files, new_files, before, after = main(args.INPUT, args.OUTPUT, args.num)
         if not old_files or not new_files:
             cprint("Nothing to convert. Exiting...", fg.yellow)
-            exit()
+            sys.exit()
     except KeyboardInterrupt:
         cprint("KeyboardInterrupt", fg.red)
-        exit(127)
+        sys.exit(127)
 
     space_saved = Size(before - after)
 
