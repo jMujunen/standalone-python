@@ -48,7 +48,7 @@ class Styler:
 
     def body_style(self, pattern: str, color: int | str) -> tuple[re.Pattern[str], str, str]:
         """
-        Applies a style (color) to all instances of a specific pattern in the command output.
+        Apply a style (color) to all instances of a specific pattern in the command output.
 
         Args:
         ----------
@@ -61,11 +61,7 @@ class Styler:
         """
         # TODO Add support for setting foreground and background colors with color codes as integers
 
-        if ESCAPE_REGEX.match(str(color)):
-            color_prefix = f"\033[{color}m"
-        else:  # Option for using Color object and specifying color with plain text
-            color_prefix = color
-
+        color_prefix = f"\033[{color}m" if ESCAPE_REGEX.match(str(color)) else color
         color_suffix = "\033[0m"
         regex = re.compile(pattern)
 
@@ -74,7 +70,7 @@ class Styler:
 
     def run_command(self) -> str:
         """
-        Runs the command and captures its output.
+        Run the command and captures its output.
 
         Returns:
         ----------
@@ -96,7 +92,7 @@ class Styler:
         return command_output.stdout
 
     def sort(self, ignore_header=True) -> str:
-        """Sorts the output of the command.
+        """Sort the output of the command.
         Ignores the header during sorting and prepends it unless specified.
 
         Parameters:
@@ -117,13 +113,14 @@ class Styler:
 
         else:
             sorted_rows = sorted(rows)
-        return "\n".join(sorted_rows).replace("\n\n", "\n")
+        self.command_output = "\n".join(sorted_rows).replace("\n\n", "\n")
+        return self.command_output
 
     def colorized_command_output(
         self, style: list[tuple[re.Pattern[str], str, str]] | list[re.Pattern[str]]
     ) -> str:
         """
-        Applies a list of styles to the command output and returns it.
+        Apply a list of styles to the command output and returns it.
 
         Args:
         ----------
@@ -150,20 +147,20 @@ class Styler:
 
     def remove_by_regex(self, pattern: str) -> None:
         """
-        Removes all instances of a specific regular expression pattern from the command output.
+        Remove all instances of a specific regular expression pattern from the command output.
 
         Args:
-        ----------
+        ------
             pattern (str): The regular expression pattern to be removed from the command output.
         """
         self.command_output = re.sub(pattern, "", self.command_output)
 
     def remove_by_column(self, column: int) -> None:
         """
-        Removes a specific column from the command output.
+        Remove a specific column from the command output.
 
         Args:
-        ----------
+        ------
             column (int): The index of the column to be removed from the command output.
                           Columns are 0-indexed.
         """
@@ -176,10 +173,10 @@ class Styler:
         self.command_output = "\n".join(lines)
 
     def remove_by_row(self, row: int | str) -> None:
-        """Removes a specific row from the command output.
+        """Remove a specific row from the command output.
 
         Args:
-        ----------
+        ------
             row (int): The index of the row to be removed from the command output.
                        Rows are 0-indexed.
         """
@@ -193,10 +190,10 @@ class Styler:
 
     def style_column(self, column: int, color: int | str) -> None:
         """
-        Applies a style (color) to all instances of a specific column in the command output.
+        Apply a style (color) to all instances of a specific column in the command output.
 
         Args:
-        ----------
+        ------
             column (int): The index of the column to be styled in the command output.
                           Columns are 0-indexed.
             color (Union[int, str]): The escape code or plain text representation of the desired color.
@@ -213,10 +210,10 @@ class Styler:
 
     def style_row(self, row: int, color: int | str) -> None:
         """
-        Applies a style (color) to all instances of a specific row in the command output.
+        Apply a style (color) to all instances of a specific row in the command output.
 
         Args:
-        ----------
+        ------
             row (int): The index of the row to be styled in the command output.
                        Rows are 0-indexed.
             color (Union[int, str]): The escape code or plain text representation of the desired color.
