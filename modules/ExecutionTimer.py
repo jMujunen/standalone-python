@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-"""ExecutionTimer.py - A reusable class to measure execution time"""
+"""ExecutionTimer.py - A reusable class to measure execution time."""
 
 from time import time
 
@@ -7,39 +6,44 @@ from time import time
 class ExecutionTimer:
     """Class for timing the execution of a block of code."""
 
-    def __init__(self):
+    def __init__(self, print_on_exit=True) -> None:
         self.start_time = 0
         self.end_time = 0
         self.execution_time = 0
+        self.print_on_exit = print_on_exit
 
-    def __enter__(self):
+    def __enter__(self) -> "ExecutionTimer":
         """Context manager method to start the timer."""
         self.start_time = time()
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
         self.end_time = time()
         self.execution_time = self.end_time - self.start_time
-        print(f"\n\033[34mExecution time: {self!s}\033[0m")
+        if self.print_on_exit:
+            print(f"\n\033[34mExecution time: {self!s}\033[0m")
 
     def __format__(self, format_spec: str, /) -> str:
-        if format_spec == "r":
-            return repr(self)
+        match format_spec.lower():
+            case "r":
+                return repr(self)
+            case "f":
+                return f"{self.execution_time}"
         return self.__str__()
 
     def __str__(self) -> str:
-        """Convert result from seconds to hours, minutes, seconds, and/or milliseconds"""
+        """Convert result from seconds to hours, minutes, seconds, and/or milliseconds."""
         if self.execution_time < 1:
-            return f"{round(self.execution_time * 1000)} ms"
+            return f"{round(self.execution_time * 1000)}ms"
         if self.execution_time >= 1 and self.execution_time < 60:
-            return f"{round(self.execution_time)} s"
+            return f"{(self.execution_time):.2f}s"
         if self.execution_time >= 60 and self.execution_time < 3600:
             minutes = round(self.execution_time / 60)
             self.execution_time = round(self.execution_time % 60)
-            return f"{minutes} minutes, {self.execution_time} seconds"
+            return f"{minutes}min, {self.execution_time}s"
         hours = round(self.execution_time / 3600)
         self.execution_time = round((self.execution_time % 3600) / 60)
-        return f"{hours} hours, {self.execution_time} minutes"
+        return f"{hours}h, {self.execution_time}min"
 
-    def __repr__(self):
-        return f"{self.__class__.__name__}(execution_time={self.execution_time})"
+    def __repr__(self) -> str:
+        return f"CompletedTimer({self.execution_time})"
