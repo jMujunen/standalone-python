@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert bytes to a human-readble string"""
+"""Convert bytes to a human-readble string."""
 
 import sys
 from dataclasses import dataclass
@@ -47,7 +47,7 @@ class Size:
         return f"{size / 1024:.2f} {units[-1]}"  # Last unit is TB
 
     @property
-    def size(self):
+    def size(self) -> str:
         size = self.size_in_bytes
         for counter, unit in enumerate(SizeUnit):
             if counter == 0:  # Skip the first one, it's bytes itself
@@ -86,10 +86,7 @@ class Size:
 if __name__ == "__main__":
     try:
         # isatty() returns True if file descriptor is a TTY
-        if not sys.stdin.isatty():
-            arg = sys.stdin.read()
-        else:
-            arg = sys.argv[1]
+        arg = sys.stdin.read() if not sys.stdin.isatty() else sys.argv[1]
         print(Size(int(arg)))
     except (IndexError, ValueError):
         print("Usage: ./size  <size in bytes>")

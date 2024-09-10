@@ -5,13 +5,12 @@
 import argparse
 import os
 import pandas as pd
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
-import sys
 
-()
 FILE = "/tmp/hwinfo.csv"
 
 GROUPS = {
@@ -88,12 +87,12 @@ def main(filepath: str, window_size: int, columns: list[str]) -> None:
             pass
         new_smooth_df.plot(ax=ax, grid=True)
 
-    FuncAnimation(fig, animate, frames=100, interval=200)  # type: ignore
+    anim = FuncAnimation(fig, animate, frames=100, interval=200)  # type: ignore
     plt.xlabel("Time")
     plt.show()
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Plot pandas dataframes",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
