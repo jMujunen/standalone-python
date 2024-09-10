@@ -12,7 +12,7 @@ class ExecutionTimer:
         self.execution_time = 0
         self.print_on_exit = print_on_exit
 
-    def __enter__(self) -> "ExecutionTimer":
+    def __enter__(self):
         """Context manager method to start the timer."""
         self.start_time = time()
         return self

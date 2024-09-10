@@ -6,9 +6,10 @@ import os
 import re
 import shutil
 
+from ThreadPoolHelper import Pool
+
 from fsutils import File, Img, Video
 from fsutils.DirNode import Dir, obj
-from ThreadPoolHelper import Pool
 
 DATE_REGEX = re.compile(r"\d{1,4}-(\d{4}).?(\d{2}).?(\d{2}).(\d{2}).?(\d{2}).?(\d{2})")
 
@@ -36,7 +37,9 @@ def parse_args() -> argparse.Namespace:
         required=False,
     )
     parser.add_argument("--rename", help="Change file name to date based off mtime")
-    return parser.parse_args()
+    return parser.parse_args(
+        ["/home/joona/Pictures/.test/out", "/home/joona/Pictures/.test/output"]
+    )
 
 
 def process_item(item: File, target_root: str, rename=True) -> str | None:
@@ -62,7 +65,7 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
             dest_folder, f'{modification_time.strftime("%H:%M.%S")}{item.extension}'
         )
     else:
-        dest_path = os.path.join(dest_folder, item.filename)
+        dest_path = os.path.join(dest_folder, item.basename)
     if not os.path.exists(dest_folder):
         os.makedirs(dest_folder, exist_ok=True)
     count = 1
@@ -76,7 +79,7 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
         )
         count += 1
     shutil.move(item.path, dest_path, copy_function=shutil.copy2)
-    return item.filename
+    return item.basename
 
 
 def main(root: str, dest: str) -> None:
@@ -97,7 +100,5 @@ def main(root: str, dest: str) -> None:
 
 if __name__ == "__main__":
     args = parse_args()
-    if os.path.exists(args.ROOT) and os.path.exists(args.DEST):
-        main(args.ROOT, args.DEST)
-    else:
-        args.print_help()
+    # if os.path.exists(args.ROOT) and os.path.exists(args.DEST):
+    main(args.ROOT, args.DEST)
