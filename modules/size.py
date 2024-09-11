@@ -2,7 +2,6 @@
 """Convert bytes to a human-readble string."""
 
 import sys
-from dataclasses import dataclass
 from enum import Enum
 
 
@@ -13,11 +12,11 @@ class ByteConverterError(Exception):
 
 
 class SizeUnit(Enum):
-    BYTE = 1
-    KILOBYTE = 1024
-    MEGABYTE = 1024**2
-    GIGABYTE = 1024**3
-    TERABYTE = 1024**4
+    B = 1
+    KB = 1024
+    MB = 1024**2
+    GB = 1024**3
+    TB = 1024**4
 
 
 class Size:
@@ -31,43 +30,30 @@ class Size:
             - `size_in_bytes` (int): Size in bytes."""
 
         self.size_in_bytes = abs(int(size_in_bytes))
-        self._size_str = self._convert()
-        if size_in_bytes < 0:
-            self._size_str = "-" + self._size_str
+        # if size_in_bytes < 0:
+        # self._size_str = "-" + self._size_str
 
     def _convert(self) -> str:
         """Convert bytes to the appropriate unit (B, KB, MB, GB, or TB)."""
         size = self.size_in_bytes
-        units = ["B", "KB", "MB", "GB", "TB"]
-        for unit in units[:-1]:
-            if size < 1024:
-                return f"{size:.2f} {unit}"
+        for unit in SizeUnit:
+            if size < unit.value:
+                return f"{size:.2f} {unit.name}"
             size /= 1024
 
-        return f"{size / 1024:.2f} {units[-1]}"  # Last unit is TB
-
-    @property
-    def size(self) -> str:
-        size = self.size_in_bytes
-        for counter, unit in enumerate(SizeUnit):
-            if counter == 0:  # Skip the first one, it's bytes itself
-                continue
-            if size < unit.KILOBYTE.value:
-                return f"{size:.2f} B"
-            size /= SizeUnit.KILOBYTE.value
-        return f"{size / SizeUnit.TERABYTE.value:.2f} TB"  # Last unit is TB
+        return f"{size / 1024:.2f} {SizeUnit.TB.name}"  # Last unit is TB
 
     def __str__(self):
-        return self._size_str
+        return self._convert()
 
     def __float__(self) -> float:
-        return float(self._size_str.split()[0])
+        return float(self._convert().split()[0])
 
     def __int__(self) -> int:
         return int(float(self))
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}" + f"(raw={self.size_in_bytes}, human={self._size_str})"
+        return f"{self.__class__.__name__}" + f"(raw={self.size_in_bytes}, human={self._convert()})"
 
     def __format__(self, format_spec: str, /) -> str:
         match format_spec:
