@@ -4,12 +4,12 @@
 import argparse
 import os
 import shutil
+import sys
 
 from Color import cprint, fg, style
 from fsutils import Dir, Video
 from size import Size
 from ThreadPoolHelper import Pool
-import sys
 
 RENAME_SPEC = {
     "PLAYERUNKNOWN": "PUBG",
