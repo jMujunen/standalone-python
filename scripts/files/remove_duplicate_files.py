@@ -4,19 +4,19 @@
 import argparse
 import datetime
 import os
+import sys
 from collections import OrderedDict
 
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
 from fsutils import Dir, File, Img
 from ThreadPoolHelper import Pool
-import sys
 
 IGNORED_DIRS = [".Trash-1000"]
 
 
 def process_file(file: File) -> tuple[int, str] | None:
-    """Function for concurrent processing. This is called from the ThreadPool instance."""
+    """Concurrent processing. This is called from the ThreadPool instance."""
     if any(ignored in file.path for ignored in IGNORED_DIRS) or not file.exists:
         return None
     return (hash(file), file.path)

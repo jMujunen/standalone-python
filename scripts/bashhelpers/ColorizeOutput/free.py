@@ -7,6 +7,8 @@ import subprocess
 from Color import fg, style
 from Styler import Styler
 
+# TODO: - [ ] Implement 'watch' mode (i.e., continuous update).
+
 
 def parse_data() -> str:
     r"""Parse the output from `free | grep "Mem\|Swap"`."""
@@ -41,7 +43,8 @@ def parse_data() -> str:
 "          Used      Cached    \nMem:      97.2%     63.3%     \nSwap:     27.0%     "
 
 
-def main(*args) -> None:
+def colorize() -> str:
+    """Colorizes the text based on usage."""
     free = Styler(parse_data())
     free.colorized_command_output(
         [
@@ -61,8 +64,20 @@ def main(*args) -> None:
             free.body_style(r"^([\s]+.*)\n", style.bold),
         ]
     )
+    return free.sort()
 
-    print(free.sort())
+
+def watch(interval: float) -> int:
+    while True:
+        clear()
+        colorize()
+        sleep(1)
+
+
+def main(*args) -> None:
+    if "watch" in args:
+        watch()
+    return colorize()
 
 
 def parse_args() -> argparse.Namespace:

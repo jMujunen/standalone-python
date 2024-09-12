@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import os
-import sys
-import subprocess
 import argparse
+import os
+import subprocess
+import sys
 
 from Color import cprint, style
 
@@ -38,6 +38,12 @@ def list_broken(*args) -> str:
     if not args:
         args = ["--file-properties", "--recursive"]
     return subprocess.getoutput(["sudo", "paccheck", "--list_broken", *args])
+
+
+def core_dump(*args):
+    subprocess.run(
+        ["gdb", "--core=/path/to/corefile", "-ex", f"info {' '.join(args)}", "-batch"], check=False
+    )
 
 
 def main(args: argparse.Namespace) -> int:
