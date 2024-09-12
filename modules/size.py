@@ -5,12 +5,6 @@ import sys
 from enum import Enum
 
 
-class ByteConverterError(Exception):
-    """Raised when an error is encountered during conversion."""
-
-    pass  # noqa
-
-
 class SizeUnit(Enum):
     B = 1
     KB = 1024
@@ -30,14 +24,12 @@ class Size:
             - `size_in_bytes` (int): Size in bytes."""
 
         self.size_in_bytes = abs(int(size_in_bytes))
-        # if size_in_bytes < 0:
-        # self._size_str = "-" + self._size_str
 
     def _convert(self) -> str:
         """Convert bytes to the appropriate unit (B, KB, MB, GB, or TB)."""
         size = self.size_in_bytes
         for unit in SizeUnit:
-            if size < unit.value:
+            if size < SizeUnit.KB.value:
                 return f"{size:.2f} {unit.name}"
             size /= 1024
 

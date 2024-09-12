@@ -49,9 +49,7 @@ class Pool:
                 futures = [executor.submit(callback_function, item, *args) for item in data_source]
                 for future in as_completed(futures):
                     try:
-                        result = future.result()
-                        if result:
-                            yield result
+                        yield future.result()
                     except Exception as exc:
                         print(f"\nException: {exc!r}")
                     finally:
