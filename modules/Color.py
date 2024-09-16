@@ -23,7 +23,18 @@ Examples:
     >>> cprint("This is bold and cyan", fg.cyan, style.bold)
 """
 
+from collections import namedtuple
 from dataclasses import dataclass
+
+Color = namedtuple("Color", ["r", "g", "b"])
+
+
+@dataclass
+class Log:
+    DEBUG = "\x1b[100m"
+    INFO = "\x1b[34m"
+    WARNING = "\x1b[33m"
+    ERROR = "\x1b[31m"
 
 
 class ColorMeta(type):
@@ -214,7 +225,7 @@ class Attributes(metaclass=ColorMeta):
 
 class style(Attributes):
     r"""
-    Applys `style` text formatting.
+    Apply `style` text formatting.
 
     Methods:
     --------
@@ -231,7 +242,7 @@ class style(Attributes):
     """
 
     def listall() -> None:
-        """Prints all available attributes."""
+        """Print all available attributes."""
         print(" ".join(list(style.STYLE.keys())))
 
     def showall():
@@ -243,7 +254,7 @@ class style(Attributes):
 
 class fg(ForegroundColor):
     r"""
-    Applys `fg` foreground formatting.
+    Apply `fg` foreground formatting.
 
     Methods:
     --------
@@ -268,7 +279,7 @@ class fg(ForegroundColor):
 
 class bg(BackgroundColor):
     r"""
-    Applys `bg` foreground formatting.
+    Apply `bg` foreground formatting.
 
     Methods:
     --------
@@ -283,7 +294,7 @@ class bg(BackgroundColor):
     """
 
     def listall() -> None:
-        """Prints all available attributes."""
+        """Print all available attributes."""
 
         print(" ".join(list(bg.STYLE.keys())))
 
@@ -300,7 +311,7 @@ class Parse:
     """Parses text with given styles."""
 
     def __init__(self, text: str, *styles: list) -> None:
-        """Initializes the class with text and styles.
+        """Initialize the class with text and styles.
 
         Parameters:
         -----------
@@ -311,7 +322,7 @@ class Parse:
         self.styles = styles
 
     def __str__(self):
-        """Returns the text with applied styles.
+        """Return the text with applied styles.
 
         Returns:
         --------
@@ -324,7 +335,7 @@ class Parse:
 
 
 def cprint(text, *styles, end="\n") -> None:
-    """Prints the text with given styles.
+    """Print the text with given styles.
 
     Parameters:
     ----------
@@ -374,7 +385,7 @@ if __name__ == "__main__":
 
 
 # TODO
-"""
+
 color_names = {
     "alice blue": Color(240, 248, 255),
     "aliceblue": Color(240, 248, 255),
@@ -1130,4 +1141,3 @@ color_names = {
     "yellow4": Color(139, 139, 0),
     "yellowgreen": Color(154, 205, 50),
 }
-"""

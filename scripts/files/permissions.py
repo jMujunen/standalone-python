@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from Color import cprint, fg, style
 from ProgressBar import ProgressBar
+from ThreadPoolHelper import Pool
 
 
 def set_permissions(path: str, fix) -> tuple[str, str, str, bool] | None:
@@ -35,6 +36,16 @@ def set_permissions(path: str, fix) -> tuple[str, str, str, bool] | None:
 
 
 def count_items(directory):
+    """Count the total number of items in a directory recursively.
+
+    Handles cases where entries may not be accessible due to permissions issues or other OS errors by counting them as well.
+
+    Args:
+        directory (str): The path to the directory to count items in.
+
+    Returns:
+        int: Total number of items in the directory and its subdirectories.
+    """
     total = 0
     for entry in os.scandir(directory):
         try:
@@ -52,37 +63,44 @@ def count_items(directory):
     return total
 
 
-def main(path: str, dry_run: bool) -> None:
-    num_files = count_items(path)
-    real_files = []
-    print(f"Found {num_files} files")
-    with ProgressBar(num_files) as pb, ThreadPoolExecutor() as executor:
-        futures = {
-            executor.submit(set_permissions, os.path.join(root, file), not dry_run): file
-            for root, dirs, files in os.walk(path)
-            for file in files
-        }
-        for future in as_completed(futures):
-            try:
-                result = future.result()
-                if result:
-                    path, mode, new_mode, fixed = result
-                    real_files.append((path, mode, new_mode, fixed))
-                    # if fixed:
+def check_and_fix_permissions(real_files, fix=True):
+    """Check and fix permissions for a list of files or directories.
 
-            except Exception as e:
-                cprint(f"{future}: {e}", fg.red)
-            finally:
-                pb.increment()
+    This function checks the current permissions of each item in `real_files` and attempts to fix them if requested. It prints warnings or errors based on the status of each file/directory.
+
+    Parameters:
+    ------------
+        real_files (list): A list of paths to files or directories whose permissions are to be checked and potentially fixed.
+        fix (bool, optional): If True, attempt to fix the permissions if they do not match expected values. Defaults to True.
+
+    Returns:
+    --------
+        tuple: A tuple containing:
+            - int: The number of items that needed fixing.
+            - list: A list of paths that were checked and potentially fixed.
+
+    """
     num_fixed = 0
-    for path, mode, new_mode, fixed in real_files:
-        if fixed:
-            num_fixed += 1
-            print(
-                f"{path.split("/")[-1]} ({fg.red}{mode}{style.reset} -> \
-                    {fg.green}{new_mode}{style.reset})"
-            )
-    cprint(f"{num_fixed}/{len(real_files)} need fixing", style.bold)
+    checked_paths = []
+    for path in real_files:
+        original_mode = os.stat(path).st_mode
+        mode = original_mode
+        if os.path.isdir(path):
+            # Read and execute for user; read only for others
+            mode |= 0o750
+        elif os.path.isfile(path) and path.endswith((".sh", ".py")):
+            # Full access for the user, read and execute for others
+            mode |= 0o755
+        else:
+            # No execution bits for regular files (read and write only)
+            mode &= ~(0o111)
+        checked_paths.append(path)
+        if fix:
+            os.chmod(path, mode)
+            new_mode = os.stat(path).st_mode
+            fixed = new_mode != original_mode
+            num_fixed += int(fixed)
+    return num_fixed, checked_paths
 
 
 if __name__ == "__main__":
