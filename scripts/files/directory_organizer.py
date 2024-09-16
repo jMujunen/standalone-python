@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""Organize a directory by mimetype. Additionally, creates an organized tree for
-    for any images or videos which get sorted by capture date and moved to its respective folder"""
+"""Organize a directory by mimetype.
+
+Additionally, creates an organized tree for any images or videos which get
+sorted by capture date and moved to its respective folder"""
 
 import argparse
 import datetime
@@ -25,20 +27,25 @@ def cleanup(top) -> None:
             os.rmdir(root)
 
 
-def detect_duplicates(src_object: File, dest_filepath: str) -> str:
+def detect_duplicates(src_object: File, dest_filepath: str):  # -> str:
     count = 0
-    while os.path.exists(dest_filepath):
-        dest_object = obj(dest_filepath)
-        if src_object == dest_object:
-            # If the file is identical, remove it from its original location
-            os.remove(src_object.path)
-            break
-        # If the file exists but isn't identical, generate a new name for it
-        dest_filepath = os.path.join(dest_object.path, f"{count}-{src_object.basename}")
-        count += 1
-    else:
-        # If the file is not identical or doesn't exist yet, move it to its new location
-        shutil.move(src_object.path, dest_filepath)
+    if os.path.exists(dest_filepath):
+        msg = f"{src_object} == {dest_filepath}"
+        cprint(msg, fg.yellow)
+        return None
+    #     dest_object = obj(dest_filepath)
+    #     if src_object == dest_object:
+    #         # If the file is identical, remove it from its original location
+    #         os.remove(src_object.path)
+    #         break
+    #     # If the file exists but isn't identical, generate a new name for it
+    #     dest_filepath = os.path.join(dest_object.path, f"{count}-{src_object.basename}")
+    #     count += 1
+    # else:
+    #     # If the file is not identical or doesn't exist yet, move it to its new location
+    #     shutil.move(src_object.path, dest_filepath)
+    # return src_object.basename
+    shutil.move(src_object.path, dest_filepath)
     return src_object.basename
 
 
