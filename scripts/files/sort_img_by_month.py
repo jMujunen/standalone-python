@@ -4,6 +4,7 @@
 # - [ ] Improve performance by using multithreading/multiprocessing
 
 import argparse
+import contextlib
 import os
 import re
 import shutil
@@ -440,8 +441,8 @@ def main(input_dir: str, output_dir: str):
                             output_file_path,
                             copy_function=shutil.copy2,
                         )
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        print(f"Error: {e:!r}")
                     rm_empty_folders(item.path)
                     # cprint(f"Unknown file type{type(item)}, {item.path}", fg.cyan, style.underline)
                 # else:
