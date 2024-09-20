@@ -9,12 +9,13 @@ import re
 
 import matplotlib.pyplot as plt
 import numpy as np
+from plotly import graph_objects as go
 
 DIGITS_RE = re.compile(r"(\d+(\.\d+)?)")
 ALL_COLUMNS_KEYWORDS = ["all", "-all", "--all", "-all", "-a", "all_columns"]
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Generate a graph from numbers in a file.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -37,7 +38,7 @@ def parse_args():
 
 def main(args) -> None:
     df = pd.read_csv(args.FILE, sep=",", header=None, names=["Timestamp", "Value"])
-    df["Value"] = np.convolve(df["Value"], np.ones(args.window) / args.window, mode="valid")
+    # df["Value"] = np.convolve(df["Value"], np.ones(args.window) / args.window, mode="valid")
     fig, ax = plt.subplots(figsize=(16, 6))
     line = ax.plot([], [], label="Ping")  # use the first column for the label
     (line,) = ax.plot([], [], label="Ping")
@@ -45,6 +46,11 @@ def main(args) -> None:
     df.plot(ax=ax, grid=True, kind="line", x="Timestamp", y="Value")
     # plt.legend()
     plt.show()
+
+    # Create an interactive line plot with Plotly
+    fig = go.Figure(data=[go.Scatter(x=df["Timestamp"], y=df["Value"])])
+    fig.update_layout(title="Your Plot Title", xaxis_title="Timestamp", yaxis_title="Value")
+    fig.show()
 
 
 if __name__ == "__main__":

@@ -25,16 +25,39 @@ Examples:
 
 from collections import namedtuple
 from dataclasses import dataclass
+from typing import Any
 
 Color = namedtuple("Color", ["r", "g", "b"])
 
 
 @dataclass
-class Log:
+class LogPreset:
     DEBUG = "\x1b[100m"
     INFO = "\x1b[34m"
     WARNING = "\x1b[33m"
     ERROR = "\x1b[31m"
+
+
+class Logger(LogPreset):
+    def __init__(self, decoration=1) -> None:
+        """Initialize the logger with preset styles."""
+        super().__init__()
+
+    @classmethod
+    def debug(cls, msg: str, **kwargs: Any) -> None:
+        print(f"{cls.DEBUG}[DEBUG]{style.reset} - {msg}", **kwargs)
+
+    @classmethod
+    def info(cls, msg: str, **kwargs: Any) -> None:
+        print(f"{cls.INFO}[INFO]{style.reset} - {msg}", **kwargs)
+
+    @classmethod
+    def warning(cls, msg: str, **kwargs: Any) -> None:
+        print(f"{cls.WARNING}[WANRING]{style.reset} - {msg}", **kwargs)
+
+    @classmethod
+    def error(cls, msg: str, **kwargs: Any) -> None:
+        print(f"{cls.ERROR}[ERROR]{style.reset} - {msg}", **kwargs)
 
 
 class ColorMeta(type):

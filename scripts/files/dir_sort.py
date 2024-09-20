@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sort all videos and/or images in a given directory into specfified structure
+"""Sort all videos and/or images in a given directory into specfified structure.
 
 Example:
 --------
