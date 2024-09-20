@@ -10,6 +10,7 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
+from plotly import graph_objects as go
 
 FILE = "/tmp/hwinfo.csv"
 
@@ -25,7 +26,7 @@ GROUPS = {
 def main(filepath: str, window_size: int, columns: list[str]) -> None:
     """Load CSV file into a dataframe and plot specified columns.
 
-    ### Notes:
+    Para
         - `window_size` defines moving average or how 'smooth' the line will be.
 
     """
@@ -51,12 +52,14 @@ def main(filepath: str, window_size: int, columns: list[str]) -> None:
     fig, ax = plt.subplots(figsize=(16, 6))
     line = ax.plot([], [], label=columns[0])  # use the first column for the label
     (line,) = ax.plot([], [], label=columns[0])
+    # Create an interactive line plot with Plotly
+    fig = go.Figure(data=[go.Scatter(x=df["datetime"], y=df[" gpu_temp"])])
+    fig.update_layout(title="Your Plot Title", xaxis_title="Timestamp", yaxis_title="Value")
+    fig.show()
 
     def init():
         ax.set_xlim(left=0, right=len(df))
-        ax.set_ylim(
-            bottom=np.min(smooth_df.values) - 1, top=250
-        )  # Used smooth_df instead of smooth_data
+        ax.set_ylim(bottom=np.min(smooth_df.values) - 1, top=250)
         return line
 
     def animate(i):
@@ -75,14 +78,12 @@ def main(filepath: str, window_size: int, columns: list[str]) -> None:
         tick_interval = len(new_smooth_df) / num_ticks
         ax.set_xticks(np.arange(0, len(new_smooth_df), tick_interval))
 
-        # Formatting timestamps if your data has a datetime index or column
+        # Format timestamps if data has a datetime index or column
+        # Use integer indexing to match the tick interval
         if isinstance(new_smooth_df.index, pd.DatetimeIndex):
-            labels = new_smooth_df.index[
-                :: int(tick_interval)
-            ]  # Use integer indexing to match the tick interval
-            ax.set_xticklabels(
-                labels, rotation=45
-            )  # Rotate labels for better readability if needed
+            labels = new_smooth_df.index[:: int(tick_interval)]
+            # Rotate labels for better readability if needed
+            ax.set_xticklabels(labels, rotation=45)
         else:
             pass
         new_smooth_df.plot(ax=ax, grid=True)
@@ -94,7 +95,7 @@ def main(filepath: str, window_size: int, columns: list[str]) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Plot pandas dataframes",
+        description="Plot csv data",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(

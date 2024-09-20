@@ -25,7 +25,7 @@ def process_file(file: File) -> tuple[int, str] | None:
 def generate_hash_map(path: str, images=False, videos=False) -> OrderedDict:
     """Find duplicate files based on their hash representation."""
 
-    def filter(images: bool, videos: bool):
+    def filter_spec(images: bool, videos: bool):
         match (images, videos):
             case (True, False):
                 return Dir(path).images
@@ -35,14 +35,13 @@ def generate_hash_map(path: str, images=False, videos=False) -> OrderedDict:
                 return Dir(path).file_objects
 
     # Create a generator that yields the specified (optional) types of files in the directory
-    files = filter(images, videos)
+    files = filter_spec(images, videos)
     hashes = OrderedDict()
     # Create a thread pool for concurrent processing
     pool = Pool()
     for result in pool.execute(process_file, files, progress_bar=True):
         try:
             if result is not None:
-                # Unpack the hash and path from the result
                 file_hash, file_path = result
                 try:
                     # Try to append the current file path to the list of paths for this hash.
@@ -68,7 +67,6 @@ def remove_group(duplicate_group: list[str]) -> bool:
             continue
         # Double check to make sure we are keeping the originals by checking capture date and mtime
         # if Img(sorted_files[0]).capture_date != sorted_files[i].mtime:
-
         try:
             os.remove(_file)
             _counter += 1
@@ -79,7 +77,8 @@ def remove_group(duplicate_group: list[str]) -> bool:
     return True
 
 
-def remove_with_confirmation(duplicate_group: list[str], images=False):
+def remove_with_confirmation(duplicate_group: list[str], images=False) -> bool:
+    """Process the hashes returned from `find_duplicates()`."""
     sorted_files = sorted(duplicate_group, key=lambda x: os.path.getmtime(x[0]), reverse=False)
     for i, file in enumerate(sorted_files):
         if i <= 1:  # Skip the first two files

@@ -2,7 +2,10 @@
 """free.py - Colorized wrapper for gnu 'free -h'."""
 
 import argparse
+import os
 import subprocess
+from sys import platform
+from time import sleep
 
 from Color import fg, style
 from Styler import Styler
@@ -67,31 +70,41 @@ def colorize() -> str:
     return free.sort()
 
 
-def watch(interval: float) -> int:
+def clear() -> None:
+    os.system("clear") if platform == "linux" else os.system("cls")
+
+
+def watch(interval: float | int) -> int:
     while True:
-        clear()
-        colorize()
-        sleep(1)
+        try:
+            clear()
+            print(colorize())
+            sleep(interval)
+        except KeyboardInterrupt:
+            print("\nExiting...")
+            break
+        except Exception as e:
+            print("Error occurred:\n", str(e))
+            return 1
+    return 0
 
 
-def main(*args) -> None:
-    if "watch" in args:
-        watch()
-    return colorize()
+def main(watch_flag: bool, watch_interval: float | int) -> str | int:
+    if watch_flag:
+        return watch(watch_interval)
+    print(colorize())
+    return 0
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="df wrapper")
     parser.add_argument(
-        "--human-readable",
-        "-H",
-        action="store_true",
-        help="Print sizes in human readable format (e.g., 1K 234M 2G)",
+        "--watch", "-w", action="store_true", help="Watch continuously", default=False
     )
-    parser.add_argument("--watch", "-w", action="store_true", help="Watch continuously")
+    parser.add_argument("--interval", "-i", default=2, help="Watch interval in seconds")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    main(*vars(args).values())
+    main(args.watch, args.interval)
