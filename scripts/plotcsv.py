@@ -6,11 +6,10 @@ import argparse
 import os
 import pandas as pd
 import sys
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.animation import FuncAnimation
-from plotly import graph_objects as go
 
 FILE = "/tmp/hwinfo.csv"
 
@@ -19,77 +18,87 @@ GROUPS = {
     "gpu": [" gpu_temp", " gpu_core_usage", " gpu_power"],
     "temps": [" system_temp", " gpu_temp", " cpu_temp"],
     "cpu": [" cpu_max_clock", " cpu_avg_clock"],
-    "volts": [" gpu_volage", " cpu_voltage"],
+    "volts": [" gpu_voltage", " cpu_voltage"],
 }
 
 
-def main(filepath: str, window_size: int, columns: list[str]) -> None:
+def main(filepath: str, columns: list[Any], num_rows: int = -1, smooth_factor: int = 1) -> None:
     """Load CSV file into a dataframe and plot specified columns.
 
-    Para
-        - `window_size` defines moving average or how 'smooth' the line will be.
+    Parameters:
+    ----------
+        - `smooth_factor` defines moving average or how 'smooth' the line will be.  \
+            Default value is a variable calculated based number of rows in the dataframe.
+        - `num_rows` defines how many rows to load from the file.
+        - `columns` defines which columns to plot.  If column name is not found, it will be ignored \
+            as long as there is atleast one valid column
 
     """
-    if columns[0] in GROUPS:
-        columns = GROUPS[args.COLUMNS[0]]
 
+    if columns[0] in GROUPS:
+        columns = GROUPS[columns[0]]
     if not os.path.isfile(filepath):
-        raise FileNotFoundError(f"File {filepath} not found.")
-    df = pd.read_csv(filepath, sep=r",")
+        raise FileNotFoundError("File not found.")
+    df = pd.read_csv(filepath, sep=r",", engine="python", index_col=0)
+    df = df.tail(num_rows)
     missing_columns = [col for col in columns if col not in df.columns]
 
-    if missing_columns:
-        raise ValueError(f"Columns {", ".join(missing_columns)} do not exist in the file.")
+    # Create index from timestamp
+    df.index = pd.to_datetime(df.index)
+    df.index = df.index.strftime("%H:%M")
 
-    # Replace the non-numeric values with NaNs and convert floats
+    # Plot the data even if some of the specified columns are missing from the file
+    if missing_columns:
+        print(
+            f"\033[33m[WARNING]\033[0m Columns \033[1;4m{", ".join(missing_columns)}\033[0m do not exist in the file."
+        )
+        columns = [col for col in columns if col in df.columns] or df.columns  # type: ignore
+    print(columns)
+    # Smooth the line for easier reading of large datasets
     smooth_data = {}
+    if smooth_factor == 1:
+        smooth_factor = int(df.shape[0] / 100) or 1
     for column in columns:
         smooth_data[column] = np.convolve(
-            df[column], np.ones(window_size) / window_size, mode="valid"
+            df[column], np.ones(smooth_factor) / smooth_factor, mode="valid"
         )
-    smooth_df = pd.DataFrame(smooth_data)
 
-    fig, ax = plt.subplots(figsize=(16, 6))
-    line = ax.plot([], [], label=columns[0])  # use the first column for the label
-    (line,) = ax.plot([], [], label=columns[0])
-    # Create an interactive line plot with Plotly
-    fig = go.Figure(data=[go.Scatter(x=df["datetime"], y=df[" gpu_temp"])])
-    fig.update_layout(title="Your Plot Title", xaxis_title="Timestamp", yaxis_title="Value")
-    fig.show()
+    smooth_df = pd.DataFrame(smooth_data, index=df.index[: -(smooth_factor - 1)])
 
-    def init():
-        ax.set_xlim(left=0, right=len(df))
-        ax.set_ylim(bottom=np.min(smooth_df.values) - 1, top=250)
-        return line
+    fig, ax = plt.subplots(
+        figsize=(16, 6),
+        dpi=80,
+        edgecolor="#5a93a2",
+        linewidth=1,
+        tight_layout=True,
+        facecolor="#364146",
+        subplot_kw={"facecolor": "#2E3539"},
+    )
 
-    def animate(i):
-        new_data = pd.read_csv(filepath, sep=",", engine="python")
-        new_smooth_data = {}
-        for column in columns:
-            new_smooth_data[column] = np.convolve(
-                new_data[column], np.ones(window_size) / window_size, mode="valid"
-            )
-        new_smooth_df = pd.DataFrame(new_smooth_data)
-        ax.clear()
-        # Set x-axis ticks and labels
-        num_ticks = 12
-        plt.xlabel("Time")
-        plt.ylabel("Value")
-        tick_interval = len(new_smooth_df) / num_ticks
-        ax.set_xticks(np.arange(0, len(new_smooth_df), tick_interval))
+    # Y-axis settings
+    plt.ylabel("Value", fontsize=14, color="#d3c6aa", fontweight="bold")
 
-        # Format timestamps if data has a datetime index or column
-        # Use integer indexing to match the tick interval
-        if isinstance(new_smooth_df.index, pd.DatetimeIndex):
-            labels = new_smooth_df.index[:: int(tick_interval)]
-            # Rotate labels for better readability if needed
-            ax.set_xticklabels(labels, rotation=45)
-        else:
-            pass
-        new_smooth_df.plot(ax=ax, grid=True)
+    # X-axis settings
+    plt.xlabel("")
+    ax.set_xlim(left=0, right=len(smooth_df))
+    print(len(smooth_df.columns))
+    if len(df.columns) == 1:
+        smooth_df.plot(
+            ax=ax,
+            grid=True,
+            kind="line",
+            color="#a7c080",
+        )
+    else:
+        smooth_df.plot(ax=ax, grid=True, kind="line")
 
-    anim = FuncAnimation(fig, animate, frames=100, interval=200)  # type: ignore
-    plt.xlabel("Time")
+    # plt properties
+    plt.grid(True, linestyle="--", alpha=0.3, color="#d3c6a2")
+    plt.title(FILE, fontsize=16, color="#d3c6a2", fontweight="bold")
+    plt.legend(loc="upper left")
+
+    # plt.yticks(fontsize=12, color="#d3c6aa")
+    plt.xticks(rotation=45, fontsize=12, color="#d3c6aa")
     plt.show()
 
 
@@ -97,19 +106,28 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Plot csv data",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        usage="plotcsv.py [OPTIONS] FILE ",
     )
     parser.add_argument(
-        "-f", "--file", help="Path to the csv file", type=str, default="/tmp/hwinfo.csv"
+        "FILE",
+        help="Path to the csv file",
+        type=str,
+        nargs="?",
+        default="/tmp/hwinfo.csv",
     )
     parser.add_argument(
-        "-w", "--window", help="Window size for the moving average", type=int, default=100
+        "-s", "--smooth", help="Smoothing factor for the moving average", type=int, default=1
+    )
+    parser.add_argument(
+        "-n", "--num", help="Limit the number of rows to plot", type=int, default=-1
     )
     parser.add_argument("-l", "--list", action="store_true", help="List available columns")
     parser.add_argument(
-        "COLUMNS",
+        "-c",
+        "--columns",
         help="""Columns to plot
         Supports groups, such as 'cpu' or 'gpu' or 'temps' .""",
-        nargs="*",
+        nargs=argparse.REMAINDER,
         default=["temps"],
     )
     # TODO: Add support for limiting the range of the x-axis (time)
@@ -123,4 +141,18 @@ if __name__ == "__main__":
             print(f"\033[1m{group}\033[0m")
             print(" ", "\n  ".join(GROUPS[group]))
         sys.exit(0)
-    main(args.file, args.window, args.COLUMNS)
+    main(args.FILE, args.columns, args.num, args.smooth)
+
+
+# # coding: utf-8
+# FILE = "/home/joona/Logs/Network/tmp2.csv"
+# df = pd.read_csv(FILE, sep=",", header=None, names=["Timestamp", "Value"])
+# fig, ax = plt.subplots(
+#     figsize=(16, 6),
+#     dpi=80,
+#     edgecolor="#5a93a2",
+#     linewidth=1,
+#     tight_layout=True,
+#     facecolor="#364146",
+#     subplot_kw={"facecolor": "#2E3539"},
+# )

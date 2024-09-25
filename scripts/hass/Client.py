@@ -69,6 +69,8 @@ class MetaClient(type):
 class Client(metaclass=MetaClient):
     """Base class for interacting with the Home Assistant API."""
 
+    _domains: dict[dict[str, str], str] = {}
+
     def __init__(self, host=HOST, token=TOKEN) -> None:
         self.base_url = f"http://{host}:8123/api/services"
         self.host = host

@@ -5,20 +5,16 @@ Additionally, creates an organized tree for any images or videos which get
 sorted by capture date and moved to its respective folder"""
 
 import argparse
-import datetime
 import os
 import re
 import shutil
-from pathlib import Path
 
-from Color import Logger, cprint, fg, style
+from Color import cprint, fg, style
 from fsutils import File, Img, Video
 from fsutils.DirNode import Dir, obj
 from ThreadPoolHelper import Pool
 
 DATE_REGEX = re.compile(r"\d{1,4}-(\d{4}).?(\d{2}).?(\d{2}).(\d{2}).?(\d{2}).?(\d{2})")
-
-logger = Logger()
 
 
 def cleanup(top) -> None:
@@ -30,34 +26,31 @@ def cleanup(top) -> None:
             os.rmdir(root)
 
 
-def detect_duplicates(src_object: File, dest_filepath: str):  # -> str:
+def detect_duplicates(src_object: File, dest_filepath: str) -> str | None:
     """Detect if a duplicate exists and returns a unique filename."""
     count = 0
     while os.path.exists(dest_filepath):
         dest_object = obj(dest_filepath)
         if src_object == dest_object:
-            # If the file is identical, remove it from its original location
+            # If the file is identical, remove src item, keep the dest items
             msg = f"{src_object.basename} already exists at {dest_filepath}. Removing {fg.orange}{src_object.basename}{style.reset}"
-            logger.warning(msg)
+            cprint.warn(msg)
+            print(
+                f"{fg.red}{src_object!r}{style.reset} {fg.yellow}{style.bold}->{style.reset}{fg.green} {dest_object!r}{style.reset}"
+            )
             try:
                 os.remove(src_object.path)
             except OSError as e:
-                logger.error(f"{e!r}: Run as root", end="\r")
+                cprint.error(f"{e!r}: Run as root", end="\r")
                 return None
             return None
-            os.remove(src_object.path)
-            break
-        #     # If the file exists but isn't identical, generate a new name for it
-        dest_filepath = os.path.join(dest_object.path, f"{count}-{src_object.basename}")
+        # If the file exists but isn't identical, generate a new name for it
         count += 1
-    # else:
-    #     # If the file is not identical or doesn't exist yet, move it to its new location
-    #     shutil.move(src_object.path, dest_filepath)
-    # return src_object.basename
+        dest_object.basename = f"{count}-{src_object.basename}"
     try:
         shutil.move(src_object.path, dest_filepath)
     except PermissionError as e:
-        logger.error(f"PermissionError: {e!r}")
+        cprint.error(f"PermissionError: {e!r}")
         raise PermissionError from e
     return src_object.basename
 
@@ -73,7 +66,7 @@ def process_item(item: File, target_root: str, sort_by="month") -> str | None:
 
     """
     if isinstance(item, Img):
-        prefix = os.path.join(target_root, "Pictures")
+        prefix = os.path.join(target_root, "Photos")
     # Set the destination folder to Videos for video files
     elif isinstance(item, Video):
         prefix = os.path.join(target_root, "Videos")
@@ -146,4 +139,4 @@ if __name__ == "__main__":
     if os.path.exists(args.ROOT) and os.path.exists(args.DEST):
         main(args.ROOT, args.DEST, args.spec)
     else:
-        args.print_help()
+        cprint.error("One or both of the provided paths do not exist.")
