@@ -2,6 +2,7 @@
 
 import re
 import subprocess
+from typing import Any
 
 ESCAPE_REGEX = re.compile(r"(\d+;?)+")
 ORIGINAL_FORMAT_REGEX = re.compile(r"^([^\s]+(\s+))+")
@@ -25,21 +26,16 @@ class Styler:
         `colorized_command_output(style)` : # Returns the colorized command output
     """
 
-    def __init__(self, command: str, **kwargs: list[str] | tuple[str]) -> None:
-        # Initialization of the Styler object with a command and optional positional arguments or flags.
-        self.command = command
-        self._styles = []
+    _styles: list[str]
 
-        if not kwargs:
-            self.positional_arguments = ""
-            self.flags = ""
-        else:
-            for arg in kwargs.items():
-                if arg[0] == "positional":
-                    self.positional_arguments = "  ".join(arg[1])
-                if arg[0] == "flags":
-                    self.flags = "  ".join(arg[1])
-        self.command_output = self.run_command()
+    def __init__(self, command: str, *args: Any, skip_subprocess=False) -> None:
+        """Initialize object with a command and optional positional arguments or flags."""
+        self._styles = []
+        self.command = command, *args
+        if skip_subprocess is True:
+            self.command_output = command
+            return
+        self.command_output = self.run_command(command, *args)
 
     @property
     def styles(self) -> list[str]:
@@ -52,12 +48,12 @@ class Styler:
 
         Args:
         ----------
-            pattern (str): The regular expression pattern for identifying text to style.
-            color (Union[int, str]): The escape code or plain text representation of the desired color.
+            - pattern (str): The regular expression pattern for identifying text to style.
+            - color (Union[int, str]): The escape code or plain text representation of the desired color.
 
         Returns:
         ----------
-            tuple: A tuple containing the compiled regex, prefix and suffix strings used for styling.
+            - tuple: A tuple containing the compiled regex, prefix and suffix strings used for styling.
         """
         # TODO Add support for setting foreground and background colors with color codes as integers
 
@@ -68,40 +64,41 @@ class Styler:
         self._styles.append((regex, color_prefix, color_suffix))
         return (regex, str(color_prefix), "\033[0m")
 
-    def run_command(self) -> str:
+    def run_command(self, prog, *args) -> str:
         """
         Run the command and captures its output.
 
         Returns:
         ----------
-            str: The stdout of the command as a string. If stderr is not empty, it prints the error and exits with status 1.
+            - str: The stdout of the command as a string. If stderr is not empty, it prints the error and exits with status 1.
         """
+        match args:
+            case ["--help"]:
+                return subprocess.run(
+                    [prog, "--help"], check=False, text=True, capture_output=True
+                ).stdout
 
         command_output = subprocess.run(
-            f"{self.command} {self.flags} {self.positional_arguments}",
-            shell=True,
+            self.command,
             capture_output=True,
             text=True,
             check=False,
         )
         if command_output.stderr:
-            # print(command_output.stderr)
-            # sys.exit(1)
-            return self.command
+            return command_output.stderr
 
         return command_output.stdout
 
     def sort(self, ignore_header=True) -> str:
         """Sort the output of the command.
-        Ignores the header during sorting and prepends it unless specified.
 
         Parameters:
         ----------
-        ignore_header (bool): Specifies whether to ignore the header during sorting. Defaults to True.
+            - ignore_header (bool): Specifies whether to ignore the header during sorting. Defaults to True.
 
         Returns:
         --------
-            str: The sorted command output as a string.
+            - str: The sorted command output as a string.
         """
         rows = self.command_output.split("\n")
         # If specified, ignore the header during sorting, and prepend the header
