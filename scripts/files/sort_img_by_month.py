@@ -58,7 +58,7 @@ def wedding_photos(output_dir, image_object):
     except Exception as e:
         cprint(
             f"Error moving Wedding photo from {image_object.path} -> {wedding_photo_path}: {e}",
-            fg.reg,
+            fg.red,
             style.bold,
         )
 
@@ -74,7 +74,7 @@ def screenshots(output_dir, image_object):
         cprint(
             f"""Error moving screenshots photo from {image_object.path} -> {screenshot_path}:
             {e}""",
-            fg.reg,
+            fg.red,
             style.bold,
         )
 
