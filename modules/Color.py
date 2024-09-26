@@ -61,12 +61,12 @@ class Parse:
 class cprint:
     """Print the text with given styles."""
 
-    def __init__(self, text: str, *styles: list, end="\n") -> None:
+    def __init__(self, text: Any, *styles: Any, end="\n") -> None:
         """Initialize the class with text and styles."""
         self(text, *styles, end=end)
 
     @staticmethod
-    def __call__(text: str, *styles: list, end="\n") -> None:
+    def __call__(text: Any, *styles: list, end="\n") -> None:
         print(Parse(text, *styles), end=end)
 
     @staticmethod
