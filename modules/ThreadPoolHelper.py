@@ -12,14 +12,16 @@ class Pool:
     """
 
     def __init__(self, num_threads=20):
+        """Initialize the thread pool with a specified number of threads."""
         self.num_threads = num_threads
 
     def execute(
         self,
         callback_function: Callable,
         data_source: Iterable,
-        *args,
         progress_bar=True,
+        *args,
+        **kwargs,
     ) -> Generator:
         """Execute a callable function concurrently for each item in the data source.
 
@@ -46,7 +48,10 @@ class Pool:
         if progress_bar:
             progress_bar = ProgressBar(len(data_source))  # type: ignore
             with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
-                futures = [executor.submit(callback_function, item, *args) for item in data_source]
+                futures = [
+                    executor.submit(callback_function, item, *args, **kwargs)
+                    for item in data_source
+                ]
                 for future in as_completed(futures):
                     try:
                         yield future.result()
