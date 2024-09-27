@@ -45,6 +45,8 @@ def categorize_item(
     dest_folder = ""
     if isinstance(item, Img):
         prefix = os.path.join(target_root.path, "Photos")
+        if item.extension.lower() == ".nef":
+            prefix = os.path.join(prefix, "RAW")
     # Set the destination folder to Videos for video files
     elif isinstance(item, Video):
         prefix = os.path.join(target_root.path, "Videos")
@@ -83,6 +85,15 @@ def categorize_item(
 
 
 def determine_originals(file_paths: list[str], num_keep: int) -> list[str]:
+    """
+    Given a list of file paths and the number of duplicates to keep,
+    return a list of file paths that should be kept.
+
+    Parameters:
+    -----------
+        - `file_paths (list[str])`: A list of file paths.
+        - `num_keep (int)`: The number of duplicates to keep
+    """
     oldest_to_newest = sorted(file_paths, key=lambda x: os.path.getmtime(x), reverse=False)
     keep = []
     remove = []
@@ -96,7 +107,7 @@ def determine_originals(file_paths: list[str], num_keep: int) -> list[str]:
 
 def process_item(item: File, target_root: Dir, index, sort_by="month", dry_run=False) -> str | None:
     """
-    Process item.
+    Process a single item (file or directory) and move it to the appropriate destination folder.
 
     Paramaters:
     -------------
@@ -141,14 +152,33 @@ def process_item(item: File, target_root: Dir, index, sort_by="month", dry_run=F
 
 
 def main(root: str, destination: str, spec: str, refresh=False, dry_run=False) -> None:
-    """Sort files based on media type and date."""
+    """Sort files based on media type and date.
+
+    Paramaters:
+    ----------
+        - `root (str)`: The directory to start sorting from.
+        - `destination (str)`: The directory to move sorted files into.
+        - `spec (str)`: The file extension to sort by.
+        - `refresh (bool)`: Whether or not to refresh the database.
+        - `dry_run (bool)`: Whether or not to perform a dry run
+    """
     path = Dir(root)
     dest = Dir(destination)
     index = dest.serialize() if refresh else dest.load_database()
     # If root and destination are the same, do not recurse into subdirectories
     file_objs = [obj(file) for file in path.content] if root == dest else path.file_objects
     pool = Pool()
-    list(pool.execute(process_item, file_objs, dest, index, spec, dry_run, progress_bar=True))
+    list(
+        pool.execute(
+            process_item,
+            file_objs,
+            progress_bar=True,
+            dry_run=dry_run,
+            index=index,
+            target_root=dest,
+            sort_by=spec,
+        )
+    )
     cleanup(root)
     try:
         os.rmdir(root)
