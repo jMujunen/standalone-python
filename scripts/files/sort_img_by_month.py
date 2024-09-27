@@ -24,7 +24,7 @@ SPECIAL_FILES = {
 
 MIME = mimecfg.FILE_TYPES
 
-SPECIAL_TAGS = {
+SPECIAL_VIDEO_TAGS = {
     "original_format-eng": lambda x: x,
     "com.android.version": "andriod_phone",
     "com.apple.quicktime.make": "apple_phone",

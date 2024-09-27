@@ -28,7 +28,7 @@ class SMS:
         send(str, str): Send an SMS message to a contact.
     """
 
-    def __init__(self, dev_id=None):
+    def __init__(self, dev_id: str | None = None):
         """
         Initialize SMS object with device ID (optional).
 
@@ -76,7 +76,7 @@ class SMS:
             int: Return code of the subprocess.
         """
         if destination in self._contacts:
-            destination = self._contacts.get(destination)
+            destination = self._contacts.get(destination, "")
         elif re.compile(r"\d{10}").fullmatch(destination):
             pass
         else:
@@ -122,7 +122,7 @@ class SMS:
 
 # Example usage
 def main(dest: str) -> int:
-    """Sends a dad joke via SMS to the specified destination.
+    """Send a dad joke via SMS to the specified destination.
 
     Parameters:
     -----------
