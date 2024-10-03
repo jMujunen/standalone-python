@@ -54,27 +54,27 @@ def parse_args() -> argparse.Namespace:
 
 def process_item(item: File, target_root: str, rename=True) -> str | None:
     """
-    Move a file to the specified destination folder and renames it if requested.
+    Move a file to the specified destination folder.
+
+    specfified destination folder is defined by
 
     Paramaters:
+    -----------
         - item (File): The file object to be moved.
         - dest_folder (str): The destination folder where the file will be placed.
 
     Returns:
+    ---------
         - str: The new name of the file after moving, or its original name if renaming is not requested.
 
-    This function handles the logic for moving a file to a specified destination folder and optionally renames it based on its modification time.
-    Duplicates are removed, favouring the destination folder and removing from the source folder.
     """
-    if isinstance(item, Img | Video):
-        modification_time = item.capture_date
-    elif isinstance(item, Dir):
-        # Remove the dir if empty
-        if item.is_empty:
-            os.rmdir(item.path)
-        return None
-    else:
-        modification_time = datetime.datetime.fromtimestamp(os.stat(item.path).st_mtime)
+    match item:
+        case Img() | Video():
+            modification_time = item.capture_date
+        case Dir():
+            return os.remove(item.path) if item.is_empty else None
+        case _:
+            modification_time = datetime.datetime.fromtimestamp(os.stat(item.path).st_mtime)
 
     year, month, day = (
         modification_time.year,
@@ -117,7 +117,7 @@ def main(root: str, dest: str) -> None:
     else:
         videos = Dir(root).videos
     pool = Pool()
-    for result in pool.execute(process_item, list(videos), dest, progress_bar=True):
+    for result in pool.execute(process_item, list(videos), target_root=dest):
         if not result:
             print("\033[31mError\033[0m")
 
