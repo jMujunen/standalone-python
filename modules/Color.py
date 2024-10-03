@@ -58,11 +58,13 @@ class Parse:
 
 
 @dataclass
-class cprint:
+class cprint(Parse):
     """Print the text with given styles."""
 
     def __init__(self, text: Any, *styles: Any, end="\n") -> None:
         """Initialize the class with text and styles."""
+        self.text = str(text) if not isinstance(text, Exception) else text.args[0]
+        self.styles = styles
         self(text, *styles, end=end)
 
     @staticmethod
@@ -84,6 +86,9 @@ class cprint:
     @staticmethod
     def error(text, end="\n") -> None:
         print(Parse(f"{fg.red}[ERROR]{style.reset} - {text}"), end=end)
+
+    def __repr__(self) -> str:
+        return f"{self.text}(styles={self.styles})"
 
 
 # def cprint(text, *styles, end="\n") -> str:

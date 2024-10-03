@@ -1,77 +1,62 @@
 #!/usr/bin/env python3
-"""Strips <pattern> from clipboard."""
-# clipboard_striplines.py - strips a character from each line,
-# using the clipboard as I/O source
+"""Strip <pattern> from each line in <clipboard>."""
 
 import argparse
 import re
+from sys import exit
 
 import pyperclip
 
 # TODO - add more presets for common patterns
 PRESETS = {
     # Concatenate a multiline string into a single line separated a space
-    "whitespace": lambda x: re.sub(r"([^\s]\s+|\n)", "", x, flags=re.MULTILINE),
+    "whitespace": lambda x: re.sub(r"(\n|\t|\s+)", " ", x, flags=re.MULTILINE).strip(),
     # Remove REPL prompt chars "...:"
-    "ipy": lambda x: re.sub(r"(\.\.\.:|(In|Out) \[\d+\]:\s)", "", x, flags=re.MULTILINE),
+    "ipy": lambda x: re.sub(r"(\.{3}:\s?|(In|Out) \[\d+\]:\s)", "", x, flags=re.MULTILINE),
     "none": lambda x: x,
 }
 
 
-def main(char: str, replacement: str) -> str:
-    """Strips a character from each line in the clipboard content.
+def main(pattern: str, replacement: str = "", preset: str | None = None) -> str:
+    """Strip a character from each line in the clipboard content.
 
     Paramters:
     ---------
-        - `char(str)`: Character or pattern to strip. Can be any valid PCRE.
+        - `pattern(str)`: Character or pattern to strip. Can be any valid PCRE.
         - `replacement(str)`: Optional replacement string.
     """
-    try:
-        if not replacement:
-            replacement = ""
-        pattern = re.compile(char)
-        text = pyperclip.paste()
-        # Split the text into individual lines
-        lines = text.split("\n")
-        # Initialize an empty list to hold the processed lines
-        output = []
-        if args.preset:
-            return PRESETS[args.preset](text)
+    regex = re.compile(pattern)
+    print(
+        f'Using pattern \033[1;35m"{pattern}"\033[0m and replacement \033[1;34m"{replacement}".\033[0m'
+    )
 
-        for line in lines:
-            # Strip the character or pattern from each line
-            output.append(re.sub(pattern, replacement, line))
-        # Join the output list back into a single text string
-        return "\n".join(output)
-        # Update the clipboard with the processed text
-        # Print the processed text for debugging purposes
-    except Exception as e:
-        return str(e)
+    text = pyperclip.paste()
+    lines = text.splitlines()
+    # Initialize an empty list to hold the processed lines
+    output = []
+    if preset is not None and preset in PRESETS:
+        return PRESETS[args.preset](text)
+
+    for line in lines:
+        # Strip the character or pattern from each line
+        output.append(re.sub(regex, replacement, line))
+    # Join the output list back into a single text string
+    result = "\n".join(output)
+    pyperclip.copy(result)
+    return result
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Strips a character or string from each line, using the clipboard as I/O",
+        usage="clip [OPTIONS] PATTERN",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-        Example 1:
-        ---------
 
-        python3 clipboard_striplines.py --preset=multiline
-
-            alsa-card-profiles      |
-            ca-certificates-mozilla |
-            dict                    |
-            filesystem              |
-            geoclue                 |
-            -----------------------------------------------------------------
-                -> alsa-card-profiles ca-certificates-mozilla dict filesystem geoclue
-            ------------------------------------------------------------------
-
-        Example 2:
+        Example:
         -----------
 
-        python3 clipboard_striplines.py --pattern=wlan0 --replace=wlan1
+        python3 clipboard_striplines.py wlan0 --replace=wlan1
 
         wlan0: authenticate        ->  wlan1: authenticate
         wlan0: send auth to        ->  wlan1: send auth to
@@ -92,6 +77,7 @@ def parse_args():
         "-r",
         "--replace",
         help="Replace character with this instead of stripping.",
+        default="",
         type=str,
     )
 
@@ -105,19 +91,10 @@ def parse_args():
     parser.add_argument("-l", "--list", help="List presets", action="store_true", default=False)
     parser.add_argument(
         "--preset",
-        choices=["ipy", "off", "none"],
+        choices=PRESETS,
+        default=[],
         required=False,
-        help="""Presets for common patterns:
-        Multiline: Turn a multiline string into a single line
-        ipy: """,
-        # Example:
-        # -----------------
-        #  pyside6-tools-wrappers
-        #  python-aiosql
-        #  python-clipboard
-        #  python-imagehash
-        #  python-imageio   --> pyside6-tools-wrappers python-aiosql python-clipboard python-imagehash python-imageio
-        # TODO: Add presets for other common patterns
+        help="Presets for common patterns",
     )
 
     return parser.parse_args()
@@ -126,6 +103,5 @@ def parse_args():
 # Example usage:
 if __name__ == "__main__":
     args = parse_args()
-    output = main(args.PATTERN, args.replace)
-    pyperclip.copy(output)
-    print(output)
+    print(main(args.PATTERN, args.replace, args.preset))
+    exit(0)
