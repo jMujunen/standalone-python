@@ -4,8 +4,17 @@ from Color import fg, style
 from Styler import Styler
 
 
-def main(*args):
-    """Colorize the output of the `ollama list` command."""
+def main(*args) -> str:
+    """Colorize the output of the `ollama list` command.
+
+    Args:
+    -----
+        - any [Any]: Additional arguments to pass to the subprocess when running the command
+
+    Returns:
+    --------
+        - sorted output (str): The final, sorted result to print
+    """
     arguments = [*args] if args else ["list"]
     print(arguments)
     llama = Styler("ollama", *arguments)
