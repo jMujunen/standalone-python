@@ -8,8 +8,8 @@ from typing import Any
 
 import requests
 
-TOKEN = environ["HASS_TOKEN"]
-HOST = environ["HASS_HOST"]
+TOKEN: str = environ["HASS_TOKEN"]
+HOST: str = environ["HASS_HOST"]
 
 
 def call_service(domain: str, service: str, entity_id=None, **kwargs) -> requests.Response:
@@ -72,7 +72,9 @@ class Client(metaclass=MetaClient):
     _domains: dict[dict[str, str], str] = {}
 
     def __init__(self, host=HOST, token=TOKEN) -> None:
+        self.url = f"http://{host}:8123/api"
         self.base_url = f"http://{host}:8123/api/services"
+        self.headers = {"Authorization": f"Bearer {token}", "content-type": "application/json"}
         self.host = host
         self.token = token
         self._api_reference = []
@@ -184,6 +186,40 @@ class Client(metaclass=MetaClient):
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
         return self.domains
+
+    def get_state(self, entity_id: str) -> dict | str:
+        """Get the state of an entity.
+
+        Parameters:
+        -----------
+            entity_id (str): The ID of the entity (e.g., sensor.temperature_1).
+
+        Returns:
+        --------
+            dict | str : The state data as a dictionary if successful, else the reason for failure.
+        """
+        url = f"{self.url}/states/{entity_id}"
+        response = requests.get(url, headers=self.headers)
+        return response.json() if response.status_code == 200 else response.reason
+
+    def set_state(self, entity_id: str, value: Any, attributes: Any = None) -> int:
+        """Set the state of an entity.
+
+        Paramters:
+        ----------
+            entity_id (str): The entity id of the Home Assistant instance.
+            value (Any): The new state of the entity.
+
+        Returns:
+        ---------
+            int: The HTTP status code of the request.
+        """
+        url = f"{self.url}/states/{entity_id}"
+        data = {"state": value}
+        if attributes:
+            data["attributes"] = attributes
+        response = requests.post(url, headers=self.headers, json=data)
+        return response.status_code
 
 
 # Example usage:
