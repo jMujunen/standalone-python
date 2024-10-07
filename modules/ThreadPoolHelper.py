@@ -29,8 +29,8 @@ class Pool:
         --------------
             - `callback_function (Callable)`: The function to be executed for each item in the data source.
             - `data_source (Iterable)`: An iterable containing the data to be processed by the callback function.
-            - `*args`: Additional arguments to pass to the callback function.
             - `progress_bar (bool, optional)`: If True, a progress bar will be displayed. Default is True.
+            - `*args` | `**kwarrgs`: Additional arguments to pass to the callback function.
 
         ### Returns:
         --------------

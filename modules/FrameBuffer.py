@@ -1,9 +1,12 @@
 from collections import deque
+from typing import Any
 
 from numpy import ndarray
 
 
 class FrameBuffer:
+    buffer: deque[tuple[ndarray, int]]
+
     def __init__(self, max_size: int) -> None:
         """
         Initialize the frame buffer.
@@ -31,7 +34,7 @@ class FrameBuffer:
             self.buffer.popleft()
             self.buffer.append(frame)
 
-    def get_frames(self) -> list[ndarray]:
+    def get_frames(self) -> list[tuple[ndarray, int]]:
         """Get all frames currently in the buffer.
 
         ### Returns:
@@ -40,7 +43,7 @@ class FrameBuffer:
         """
         return list(self.buffer)
 
-    def get_recent_frames(self, num_frames: int) -> list[ndarray]:
+    def get_recent_frames(self, num_frames: int) -> list[tuple[ndarray, int]]:
         """Get a specified number of recent frames from the buffer.
 
         ### Parameters:
@@ -50,7 +53,7 @@ class FrameBuffer:
         num_frames = min(num_frames, len(self.buffer))
         return list(self.buffer)[num_frames:]
 
-    def get_future_frames(self, num_frames: int) -> list[ndarray]:
+    def get_future_frames(self, num_frames: int) -> list[tuple[ndarray, int]]:
         """
         Get a specified number of older frames from the buffer.
 
@@ -65,3 +68,6 @@ class FrameBuffer:
         """Release the buffer by emptying it."""
         self.buffer = deque(maxlen=0)
         del self.buffer
+
+    def __repr__(self) -> str:
+        return f"FrameBuffer({list(self.buffer)})"
