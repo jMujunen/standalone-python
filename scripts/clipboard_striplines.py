@@ -13,12 +13,12 @@ PRESETS = {
     "whitespace": lambda x: re.sub(r"(\n|\t|\s+)", " ", x, flags=re.MULTILINE).strip(),
     # Remove REPL prompt chars "...:"
     "ipy": lambda x: re.sub(r"(\.{3}:\s?|(In|Out) \[\d+\]:\s)", "", x, flags=re.MULTILINE),
-    "none": lambda x: x,
+    None: lambda x: x,
 }
 
 
 def main(pattern: str, replacement: str = "", preset: str | None = None) -> str:
-    """Strip a character from each line in the clipboard content.
+    """Strip <pattern> from each line in the clipboard content.
 
     Paramters:
     ---------
@@ -26,12 +26,10 @@ def main(pattern: str, replacement: str = "", preset: str | None = None) -> str:
         - `replacement(str)`: Optional replacement string.
     """
     regex = re.compile(pattern)
-    print(
-        f'Using pattern \033[1;35m"{pattern}"\033[0m and replacement \033[1;34m"{replacement}".\033[0m'
-    )
 
     text = pyperclip.paste()
     lines = text.splitlines()
+
     # Initialize an empty list to hold the processed lines
     output = []
     if preset is not None and preset in PRESETS:
@@ -92,7 +90,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--preset",
         choices=PRESETS,
-        default=[],
+        default=None,
         required=False,
         help="Presets for common patterns",
     )

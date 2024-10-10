@@ -14,14 +14,14 @@ class SizeUnit(Enum):
 
 
 class Size:
-    """Converts a size in bytes to a human-readable string representation."""
+    """Convert a size in bytes to a human-readable string representation."""
 
     def __init__(self, size_in_bytes: int):
         """Initialize ByteConverter object with a size in bytes.
 
         Parameters:
         ----------
-            - `size_in_bytes` (int): Size in bytes."""
+            `size_in_bytes` (int): Size in bytes."""
 
         self.size_in_bytes = abs(int(size_in_bytes))
 

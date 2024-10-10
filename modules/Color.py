@@ -24,7 +24,6 @@ Examples:
 
 from collections import namedtuple
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Any
 
 Color = namedtuple("Color", ["r", "g", "b"])
@@ -72,39 +71,23 @@ class cprint(Parse):
         print(Parse(text, *styles), end=end)
 
     @staticmethod
-    def debug(text, end="\n") -> None:
+    def debug(text: Any, end="\n") -> None:
         print(Parse(f"{fg.orange}[DEBUG]{style.reset} - {text}"), end=end)
 
     @staticmethod
-    def info(text, end="\n") -> None:
+    def info(text: Any, end="\n") -> None:
         print(Parse(f"{fg.blue}[INFO]{style.reset} - {text}"), end=end)
 
     @staticmethod
-    def warn(text, end="\n") -> None:
+    def warn(text: Any, end="\n") -> None:
         print(Parse(f"{fg.yellow}[WARN]{style.reset} - {text}"), end=end)
 
     @staticmethod
-    def error(text, end="\n") -> None:
+    def error(text: Any, end="\n") -> None:
         print(Parse(f"{fg.red}[ERROR]{style.reset} - {text}"), end=end)
 
     def __repr__(self) -> str:
         return f"{self.text}(styles={self.styles})"
-
-
-# def cprint(text, *styles, end="\n") -> str:
-#     """Print the text with given styles.
-
-#     Parameters:
-#     ----------
-#         text (str): The text to be printed with styles.
-#         styles: The styles to be applied to thei
-#     Example:
-#     -------
-#         >>> cprint("Hello, World!", fg.orange, style.bold)
-#     """
-#     parsed_text = str(Parse(text, *styles))
-#     print(parsed_text, end=end)
-#     return parsed_text + end
 
 
 @dataclass
@@ -119,9 +102,9 @@ class style:
 
     Examples:
     -------
-        >>> style.bold -> '\\033[1m'
-        >>> style.underline -> '\\033[4m'
-        >>> style.reset -> '\\033[0m'
+        >>> style.bold -> '\033[1m'
+        >>> style.underline -> '\033[4m'
+        >>> style.reset -> '\033[0m'
         >>> print(f"{style.bold}This is bold text{style.reset}")
 
     """
@@ -157,8 +140,8 @@ class fg:
 
     Examples:
     ---------
-        >>> fg.red -> '\\033[31m'
-        >>> fg.green -> '\\033[32m'
+        >>> fg.red -> '\033[31m'
+        >>> fg.green -> '\033[32m'
         >>> print(f"{fg.red}This is red text{style.reset}")
     """
 
@@ -300,8 +283,8 @@ class bg:
 
     Examples:
     ---------
-        >>> bg.red -> '\\033[41m'
-        >>> bg.green -> '\\033[42m'
+        >>> bg.red -> '\033[41m'
+        >>> bg.green -> '\033[42m'
         >>> print(f"{bg.red}This is red text{style.reset}")
     """
 

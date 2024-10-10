@@ -15,6 +15,8 @@ IGNORED_METHODS = [
     "method QString org.freedesktop.DBus.Peer.GetMachineId()",
     "method void org.freedesktop.DBus.Peer.Ping()",
 ]
+from dataclasses import dataclass, field
+from enum import Enum
 
 
 class Bus:
@@ -38,10 +40,8 @@ class Bus:
         """
         return [
             service.strip()
-            for service in subprocess.run(
-                f"qdbus6 {self.service}", shell=True, capture_output=True, text=True, check=False
-            ).stdout.split("\n")
-            if "org" in service and service != ""
+            for service in subprocess.getoutput(f"qdbus6 {self.service}").split("\n")
+            if service != ""
         ]
 
     def methods(self, obj: str, verbose=False) -> list:
@@ -54,6 +54,9 @@ class Bus:
 
         >>> ["Activate", "ActivateAction", "Open", "CommandLine", "PropertiesChanged"]
         """
+        if "methods" not in self.__dict__:
+            methods = {}
+
         methods = [
             method.strip()
             for method in subprocess.run(
@@ -68,9 +71,9 @@ class Bus:
             return [method.split(".")[-1].split("(")[0] for method in methods]
         return methods
 
-    def all_methods(self, verbose=False):
+    def all_methods(self, verbose=False) -> dict[str, list[str]]:
         """Generate a sequence of tuples containing object and method pairs."""
-        yield from ((obj, list(self.methods(obj, verbose))) for obj in self.objects())
+        return {obj: list(self.methods(obj, verbose)) for obj in self.objects()}
 
     def get_properties(self, obj: str):  # -> dict[str, str]:
         """Return a dictionary of properties with their values for the given D-Bus object."""
