@@ -11,13 +11,14 @@ class Pool:
         - `num_threads (int)`: The number of threads to use in the thread pool.
     """
 
-    def __init__(self, num_threads=20):
+    def __init__(self, num_threads=20, suppress_exceptions=False):
         """Initialize the thread pool with a specified number of threads."""
         self.num_threads = num_threads
+        self.suppress_exceptions = suppress_exceptions
 
     def execute(
         self,
-        callback_function: Callable,
+        function: Callable,
         data_source: Iterable,
         progress_bar=True,
         *args,
@@ -27,14 +28,14 @@ class Pool:
 
         ### Parameters:
         --------------
-            - `callback_function (Callable)`: The function to be executed for each item in the data source.
-            - `data_source (Iterable)`: An iterable containing the data to be processed by the callback function.
+            - `function (Callable)`: The function to be executed for each item in the data source.
+            - `data_source (Iterable)`: An iterable containing the data to be processed by the specified function.
             - `progress_bar (bool, optional)`: If True, a progress bar will be displayed. Default is True.
-            - `*args` | `**kwarrgs`: Additional arguments to pass to the callback function.
+            - `*args` | `**kwargs`: Additional arguments to pass to the specified function.
 
         ### Returns:
         --------------
-            - `Generator` that yields results from the callback function executions.
+            - `Generator` that yields results from the specified function executions.
 
         ### Notes:
         ------------
@@ -44,29 +45,22 @@ class Pool:
             - Exceptions encountered during task execution are caught and printed.
         """
         if progress_bar and isinstance(data_source, Generator):
-            raise ValueError("Data source cannot be a generator when progress_bar=True")
-        if progress_bar:
-            progress_bar = ProgressBar(len(data_source))  # type: ignore
-            with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
-                futures = [
-                    executor.submit(callback_function, item, *args, **kwargs)
-                    for item in data_source
-                ]
-                for future in as_completed(futures):
-                    try:
-                        yield future.result()
-                    except Exception as exc:
-                        print(f"\nException: {exc!r}")
-                    finally:
-                        progress_bar.increment()
+            # Convert generators to lists as calling `len` on a generator depletes it
+            data_source = list(data_source)
 
-        else:
-            with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
-                futures = [executor.submit(callback_function, item, *args) for item in data_source]
-                for future in as_completed(futures):
-                    try:
-                        result = future.result()
-                        if result:
-                            yield result
-                    except Exception as exc:
-                        print(f"\nException: {exc!r}")
+        with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
+            futures = [executor.submit(function, item, *args, **kwargs) for item in data_source]
+            pb = ProgressBar(len(data_source))  # type: ignore
+            for future in as_completed(futures):
+                try:
+                    result = future.result()
+                    if result:
+                        yield result
+                except StopIteration:
+                    pass
+                except Exception as e:
+                    if not self.suppress_exceptions:
+                        print(f"\nThreadpool Exception: {e!r}")
+                finally:
+                    if progress_bar:
+                        pb.increment()

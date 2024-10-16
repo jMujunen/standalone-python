@@ -1,60 +1,20 @@
-import os
-from shutil import copyfile, copyfileobj
-import shutil
-from pathlib import Path
-import sys
-import re
+#!/usr/bin/env python3
+import argparse
 import html
-from urllib.parse import unquote
+import os
+import re
+import shutil
+import sys
 import urllib.request
-from random import seed, randint
-
-
-if len(sys.argv) != 2 and len(sys.argv) != 3 and len(sys.argv) != 4:
-    print(
-        "Wrong number of arguments!\nUsage: python3 md2html.py <filename.md> <[y/n](optional) y=default => creates a html-export in export vault> <[y/n](optional) y=default => download extrernal images locally>"
-    )
-    sys.exit()
-
-mainFileToExport = ""
-fileToFind = str(sys.argv[1])
-for path in Path(".").rglob(fileToFind):
-    mainFileToExport = path
-
-exportToHtml = True
-downloadImages = True
-if len(sys.argv) >= 3:
-    if str(sys.argv[2]).upper() == "N":
-        print("Exporting: " + str(mainFileToExport) + " to vault")
-        exportToHtml = False
-    if len(sys.argv) == 4 and str(sys.argv[3]).upper() == "N":
-        downloadImages = False
-else:
-    print("Exporting: " + str(mainFileToExport) + " + creates a html-copy in vault")
-
-
-if mainFileToExport == "":
-    print(
-        "File not found!\nRun this script from the root of obsidian vault\nUsage: python3 md2html.py <filename.md> <[y/n](optional) y=default => creates a html-export in export vault>"
-    )
-    sys.exit()
-
-exportDir = os.path.expanduser("~/export_" + fileToFind.split("/")[-1].replace(".md", ""))
-print("Path to export vault: " + str(exportDir) + "\n")
-
-if os.path.exists(exportDir) and os.path.isdir(exportDir):
-    shutil.rmtree(exportDir)
-destFile = os.path.join(exportDir, mainFileToExport)
-Path(os.path.dirname(destFile)).mkdir(parents=True, exist_ok=True)
-assetPath = os.path.join(exportDir, "downloaded_images", "test")
-Path(os.path.dirname(assetPath)).mkdir(parents=True, exist_ok=True)
-copyfile(mainFileToExport, destFile)
-filesAllreadyCopied = [mainFileToExport]
+from pathlib import Path
+from random import randint, seed
+from shutil import copyfile, copyfileobj
+from urllib.parse import unquote
 
 
 def findRelPath(linkPath, currentFile):
     # Find filepath rel currentFile a la html
-    pRoot = Path(".")  # root
+    pRoot = Path()  # root
     pCurr = Path(currentFile)
     pLink = Path(linkPath)
     pCurrRelRoot = str(pCurr.relative_to(pRoot))
@@ -72,7 +32,7 @@ def findRelPath(linkPath, currentFile):
 
 def copyFileToExport(fileToFind, currentFile, traverse=False):
     linkedFilePath = ""
-    for path in Path(".").rglob(fileToFind):
+    for path in Path().rglob(fileToFind):
         linkedFilePath = path
     if linkedFilePath != "":
         destDir = os.path.join(exportDir, linkedFilePath)
@@ -466,80 +426,106 @@ def readFilesRecursive(path) -> None:
     )
 
 
-readFilesRecursive(mainFileToExport)
-if exportToHtml:
-    with open(os.path.join(exportDir, "index.html"), "w") as outputfile:
-        outputfile.write(
-            '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta http-equiv="Refresh" content="0; url=\'./'
-            + str(mainFileToExport)
-            + ".html'\" />\n\t</head>\n</html>"
-        )
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Convert markdown files to HTML",
+    )
+    parser.add_argument("file", type=str, help="Markdown file to convert")
+    return parser.parse_args()
 
-    with open(os.path.join(exportDir, "treeview.html"), "w") as outputfile:
-        outputfile.write("<!DOCTYPE html>\n")
-        outputfile.write("<html>\n")
-        outputfile.write("<head>\n")
-        outputfile.write('<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>\n')
 
-        outputfile.write("<head>\n")
-        outputfile.write('<base target="_parent">\n')
-        outputfile.write("<style>\n")
-        outputfile.write('ul{ padding-left: 5px; margin-left: 15px; list-style-type: "- "; }\n')
-        outputfile.write(".folderClass {list-style-type: disc;}\n")
-        outputfile.write("</style>\n")
-        outputfile.write("</head>\n")
+if __name__ == "__main__":
+    args = parse_args()
+    mainFileToExport = args.filename
+    output_dir = Path(args.filename).resolve().parent / "output"
+    exportDir = os.path.expanduser("~/export_" + fileToFind.split("/")[-1].replace(".md", ""))
+    print("Path to export vault: " + str(exportDir) + "\n")
 
-        outputfile.write('<body style="background: #F0F0F0; ">\n')
-        filesAllreadyCopied.sort()
-        outputfile.write("<ul>")
-        for f in str(filesAllreadyCopied[0]).replace("\\", "/").split("/"):
-            if ".md" in f:
-                outputfile.write(
-                    "<li>"
-                    + '<a href="./'
-                    + str(filesAllreadyCopied[0])
-                    + ".html"
-                    + '">'
-                    + str(f).replace(".md", "")
-                    + "</a>"
-                    + "</li>\n"
-                )
-            else:
-                outputfile.write('<li class="folderClass">' + str(f) + "</li>")
-                outputfile.write("<ul>")
-        lastFilePath = str(filesAllreadyCopied[0]).replace("\\", "/").split("/")
-        first = True
-        for currFile in filesAllreadyCopied:
-            if not first:
-                for currFolder in str(currFile).replace("\\", "/").split("/"):
-                    if len(lastFilePath) > 0 and currFolder == lastFilePath[0]:
-                        del lastFilePath[0]
-                    else:
-                        for _addedSublist in lastFilePath[:-1]:  # close previous lists
-                            outputfile.write("</ul>\n")
-                        lastFilePath = ""
-                        if ".md" in currFolder:
-                            outputfile.write(
-                                "<li>"
-                                + '<a href="./'
-                                + str(currFile)
-                                + ".html"
-                                + '">'
-                                + str(currFolder).replace(".md", "")
-                                + "</a>"
-                                + "</li>\n"
-                            )
+    if os.path.exists(exportDir) and os.path.isdir(exportDir):
+        shutil.rmtree(exportDir)
+    destFile = os.path.join(exportDir, mainFileToExport)
+    Path(os.path.dirname(destFile)).mkdir(parents=True, exist_ok=True)
+    assetPath = os.path.join(exportDir, "downloaded_images", "test")
+    Path(os.path.dirname(assetPath)).mkdir(parents=True, exist_ok=True)
+    copyfile(mainFileToExport, destFile)
+    filesAllreadyCopied = [mainFileToExport]
+
+    readFilesRecursive(mainFileToExport)
+    if exportToHtml:
+        with open(os.path.join(exportDir, "index.html"), "w") as outputfile:
+            outputfile.write(
+                '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta http-equiv="Refresh" content="0; url=\'./'
+                + str(mainFileToExport)
+                + ".html'\" />\n\t</head>\n</html>"
+            )
+
+        with open(os.path.join(exportDir, "treeview.html"), "w") as outputfile:
+            outputfile.write("<!DOCTYPE html>\n")
+            outputfile.write("<html>\n")
+            outputfile.write("<head>\n")
+            outputfile.write(
+                '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>\n'
+            )
+
+            outputfile.write("<head>\n")
+            outputfile.write('<base target="_parent">\n')
+            outputfile.write("<style>\n")
+            outputfile.write('ul{ padding-left: 5px; margin-left: 15px; list-style-type: "- "; }\n')
+            outputfile.write(".folderClass {list-style-type: disc;}\n")
+            outputfile.write("</style>\n")
+            outputfile.write("</head>\n")
+
+            outputfile.write('<body style="background: #F0F0F0; ">\n')
+            filesAllreadyCopied.sort()
+            outputfile.write("<ul>")
+            for f in str(filesAllreadyCopied[0]).replace("\\", "/").split("/"):
+                if ".md" in f:
+                    outputfile.write(
+                        "<li>"
+                        + '<a href="./'
+                        + str(filesAllreadyCopied[0])
+                        + ".html"
+                        + '">'
+                        + str(f).replace(".md", "")
+                        + "</a>"
+                        + "</li>\n"
+                    )
+                else:
+                    outputfile.write('<li class="folderClass">' + str(f) + "</li>")
+                    outputfile.write("<ul>")
+            lastFilePath = str(filesAllreadyCopied[0]).replace("\\", "/").split("/")
+            first = True
+            for currFile in filesAllreadyCopied:
+                if not first:
+                    for currFolder in str(currFile).replace("\\", "/").split("/"):
+                        if len(lastFilePath) > 0 and currFolder == lastFilePath[0]:
+                            del lastFilePath[0]
                         else:
-                            outputfile.write(
-                                '<li class="folderClass">' + str(currFolder) + "</li>\n"
-                            )
-                            outputfile.write("<ul>\n")
-                lastFilePath = str(currFile).replace("\\", "/").split("/")
-            first = False
+                            for _addedSublist in lastFilePath[:-1]:  # close previous lists
+                                outputfile.write("</ul>\n")
+                            lastFilePath = ""
+                            if ".md" in currFolder:
+                                outputfile.write(
+                                    "<li>"
+                                    + '<a href="./'
+                                    + str(currFile)
+                                    + ".html"
+                                    + '">'
+                                    + str(currFolder).replace(".md", "")
+                                    + "</a>"
+                                    + "</li>\n"
+                                )
+                            else:
+                                outputfile.write(
+                                    '<li class="folderClass">' + str(currFolder) + "</li>\n"
+                                )
+                                outputfile.write("<ul>\n")
+                    lastFilePath = str(currFile).replace("\\", "/").split("/")
+                first = False
 
-        for _i in str(filesAllreadyCopied[-1]).replace("\\", "/").split("/"):
-            outputfile.write("</ul>")
+            for _i in str(filesAllreadyCopied[-1]).replace("\\", "/").split("/"):
+                outputfile.write("</ul>")
 
-        outputfile.write("</body>\n")
-        outputfile.write("</html>\n")
-print("Done!\n\nPath to export: " + str(exportDir) + ("/index.html" if exportToHtml else ""))
+            outputfile.write("</body>\n")
+            outputfile.write("</html>\n")
+    print("Done!\n\nPath to export: " + str(exportDir) + ("/index.html" if exportToHtml else ""))

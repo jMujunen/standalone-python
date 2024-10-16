@@ -6,10 +6,12 @@ from time import time
 class ExecutionTimer:
     """Class for timing the execution of a block of code."""
 
+    start_time: float = 0.0
+    end_time: float = 0.0
+    execution_time: float = 0.0
+
     def __init__(self, print_on_exit=True) -> None:
-        self.start_time = 0
-        self.end_time = 0
-        self.execution_time = 0
+        """Initialize the instance."""
         self.print_on_exit = print_on_exit
 
     def __enter__(self):

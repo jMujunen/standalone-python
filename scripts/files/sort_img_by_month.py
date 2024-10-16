@@ -280,7 +280,7 @@ def main(input_dir: str, output_dir: str):
                             cprint(f"FATAL ERROR: {e}:", bg.red, fg.black, style.underline)
                     except Exception as e:
                         cprint(e, fg.red)
-                    rm_empty_folders(item.dir_name)
+                    rm_empty_folders(item.dir_path)
                 # ============================ VIDEO =============================== #
                 elif item.is_video and isinstance(item, Video):
                     prefix = os.path.join(output_dir, "Videos")
@@ -357,7 +357,7 @@ def main(input_dir: str, output_dir: str):
                         except Exception as e:
                             cprint(e, fg.deeppink)
                             continue
-                    rm_empty_folders(item.dir_name)
+                    rm_empty_folders(item.dir_path)
                 # ============================ FILE =============================== #
 
                 elif isinstance(item, Log):
@@ -395,7 +395,7 @@ def main(input_dir: str, output_dir: str):
                     except Exception as e:
                         cprint(e, fg.gray)
                         continue
-                    rm_empty_folders(item.dir_name)
+                    rm_empty_folders(item.dir_path)
                 elif item.is_dir:
                     rm_empty_folders(item.path)
                 elif not item.is_dir and not isinstance(item, Dir) and item.extension is not None:
