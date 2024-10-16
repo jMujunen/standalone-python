@@ -9,16 +9,15 @@ ORIGINAL_FORMAT_REGEX = re.compile(r"^([^\s]+(\s+))+")
 
 
 class Styler:
-    """
-    Class for colorizing command output using regular expressions.
+    """Class for colorizing command output using regular expressions.
 
-    Attributes:
+    Attributes
     ----------
         `command` (str) : The command to be run.
         `positional_arguments` (str) : Positional arguments for the command.
         `flags` (str): Flags for the command.
 
-    Methods:
+    Methods
     ----------
         `styles()` : Applies styles to the command
         `body_style(pattern, color)` : Applies a style (color) to all instances of a specific pattern in the command
@@ -43,17 +42,16 @@ class Styler:
         return self._styles
 
     def body_style(self, pattern: str, color: int | str) -> tuple[re.Pattern[str], str, str]:
-        """
-        Apply a style (color) to all instances of a specific pattern in the command output.
+        """Apply a style (color) to all instances of a specific pattern in the command output.
 
         Args:
         ----------
-            - pattern (str): The regular expression pattern for identifying text to style.
-            - color (Union[int, str]): The escape code or plain text representation of the desired color.
+            pattern (str): The regular expression pattern for identifying text to style.
+            color (Union[int, str]): The escape code or plain text representation of the desired color.
 
         Returns:
         ----------
-            - tuple: A tuple containing the compiled regex, prefix and suffix strings used for styling.
+            tuple: A tuple containing the compiled regex, prefix and suffix strings used for styling.
         """
         # TODO Add support for setting foreground and background colors with color codes as integers
 
@@ -65,10 +63,9 @@ class Styler:
         return (regex, str(color_prefix), "\033[0m")
 
     def run_command(self, prog, *args) -> str:
-        """
-        Run the command and captures its output.
+        """Run the command and captures its output.
 
-        Returns:
+        Returns
         ----------
             - str: The stdout of the command as a string. If stderr is not empty, it prints the error and exits with status 1.
         """
@@ -92,11 +89,11 @@ class Styler:
     def sort(self, ignore_header=True) -> str:
         """Sort the output of the command.
 
-        Parameters:
+        Parameters
         ----------
-            - ignore_header (bool): Specifies whether to ignore the header during sorting. Defaults to True.
+            ignore_header (bool): Specifies whether to ignore the header during sorting. Defaults to True.
 
-        Returns:
+        Returns
         --------
             - str: The sorted command output as a string.
         """
@@ -116,8 +113,7 @@ class Styler:
     def colorized_command_output(
         self, style: list[tuple[re.Pattern[str], str, str]] | list[re.Pattern[str]]
     ) -> str:
-        """
-        Apply a list of styles to the command output and returns it.
+        """Apply a list of styles to the command output and returns it.
 
         Args:
         ----------
@@ -143,8 +139,7 @@ class Styler:
         return self.command_output
 
     def remove_by_regex(self, pattern: str) -> None:
-        """
-        Remove all instances of a specific regular expression pattern from the command output.
+        """Remove all instances of a specific regular expression pattern from the command output.
 
         Args:
         ------
@@ -153,8 +148,7 @@ class Styler:
         self.command_output = re.sub(pattern, "", self.command_output)
 
     def remove_by_column(self, column: int) -> None:
-        """
-        Remove a specific column from the command output.
+        """Remove a specific column from the command output.
 
         Args:
         ------
@@ -186,8 +180,7 @@ class Styler:
         self.command_output = "\n".join(lines)
 
     def style_column(self, column: int, color: int | str) -> None:
-        """
-        Apply a style (color) to all instances of a specific column in the command output.
+        """Apply a style (color) to all instances of a specific column in the command output.
 
         Args:
         ------
@@ -206,8 +199,7 @@ class Styler:
         self.command_output = "\n".join(lines)
 
     def style_row(self, row: int, color: int | str) -> None:
-        """
-        Apply a style (color) to all instances of a specific row in the command output.
+        """Apply a style (color) to all instances of a specific row in the command output.
 
         Args:
         ------

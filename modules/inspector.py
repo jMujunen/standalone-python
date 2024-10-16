@@ -1,4 +1,3 @@
-import inspect
 from collections.abc import Callable
 
 from fsutils import Dir
