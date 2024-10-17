@@ -52,24 +52,23 @@ def categorize_other(y: File, x: str) -> str:
     """
     prefix = os.path.join(x, "Other")
     for k, v in FILE_TYPES.items():
-        if y.extension.lower() in v:
+        if y.suffix.lower() in v:
             prefix = os.path.join(prefix, k)
     return prefix
 
 
 def get_prefix(item: File, target: str, sort_spec: str) -> str | None:
-    """
-    Categorize a file into the appropriate destination folder based on its type and creation date.
+    """Categorize a file into the appropriate destination folder based on its type and creation date.
 
-    Parameters:
+    Parameters
     ----------
         - item (File): The file object.
         - target (str): The target directory path.
         - sort_spec (str): The sorting specification, e.g., 'year', 'month', 'day'
     """
-    if item.extension.lower() in FILE_TYPES["trash"]:
+    if item.suffix.lower() in FILE_TYPES["trash"]:
         os.remove(item.path)
-        cprint.info(f"Removed {item.basename}")
+        cprint.info(f"Removed {item.name}")
         return None
     for part in item.path.split(os.sep):
         if part in IGNORED_DIRS:
@@ -79,7 +78,7 @@ def get_prefix(item: File, target: str, sort_spec: str) -> str | None:
         case "Img":
             return (
                 os.path.join(target, "Photos", item.capture_date.strftime(sort_spec))  # type: ignore
-                if item.extension.lower() != ".nef"
+                if item.suffix.lower() != ".nef"
                 else os.path.join(
                     target,
                     "Photos",
@@ -100,11 +99,10 @@ def get_prefix(item: File, target: str, sort_spec: str) -> str | None:
 
 
 def determine_originals(file_paths: list[str], num_keep: int) -> list[str]:
-    """
-    Given a list of file paths and the number of duplicates to keep,
+    """Given a list of file paths and the number of duplicates to keep,
     return a list of file paths that should be kept.
 
-    Parameters:
+    Parameters
     -----------
         - `file_paths (list[str])`: A list of file paths.
         - `num_keep (int)`: The number of duplicates to keep
@@ -123,8 +121,7 @@ def determine_originals(file_paths: list[str], num_keep: int) -> list[str]:
 def process_item(
     item: File, target_root: Dir, index: dict[str, list[str]], sort_spec: str, dry_run=False
 ) -> str | None:
-    """
-    Process a single item (file or directory) and move it to the appropriate destination folder.
+    """Process a single item (file or directory) and move it to the appropriate destination folder.
 
     Paramaters:
     -------------
@@ -137,7 +134,7 @@ def process_item(
     if dest_folder is None:
         return None
     os.makedirs(dest_folder, exist_ok=True)
-    dest_path = os.path.join(dest_folder, item.basename)
+    dest_path = os.path.join(dest_folder, item.name)
 
     # Check for duplicates in the same directory, keeping MAX_DUPLICATES copies.
     count = 0
@@ -147,7 +144,7 @@ def process_item(
             # Rename the file while under MAX_DUPLICATES
             count += 1
             path, name = os.path.split(dest_path)
-            dest_path = os.path.join(path, f"{count}-{item.basename}")
+            dest_path = os.path.join(path, f"{count}-{item.name}")
         elif len(existing_files) > MAX_DUPLICATES:
             # Remove newest items while MAX_DUPLICATES is exceeded.
             existing_files.append(item.path)

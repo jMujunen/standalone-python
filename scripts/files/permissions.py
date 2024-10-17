@@ -15,7 +15,7 @@ def set_permissions(path: str, fix) -> tuple[str, str, str, bool] | None:
         cprint(f"{path} does not exist", fg.red)
         return None
     fixed = False
-    original_mode = os.stat(path).st_mode
+    original_mode = Path.stat(path).st_mode
     mode = original_mode
     if os.path.isdir(path):
         # Read and execute for user; read only for others
@@ -30,7 +30,7 @@ def set_permissions(path: str, fix) -> tuple[str, str, str, bool] | None:
         os.chmod(path, mode)
     else:
         return path, oct(original_mode)[-3:], oct(mode)[-3:], original_mode != mode
-    new_mode = os.stat(path).st_mode
+    new_mode = Path.stat(path).st_mode
     fixed = new_mode != original_mode
     return path, oct(original_mode)[-3:], oct(new_mode)[-3:], fixed
 
@@ -68,12 +68,12 @@ def check_and_fix_permissions(real_files, fix=True):
 
     This function checks the current permissions of each item in `real_files` and attempts to fix them if requested. It prints warnings or errors based on the status of each file/directory.
 
-    Parameters:
+    Parameters
     ------------
         real_files (list): A list of paths to files or directories whose permissions are to be checked and potentially fixed.
         fix (bool, optional): If True, attempt to fix the permissions if they do not match expected values. Defaults to True.
 
-    Returns:
+    Returns
     --------
         tuple: A tuple containing:
             - int: The number of items that needed fixing.
@@ -83,7 +83,7 @@ def check_and_fix_permissions(real_files, fix=True):
     num_fixed = 0
     checked_paths = []
     for path in real_files:
-        original_mode = os.stat(path).st_mode
+        original_mode = Path.stat(path).st_mode
         mode = original_mode
         if os.path.isdir(path):
             # Read and execute for user; read only for others
@@ -97,7 +97,7 @@ def check_and_fix_permissions(real_files, fix=True):
         checked_paths.append(path)
         if fix:
             os.chmod(path, mode)
-            new_mode = os.stat(path).st_mode
+            new_mode = Path.stat(path).st_mode
             fixed = new_mode != original_mode
             num_fixed += int(fixed)
     return num_fixed, checked_paths

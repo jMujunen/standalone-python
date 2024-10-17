@@ -13,16 +13,15 @@ IGNORED = FILE_TYPES.get("ignored", [])
 
 
 def process_file(file: File, no_ignore=False) -> str | None:
-    if not all((file.extension not in IGNORED, no_ignore)):
-        return file.extension[1:]  # remove the dot from the extension
+    if not all((filesuffix not in IGNORED, no_ignore)):
+        return filesuffix[1:]  # remove the dot from the extension
     return None
 
 
 def count_file_types(directory: str, no_ignore=False) -> dict:
-    """
-    Count the number of files in each type within a given directory.
+    """Count the number of files in each type within a given directory.
 
-    Parameters:
+    Parameters
     ------------
         - `directory (str)` : The path to the directory whose file types are being counted.
         - `no_ignore (bool)` : A flag indicating whether or not to ignore certain file types. Default is False.
@@ -32,10 +31,10 @@ def count_file_types(directory: str, no_ignore=False) -> dict:
 
     files = []
     for item in Dir(directory).file_objects:
-        if not all((item.extension not in IGNORED, no_ignore)):
+        if not all((itemsuffix not in IGNORED, no_ignore)):
             files.append(item)
     for item in files:
-        file_types[item.extension[1:]] += 1  # remove the dot from the extension
+        file_types[itemsuffix[1:]] += 1  # remove the dot from the extension
     return dict(sorted(file_types.items(), key=lambda item: item[1]))
 
 
