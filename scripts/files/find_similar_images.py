@@ -20,7 +20,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def process_img(img: Img) -> tuple[imagehash.ImageHash | None, str, str]:
-    if img.extension in (".nef", ".heic"):
+    if img.suffix in (".nef", ".heic"):
         return (None, "", "")
     resized = img.resize()
     return (resized.calculate_hash(), img.path, resized.encode())

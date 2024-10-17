@@ -53,8 +53,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def process_item(item: File, target_root: str, rename=True) -> str | None:
-    """
-    Move a file to the specified destination folder.
+    """Move a file to the specified destination folder.
 
     specfified destination folder is defined by
 
@@ -63,7 +62,7 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
         - item (File): The file object to be moved.
         - dest_folder (str): The destination folder where the file will be placed.
 
-    Returns:
+    Returns
     ---------
         - str: The new name of the file after moving, or its original name if renaming is not requested.
 
@@ -74,7 +73,7 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
         case Dir():
             return os.remove(item.path) if item.is_empty else None
         case _:
-            modification_time = datetime.datetime.fromtimestamp(os.stat(item.path).st_mtime)
+            modification_time = datetime.datetime.fromtimestamp(Path.stat(item.path).st_mtime)
 
     year, month, day = (
         modification_time.year,
@@ -85,10 +84,10 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
     # Rename the file to include time of capture if cli flag is set
     if rename:
         dest_path = os.path.join(
-            dest_folder, f'{modification_time.strftime("%H:%M.%S")}{item.extension}'
+            dest_folder, f'{modification_time.strftime("%H:%M.%S")}{item.suffix}'
         )
     else:
-        dest_path = os.path.join(dest_folder, item.basename)
+        dest_path = os.path.join(dest_folder, item.name)
     if not os.path.exists(dest_folder):
         os.makedirs(dest_folder, exist_ok=True)
     count = 1
@@ -99,11 +98,11 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
             os.remove(item.path)
             break
         dest_path = os.path.join(
-            dest_folder, f'{modification_time.strftime("%H:%M.%S")}_{count}{item.extension}'
+            dest_folder, f'{modification_time.strftime("%H:%M.%S")}_{count}{item.suffix}'
         )
         count += 1
     shutil.move(item.path, dest_path, copy_function=shutil.copy2)
-    return item.basename
+    return item.name
 
 
 def main(root: str, dest: str) -> None:

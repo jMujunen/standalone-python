@@ -4,6 +4,7 @@
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 import clipboard
 import cv2
@@ -13,12 +14,12 @@ import pytesseract
 def notify(status: str, icon: str) -> int:
     """Send a desktop notification.
 
-    Parameters:
+    Parameters
     -----------
         status (str): The message to display in the notification.
         icon (str): The path to an image file to use as the notification's icon.
 
-    Returns:
+    Returns
     --------
         int: The return code of the subprocess call. If it is 0, then the command was successful.
 
@@ -36,20 +37,19 @@ def notify(status: str, icon: str) -> int:
     return subprocess.call(cmd)
 
 
-def take_screenshot(output_dir="~/Pictures/Screenshots/OCR") -> str:
+def take_screenshot(output_dir: str = "~/Pictures/Screenshots/OCR") -> Path:
     """Take a screenshot of the selected area and save it to a specified directory.
 
-    Parameters:
+    Parameters
     -----------
         output_dir (str): The path to the directory where the screenshot will be saved. Defaults to "~/Pictures/Screenshots/OCR".
 
-    Returns:
+    Returns
     --------
         str: The full path of the saved screenshot.
     """
-    filename = "imagegrab.png"
-    os.makedirs(os.path.expanduser(output_dir), exist_ok=True)
-    output_path = os.path.join(os.path.expanduser(output_dir), filename)
+    output_path = Path(output_dir).expanduser() / "imagegrab.png"
+    Path.mkdir(output_path.parent, parents=True, exist_ok=True)
 
     # Take a screenshot of a selected area
     try:
@@ -58,7 +58,7 @@ def take_screenshot(output_dir="~/Pictures/Screenshots/OCR") -> str:
                 "spectacle",
                 "-rbn",
                 "--output",
-                output_path,
+                str(output_path),
             ]
         )
     except subprocess.CalledProcessError:
@@ -70,11 +70,11 @@ def take_screenshot(output_dir="~/Pictures/Screenshots/OCR") -> str:
 def extract_text(image_path: str) -> str:
     """Extract text from an image using OCR (Optical Character Recognition).
 
-    Parameters:
+    Parameters
     -----------
         image_path (str): The path to the image file.
 
-    Returns:
+    Returns
     --------
         str: The extracted text as a string.
     """
@@ -88,7 +88,7 @@ def extract_text(image_path: str) -> str:
 if __name__ == "__main__":
     try:
         image = take_screenshot()
-        text = extract_text(image)
+        text = extract_text(str(image))
         print(text)
         # Print extracted text and copy to the clipboard
         print(f"\033[32m{text}\033[0m")
@@ -102,4 +102,6 @@ if __name__ == "__main__":
         sys.exit(code)
     except subprocess.CalledProcessError:
         print("Failed to send notification")
+        sys.exit(1)
+    finally:
         sys.exit(0)
