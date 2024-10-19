@@ -94,7 +94,7 @@ if __name__ == "__main__":
         print(f"\033[32m{text}\033[0m")
         clipboard.copy(text)
     except Exception as e:
-        print(f"{e:!s}")
+        print(f"{e!r}")
         sys.exit(1)
     # Send a notification
     try:
