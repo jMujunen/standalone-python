@@ -141,8 +141,9 @@ def process_item(
     count = 0
     existing_files = index.get(item.sha256(), [])
     while os.path.exists(dest_path):
+        print(dest_path)
+
         if len(existing_files) < MAX_DUPLICATES:
-            print(dest_path)
             # Rename the file while under MAX_DUPLICATES
             count += 1
             path, name = os.path.split(dest_path)
@@ -156,7 +157,10 @@ def process_item(
                 cprint(f"[KEEP] - {'\n'.join(overflow[:MAX_DUPLICATES])}")
                 return None
             for file in overflow[MAX_DUPLICATES:]:
-                os.remove(file)
+                if dry_run is True:
+                    cprint.info("(dry run) Removing", file)
+                else:
+                    os.remove(file)
     try:
         shutil.move(item.path, dest_path, copy_function=shutil.copy2)
     except (PermissionError, FileExistsError, FileNotFoundError) as e:
