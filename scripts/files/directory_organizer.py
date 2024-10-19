@@ -142,6 +142,7 @@ def process_item(
     existing_files = index.get(item.sha256(), [])
     while os.path.exists(dest_path):
         if len(existing_files) < MAX_DUPLICATES:
+            print(dest_path)
             # Rename the file while under MAX_DUPLICATES
             count += 1
             path, name = os.path.split(dest_path)
