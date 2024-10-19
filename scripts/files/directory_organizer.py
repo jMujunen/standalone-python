@@ -141,8 +141,6 @@ def process_item(
     count = 0
     existing_files = index.get(item.sha256(), [])
     while os.path.exists(dest_path):
-        print(dest_path)
-
         if len(existing_files) < MAX_DUPLICATES:
             # Rename the file while under MAX_DUPLICATES
             count += 1
@@ -161,6 +159,9 @@ def process_item(
                     cprint.info("(dry run) Removing", file)
                 else:
                     os.remove(file)
+        else:
+            # If there are no duplicates or the number of copies is under control, just return.
+            break
     try:
         shutil.move(item.path, dest_path, copy_function=shutil.copy2)
     except (PermissionError, FileExistsError, FileNotFoundError) as e:
