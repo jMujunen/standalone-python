@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import sys
+from pathlib import Path
 
 from Color import cprint
 from fsutils import FILE_TYPES, IGNORED_DIRS, File
@@ -187,7 +188,7 @@ def main(root: str, destination: str, spec: str, refresh=False, dry_run=False) -
     path = Dir(root)
     dest = Dir(destination)
 
-    index = dest.serialize() if refresh else dest.load_database()
+    index = dest.serialize(replace=refresh)
     # If root and destination are the same, do not recurse into subdirectories
     file_objs = [obj(file) for file in path.content] if root == dest else path.file_objects
     sort_spec = sort_spec_formatter(spec)
