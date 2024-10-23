@@ -11,13 +11,13 @@ import shutil
 import sys
 from pathlib import Path
 
+import cython
 from Color import cprint
 from fsutils import FILE_TYPES, IGNORED_DIRS, File
 from fsutils.DirNode import Dir, obj
 from ThreadPoolHelper import Pool
 
-MAX_DUPLICATES = 2
-
+MAX_DUPLICATES: cython.int
 
 DATE_REGEX = re.compile(r"\d{1,4}-(\d{4}).?(\d{2}).?(\d{2}).(\d{2}).?(\d{2}).?(\d{2})")
 
@@ -134,7 +134,8 @@ def process_item(
     dest_folder = get_prefix(item=item, target=target_root.path, sort_spec=sort_spec)
     if dest_folder is None:
         return None
-    os.makedirs(dest_folder, exist_ok=True)
+    if not os.path.exists(dest_folder):
+        os.makedirs(dest_folder, exist_ok=True)
     dest_path = os.path.join(dest_folder, item.name)
 
     # Check for duplicates in the same directory, keeping MAX_DUPLICATES copies.
@@ -150,20 +151,21 @@ def process_item(
             # Remove newest items while MAX_DUPLICATES is exceeded.
             existing_files.append(item.path)
             overflow = sorted(existing_files, key=lambda x: os.path.getmtime(x))
-            if dry_run:
-                cprint(f"[REMOVE] - {'\n'.join(overflow[MAX_DUPLICATES:])}")
-                cprint(f"[KEEP] - {'\n'.join(overflow[:MAX_DUPLICATES])}")
-                return None
+            # if dry_run:
+            cprint(f"[REMOVE] - {'\n'.join(overflow[MAX_DUPLICATES:])}")
+            cprint(f"[KEEP] - {'\n'.join(overflow[:MAX_DUPLICATES])}")
+            # return None
             for file in overflow[MAX_DUPLICATES:]:
-                if dry_run is True:
-                    cprint.info("(dry run) Removing", file)
-                else:
-                    os.remove(file)
+                # if dry_run is True:
+                # else:
+                cprint.info("(dry run) Removing", file)
+                # os.remove(file)
         else:
             # If there are no duplicates or the number of copies is under control, just return.
             break
     try:
         shutil.move(item.path, dest_path, copy_function=shutil.copy2)
+        cprint.debug(f"Moved {item:<30} -> {dest_path}")
     except (PermissionError, FileExistsError, FileNotFoundError) as e:
         cprint.error(f"{e}: {e.filename} {e.filename2}")
         raise e from e
@@ -210,6 +212,7 @@ def main(root: str, destination: str, spec: str, refresh=False, dry_run=False) -
             sort_spec=sort_spec,
         )
     )
+
     cleanup(root)
     try:
         os.rmdir(root)

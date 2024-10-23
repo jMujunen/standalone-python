@@ -13,13 +13,13 @@ class SizeUnit(Enum):
     TB = 1024**4
 
 
-class Size:
+class Size(int):
     """Convert a size in bytes to a human-readable string representation."""
 
     def __init__(self, size_in_bytes: int):
         """Initialize ByteConverter object with a size in bytes.
 
-        Parameters:
+        Parameters
         ----------
             `size_in_bytes` (int): Size in bytes."""
 
@@ -42,7 +42,7 @@ class Size:
         return float(self._convert().split()[0])
 
     def __int__(self) -> int:
-        return int(float(self))
+        return int(self.size_in_bytes)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}" + f"(raw={self.size_in_bytes}, human={self._convert()})"

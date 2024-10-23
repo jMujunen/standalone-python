@@ -39,7 +39,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--level",
         choices=["day", "month", "year"],
-        help="Specifys the sorting level to use",
+        help="Specify the sorting level to use",
         default="day",
         required=False,
     )
@@ -54,8 +54,6 @@ def parse_args() -> argparse.Namespace:
 
 def process_item(item: File, target_root: str, rename=True) -> str | None:
     """Move a file to the specified destination folder.
-
-    specfified destination folder is defined by
 
     Paramaters:
     -----------

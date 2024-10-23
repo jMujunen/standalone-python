@@ -5,7 +5,7 @@ import argparse
 import re
 from sys import exit
 
-import pyperclip
+import clipboard
 
 # TODO - add more presets for common patterns
 PRESETS = {
@@ -27,20 +27,17 @@ def main(pattern: str, replacement: str = "", preset: str | None = None) -> str:
     """
     regex = re.compile(pattern)
 
-    text = pyperclip.paste()
+    text = clipboard.paste()
     lines = text.splitlines()
 
     # Initialize an empty list to hold the processed lines
     output = []
     if preset is not None and preset in PRESETS:
         return PRESETS[args.preset](text)
-
-    for line in lines:
-        # Strip the character or pattern from each line
-        output.append(re.sub(regex, replacement, line))
+    output = [re.sub(regex, replacement, line) for line in lines]
     # Join the output list back into a single text string
     result = "\n".join(output)
-    pyperclip.copy(result)
+    clipboard.copy(result)
     return result
 
 
