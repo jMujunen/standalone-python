@@ -28,11 +28,8 @@ def count_file_types(directory: str, no_ignore=False) -> dict:
 
     """
     file_types = defaultdict(int)
-
-    files = []
-    for item in Dir(directory).file_objects:
-        if not all((item.suffix not in IGNORED, no_ignore)):
-            files.append(item)
+    path = Dir(directory)
+    files = [item for item in path.file_objects if not all((item.suffix not in IGNORED, no_ignore))]
     for item in files:
         file_types[item.suffix[1:]] += 1  # remove the dot from the extension
     return dict(sorted(file_types.items(), key=lambda item: item[1]))
