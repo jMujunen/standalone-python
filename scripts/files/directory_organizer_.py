@@ -5,6 +5,7 @@ Additionally, creates an organized tree for any images or videos which get
 sorted by capture date and moved to its respective folder"""
 
 import argparse
+import itertools
 import os
 import re
 import shutil
@@ -17,18 +18,18 @@ from fsutils import FILE_TYPES, IGNORED_DIRS, File
 from fsutils.DirNode import Dir, obj
 from ThreadPoolHelper import Pool
 
-MAX_DUPLICATES: cython.int
+MAX_DUPLICATES: cython.int = 2
 
 DATE_REGEX = re.compile(r"\d{1,4}-(\d{4}).?(\d{2}).?(\d{2}).(\d{2}).?(\d{2}).?(\d{2})")
 
 
-def cleanup(top) -> None:
+def cleanup(top: Path) -> None:
     """Remove empty directories recursively."""
     for root, dirs, files in os.walk(top):
         for d in dirs:
-            cleanup(os.path.join(root, d))
+            cleanup(Path(root, d))
         if not dirs and not files:
-            os.rmdir(root)
+            Path(root).rmdir()
 
 
 def sort_spec_formatter(spec: str) -> str:
@@ -43,7 +44,7 @@ def sort_spec_formatter(spec: str) -> str:
             raise ValueError(f"Invalid sort spec: {spec}")
 
 
-def categorize_other(y: File, x: str) -> str:
+def categorize_other(y: File, x: str | Path) -> Path:
     """Move files that are not categorized to the other directory based of mimetype.
 
     Paramaters:
@@ -51,14 +52,14 @@ def categorize_other(y: File, x: str) -> str:
         - item (File): The file object.
         - target_root (Dir): The target root directory
     """
-    prefix = os.path.join(x, "Other")
+    prefix = Path(x, "Other")
     for k, v in FILE_TYPES.items():
         if y.suffix.lower() in v:
-            prefix = os.path.join(prefix, k)
+            prefix = Path(prefix, k)
     return prefix
 
 
-def get_prefix(item: File, target: str, sort_spec: str) -> str | None:
+def get_prefix(item: File, target: str, sort_spec: str) -> Path | None:
     """Categorize a file into the appropriate destination folder based on its type and creation date.
 
     Parameters
@@ -68,19 +69,19 @@ def get_prefix(item: File, target: str, sort_spec: str) -> str | None:
         - sort_spec (str): The sorting specification, e.g., 'year', 'month', 'day'
     """
     if item.suffix.lower() in FILE_TYPES["trash"]:
-        os.remove(item.path)
+        Path(item.path).unlink()
         cprint.info(f"Removed {item.name}")
         return None
-    for part in item.path.split(os.sep):
+    for part in item.parts:
         if part in IGNORED_DIRS:
             return None
 
     match item.__class__.__name__:
         case "Img":
             return (
-                os.path.join(target, "Photos", item.capture_date.strftime(sort_spec))  # type: ignore
+                Path(target, "Photos", item.capture_date.strftime(sort_spec))  # type: ignore
                 if item.suffix.lower() != ".nef"
-                else os.path.join(
+                else Path(
                     target,
                     "Photos",
                     "RAW",
@@ -88,18 +89,24 @@ def get_prefix(item: File, target: str, sort_spec: str) -> str | None:
                 )
             )
         case "Video":
-            return os.path.join(
+            return Path(
                 target,
                 "Videos",
                 item.capture_date.strftime(sort_spec),  # type: ignore
             )
         case "Dir":
-            return os.remove(item.path) if not os.listdir(item.path) else None
+            return item.unlink() if not os.listdir(item.path) else None
         case _:
             return categorize_other(item, target)
 
 
-def determine_originals(file_paths: list[str], num_keep: int) -> list[str]:
+def gen_stat(lst):
+    for pair in itertools.combinations(lst, 2):
+        pair = obj(pair[0]), obj(pair[1])
+        yield zip(*(p.stat()[-3:] for p in pair), strict=False)
+
+
+def determine_originals(file_paths: list[str], num_keep: int) -> set[str]:
     """Given a list of file paths and the number of duplicates to keep,
     return a list of file paths that should be kept.
 
@@ -108,20 +115,24 @@ def determine_originals(file_paths: list[str], num_keep: int) -> list[str]:
         - `file_paths (list[str])`: A list of file paths.
         - `num_keep (int)`: The number of duplicates to keep
     """
-    oldest_to_newest = sorted(file_paths, key=lambda x: os.path.getmtime(x), reverse=False)
+    oldest_to_newest = sorted(file_paths, key=lambda x: Path(x).stat().st_mtime, reverse=False)
     keep = []
     remove = []
     for i, path in enumerate(oldest_to_newest):
         if i < num_keep:
             keep.append(path)
         else:
-            remove.append(path)
-    return remove
+            for st_result in gen_stat(oldest_to_newest):
+                for st in st_result:
+                    if st[0] != st[1] and st[0] < st[1]:
+                        break
+                remove.append(path)
+    return set(remove)
 
 
 def process_item(
     item: File, target_root: Dir, index: dict[str, list[str]], sort_spec: str, dry_run=False
-) -> str | None:
+) -> Path | None:
     """Process a single item (file or directory) and move it to the appropriate destination folder.
 
     Paramaters:
@@ -134,23 +145,23 @@ def process_item(
     dest_folder = get_prefix(item=item, target=target_root.path, sort_spec=sort_spec)
     if dest_folder is None:
         return None
-    if not os.path.exists(dest_folder):
-        os.makedirs(dest_folder, exist_ok=True)
-    dest_path = os.path.join(dest_folder, item.name)
+    if not dest_folder.exists():
+        dest_folder.mkdir(parents=True, exist_ok=True)
+    dest_path = Path(dest_folder, item.name)
 
     # Check for duplicates in the same directory, keeping MAX_DUPLICATES copies.
     count = 0
     existing_files = index.get(item.sha256(), [])
-    while os.path.exists(dest_path):
+    while dest_path.exists():
         if len(existing_files) < MAX_DUPLICATES:
             # Rename the file while under MAX_DUPLICATES
             count += 1
             path, name = os.path.split(dest_path)
-            dest_path = os.path.join(path, f"{count}-{item.name}")
+            dest_path = Path(path, f"{count}-{item.name}")
         elif len(existing_files) > MAX_DUPLICATES:
             # Remove newest items while MAX_DUPLICATES is exceeded.
             existing_files.append(item.path)
-            overflow = sorted(existing_files, key=lambda x: os.path.getmtime(x))
+            overflow = sorted(existing_files, key=lambda x: Path(x).stat().st_mtime)
             # if dry_run:
             cprint(f"[REMOVE] - {'\n'.join(overflow[MAX_DUPLICATES:])}")
             cprint(f"[KEEP] - {'\n'.join(overflow[:MAX_DUPLICATES])}")
@@ -213,9 +224,10 @@ def main(root: str, destination: str, spec: str, refresh=False, dry_run=False) -
         )
     )
 
-    cleanup(root)
+    cleanup(path)
+
     try:
-        os.rmdir(root)
+        path.rmdir()
     except OSError as e:
         cprint.error(f"OSError while removing dir: {e.strerror}: {e.filename}")
 
