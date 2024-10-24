@@ -36,9 +36,7 @@ def main(pattern: str, replacement: str = "", preset: str | None = None) -> str:
         return PRESETS[args.preset](text)
     output = [re.sub(regex, replacement, line) for line in lines]
     # Join the output list back into a single text string
-    result = "\n".join(output)
-    clipboard.copy(result)
-    return result
+    return "\n".join(output)
 
 
 def parse_args() -> argparse.Namespace:
@@ -98,5 +96,7 @@ def parse_args() -> argparse.Namespace:
 # Example usage:
 if __name__ == "__main__":
     args = parse_args()
-    print(main(args.PATTERN, args.replace, args.preset))
+    result = main(args.PATTERN, args.replace, args.preset)
+    clipboard.copy(result)
+    print(result)
     exit(0)
