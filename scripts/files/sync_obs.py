@@ -4,13 +4,10 @@
 import os
 from pathlib import Path
 
+import momentis.utils
 from Color import cprint
 from fsutils import Dir, Video, obj
-from momentis import (
-    moviepy_writer as moviepy_writer,
-    utils as utils,
-)
-from momentis.config import KEYWORDS
+from momentis import moviepy_writer
 from ThreadPoolHelper import Pool
 
 # from momentis import (
@@ -24,11 +21,10 @@ FOLDERS = {
 
 OUTPUT_PATH = "/mnt/ssd/OBS/Joona"
 INPUT_PATH = "/mnt/win_ssd/Users/Joona/Videos/NVIDIA/"
-HOFFMAN = KEYWORDS["hoff"]
 
 
 def main(
-    input_path: str = INPUT_PATH, output_path: str = OUTPUT_PATH, keywords: list = HOFFMAN
+    input_path: str = INPUT_PATH, output_path: str = OUTPUT_PATH, keywords: list[str] = []
 ) -> None:
     """Compress videos specified by input Dir and save them to output Dir."""
     input_dir = Dir(input_path)
