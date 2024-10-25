@@ -5,6 +5,7 @@ import argparse
 import os
 import subprocess
 
+import cython
 from ExecutionTimer import ExecutionTimer
 from size import Size
 
