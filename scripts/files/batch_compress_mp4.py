@@ -3,11 +3,15 @@
 
 import argparse
 import os
+import re
 import shutil
 import sys
+from pathlib import Path
+from typing import Any
 
 from Color import cprint, fg, style
 from fsutils import Dir, Video
+from ProgressBar import ProgressBar
 from size import Size
 from ThreadPoolHelper import Pool
 
@@ -16,110 +20,55 @@ RENAME_SPEC = {
 }
 
 
-def compress_file(file: Video, output_dir: str) -> Video | None:
-    """Process a single .mp4 file."""
-    output_file_path = os.path.join(output_dir, f"_{file.name}")
-    output_file_object = Video(output_file_path)
-    if output_file_object.exists and output_file_object.size < file.size:
-        return None
-        # TODO: Implement FFMpegManager context manager
-    try:
-        compressed = file.compress(output=output_file_path)
-        print("Size:".ljust(10), f"{file.size_human:<25} : {output_file_object.size_human:<25}")
-        print(
-            "Bitrate:".ljust(10),
-            f"{file.bitrate_human:<25} : {output_file_object.bitrate_human:<25}",
-        )
-        return compressed
-    except Exception as e:
-        cprint(
-            f"{e!r}: {file.name} could not be converted ({e})",
-            fg.red,
-            style.bold,
-        )
+def main(input_dir: str, output_dir: str, num: int, *filters):
+    pool = Pool()
 
-
-def process_file(file: Video, output_dir: str, *args) -> Video | None:
-    """If video codec is HEVC and bitrate is greater than 30MB/s, compress;
-    otherwise, move it to the output directory."""
-    try:
-        if not args:
-            # Define default behavior (only compress files with a bitrate of > 30MB/s)
-            if file.bitrate > 30000000:
-                return file
-            shutil.move(
-                file.path,
-                os.path.join(output_dir, f"_{file.name}"),
-                copy_function=shutil.copy2,
-            )
-        else:
-            # If args are provided, use them to determine whether or not to compress the file
-            filter_key, filter_value = args
-            match filter_key:
-                # Compress files with codec <filter_value>
-                case "codec":
-                    if file.codec == filter_value:
-                        return file
-                # Compress files with bitrate over <filter_value>
-                case "bitrate":
-                    if file.bitrate > filter_value:
-                        return file
-                # Compress files with extension <filter_value>
-                case "extension":
-                    if file.suffix == filter_value:
-                        return file
-                case _:
-                    raise ValueError(f"Invalid filter key: {filter_key}")
-    except Exception as e:
-        cprint(f"{e!r}: {file.name} could not be processed", fg.red, style.bold)
-    return None
-
-
-def main(
-    input_dir: str, output_dir: str, num: int, *args
-) -> tuple[list[Video], list[Video], int, int]:
-    original_files = []
-    compressed_files = []
-
-    size_before = 0
-    size_after = 0
-
-    videos = Dir(input_dir).videos[:num]
     outdir = Dir(output_dir)
 
+    videos = [vid for vid in Dir(input_dir).videos[:num] if vid.suffix in filters]
+    failed_conversions = []
+    successful_conversions = []
+    compressed_videos = []
     # Create the output directories if they don't exist
     try:
-        os.makedirs(outdir.path, exist_ok=True)
+        outdir.mkdir(parents=True, exist_ok=True)
     except OSError as e:
         print(f"[\033[31m Error creating output directory '{outdir}': {e} \033[0m]")
         sys.exit(1)
-    pool = Pool()
-    for result in pool.execute(process_file, videos, outdir.path, progress_bar=True):
-        if result is not None:
-            compressed = compress_file(result, outdir.path)
-            if compressed is not None and os.path.exists(compressed.path):
-                compressed_files.append(compressed)
-                size_diff, bitrate_diff = (
-                    (result.size - compressed.size),
-                    (result.bitrate - compressed.bitrate),
-                )
-                if any((size_diff < 0, bitrate_diff < 0)):
-                    size_ratio = "\033[31mError: filesize / bitrate increased\033[0m"
-                else:
-                    size_ratio = size_diff / bitrate_diff
+
+    if not videos:
+        cprint(f"No videos found in '{input_dir}'", fg.yellow)
+        sys.exit(1)
+
+    template = "{file:<25}: ({before_color}{size_before:<10} | {bitrate_before:<10}{reset1}) -> ({after_color}{size_after:<10} | {bitrate_after}{reset2})"
+    with ProgressBar(len(videos)) as progress:
+        for video in videos:
+            try:
+                result = video.compress()
+                successful_conversions.append(video)
+                compressed_videos.append(result)
                 print(
-                    f"""File size decreased {style.bold}{size_ratio}x{style.reset} more than bitrate
-                    Bitrate: Original:{fg.red}{Size(result.bitrate)} {style.reset} -> {fg.green}{Size(compressed.bitrate)}{style.reset})
-                    File Size: Original:{fg.red}{Size(result.size)}  {style.reset} -> {fg.green}{Size(compressed.size)}{style.reset}
-                    """
+                    template.format(
+                        file=video.name,
+                        before_color=fg.red,
+                        after_color=fg.green,
+                        reset1=style.reset,
+                        reset2=style.reset,
+                        size_before=video.size_human,
+                        bitrate_before=video.bitrate_human,
+                        size_after=result.size_human,
+                        bitrate_after=result.bitrate_human,
+                    )
                 )
-                print(f"Quality: {compressed.num_frames}")
-                original_files.append(result)
-                size_before += result.size
-                size_after += compressed.size
+            except Exception as e:
+                cprint.error(f"Failed to compress {video.name}: {e:!r}")
+                failed_conversions.append(video)
+        progress.increment()
+    size_before = sum(pool.execute(lambda x: x.size, videos, progress_bar=True))
+    size_after = sum(pool.execute(lambda x: x.size, compressed_videos, progress_bar=True))
     # Notify user of completion
     cprint("\nBatch conversion completed.", fg.green)
-    return original_files, compressed_files, size_before, size_after
+    return successful_conversions, failed_conversions, size_before, size_after
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -182,25 +131,30 @@ if __name__ == "__main__":
     # print(*vars(args).values())
     # exit()
 
-    main(args.INPUT, args.OUTPUT, args.num, args.keep, args.filter, vars(args)[args.filter])
+    main(args.INPUT, args.OUTPUT, args.num, args.keep, ".mkv")
     try:
-        old_files, new_files, before, after = main(args.INPUT, args.OUTPUT, args.num)
-        if not old_files or not new_files:
+        success, failed, size_before, size_after = main(
+            args.INPUT, args.OUTPUT, args.num, args.keep
+        )
+        if not success and failed:
+            cprint.error("Failed to compress the following files:\n" + "\n".join(failed))
+            sys.exit("\n".join(failed))
+        elif not success and not failed:
             cprint("Nothing to convert. Exiting...", fg.yellow)
-            sys.exit()
+            sys.exit(0)
     except KeyboardInterrupt:
         cprint("KeyboardInterrupt", fg.red)
         sys.exit(127)
 
-    space_saved = Size(before - after)
+    space_saved = Size(size_before - size_after)
 
     cprint(f"\nSpace saved: {space_saved}", fg.green, style.bold)
     if not args.keep:
         # remove old uncompressed files
-        for file in old_files:
+        for file in success:
             try:
                 os.remove(file.path)
             except OSError as e:
-                print(e)  # remove error message
+                cprint.error(f"{e!r}")  # remove error message
             except Exception:
                 pass
