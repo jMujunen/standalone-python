@@ -4,11 +4,10 @@
 import os
 from pathlib import Path
 
+import momentis.momentis
 import momentis.utils
 from Color import cprint
-from fsutils import Dir, Video, obj
-from momentis import momentis as writer
-from ThreadPoolHelper import Pool
+from fsutils import Dir, obj
 
 # from momentis import (
 # KEYWORDS,
@@ -29,7 +28,7 @@ def main(
     """Compress videos specified by input Dir and save them to output Dir."""
     input_dir = Dir(input_path)
 
-    writer.main(input_path=input_path, keywords=keywords)
+    momentis.momentis.main(input_path=input_path, keywords=keywords)
     processed_dir = Dir(Path(input_path, "opencv-output"))
 
     output_dir = Dir(output_path)
