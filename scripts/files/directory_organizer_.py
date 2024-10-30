@@ -10,7 +10,9 @@ import os
 import re
 import shutil
 import sys
+from collections.abc import Generator
 from pathlib import Path
+from typing import Any
 
 import cython
 from Color import cprint
@@ -100,7 +102,7 @@ def get_prefix(item: File, target: str, sort_spec: str) -> Path | None:
             return categorize_other(item, target)
 
 
-def gen_stat(lst):
+def gen_stat(lst: list) -> Generator[zip]:
     for pair in itertools.combinations(lst, 2):
         pair = obj(pair[0]), obj(pair[1])
         yield zip(*(p.stat()[-3:] for p in pair), strict=False)
@@ -108,7 +110,7 @@ def gen_stat(lst):
 
 def determine_originals(file_paths: list[str], num_keep: int) -> set[str]:
     """Given a list of file paths and the number of duplicates to keep,
-    return a list of file paths that should be kept.
+    return a list of file paths that should be removed.
 
     Parameters
     -----------
