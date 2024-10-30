@@ -14,18 +14,19 @@ import numpy as np
 FILE = "/tmp/hwinfo.csv"
 
 GROUPS = {
-    "misc": [" ping", " ram_usage", " gpu_core_usage"],
-    "gpu": [" gpu_temp", " gpu_core_usage", " gpu_power"],
-    "temps": [" system_temp", " gpu_temp", " cpu_temp"],
-    "cpu": [" cpu_max_clock", " cpu_avg_clock"],
-    "volts": [" gpu_voltage", " cpu_voltage"],
+    "misc": ["ping", "ram_usage", "core_usage"],
+    "gpu": ["gpu_core_temp", "gpu_core_usage", "power"],
+    "temps": ["sys_temp", "gpu_temp", "cpu_temp"],
+    "cpu": ["cpu_max_clock", "cpu_clock"],
+    "volts": ["gpu_voltage", "cpu_voltage"],
+    "clocks": ["gpu_core_clock", "gpu_memory_clock", "cpu_max_clock"],
 }
 
 
 def main(filepath: str, columns: list[Any], num_rows: int = -1, smooth_factor: int = 1) -> None:
     """Load CSV file into a dataframe and plot specified columns.
 
-    Parameters:
+    Parameters
     ----------
         - `smooth_factor` defines moving average or how 'smooth' the line will be.  \
             Default value is a variable calculated based number of rows in the dataframe.
@@ -39,7 +40,7 @@ def main(filepath: str, columns: list[Any], num_rows: int = -1, smooth_factor: i
         columns = GROUPS[columns[0]]
     if not os.path.isfile(filepath):
         raise FileNotFoundError("File not found.")
-    df = pd.read_csv(filepath, sep=r",", engine="python", index_col=0)
+    df = pd.read_csv(filepath, sep=r",\s+", engine="python", index_col=0)
     df = df.tail(num_rows)
     missing_columns = [col for col in columns if col not in df.columns]
 
