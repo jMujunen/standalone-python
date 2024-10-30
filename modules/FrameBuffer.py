@@ -8,8 +8,7 @@ class FrameBuffer:
     buffer: deque[tuple[ndarray, int]]
 
     def __init__(self, max_size: int) -> None:
-        """
-        Initialize the frame buffer.
+        """Initialize the frame buffer.
 
         ### Paramters:
         -----------------
@@ -20,8 +19,7 @@ class FrameBuffer:
         self.index = deque(maxlen=max_size)
 
     def add_frame(self, frame: tuple[ndarray, int]) -> None:
-        """
-        Add a new frame to the buffer.
+        """Add a new frame to the buffer.
 
         ### Parameters:
         ---------------
@@ -54,8 +52,7 @@ class FrameBuffer:
         return list(self.buffer)[num_frames:]
 
     def get_future_frames(self, num_frames: int) -> list[tuple[ndarray, int]]:
-        """
-        Get a specified number of older frames from the buffer.
+        """Get a specified number of older frames from the buffer.
 
         ### Parameters:
         -----------------

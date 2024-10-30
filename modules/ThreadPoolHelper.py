@@ -58,9 +58,12 @@ class Pool:
                         yield result
                 except StopIteration:
                     pass
+                except KeyboardInterrupt:
+                    break
                 except Exception as e:
                     if not self.suppress_exceptions:
                         print(f"\nThreadpool Exception: {e!r}")
                 finally:
                     if progress_bar:
                         pb.increment()
+        yield from ()
