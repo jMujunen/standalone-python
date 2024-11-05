@@ -1,5 +1,4 @@
 from collections import deque
-from typing import Any
 
 from numpy import ndarray
 
