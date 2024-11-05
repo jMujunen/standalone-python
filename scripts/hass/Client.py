@@ -3,6 +3,7 @@
 
 import json
 import subprocess
+from enum import Enum
 from os import environ
 from typing import Any
 
@@ -10,6 +11,17 @@ import requests
 
 TOKEN: str = environ["HASS_TOKEN"]
 HOST: str = environ["HASS_HOST"]
+
+
+class StatusCode(Enum):
+    OK = 200
+    OK_CREATED = 201
+    BAD_REQUEST = 400
+    UNAUTHORIZED = 401
+    BAD_AUTHENTICATION = 403
+    NOT_FOUND = 404
+    BAD_METHOD = 405
+    INTERNAL_ERROR = 500
 
 
 def call_service(domain: str, service: str, entity_id=None, **kwargs) -> requests.Response:
@@ -96,7 +108,7 @@ class Client(metaclass=MetaClient):
         return {"Authorization": "Bearer " + self.token}
 
     @property
-    def api_reference(self) -> dict[str, str]:
+    def api_reference(self) -> dict[dict[str, str], str]:
         self.head["content-type"] = "application/json"
         response = requests.get(self.base_url, headers=self.head)
         self._domains = json.loads(response.content)
@@ -109,10 +121,8 @@ class Client(metaclass=MetaClient):
         return list(self._dict.keys())
 
     @property
-    def entities(self) -> None:
-        # TODO: Integrate this
-        # Extract all unique domains and entities
-        entities = set()
+    def entities(self) -> list[tuple[str, ...]]:
+        entities = []
         for item in self.api_reference:
             for service in item["services"]:
                 if (
@@ -120,8 +130,8 @@ class Client(metaclass=MetaClient):
                     and "entity" in item["services"][service]["target"]
                 ):
                     for entity in item["services"][service]["target"]["entity"]:
-                        entities.add((item["domain"], service, entity))
-        print("All Entities:", list(entities))
+                        entities.append((item["domain"], service, entity))
+        return entities
 
     @property
     def _dict(self) -> dict:
@@ -145,11 +155,11 @@ class Client(metaclass=MetaClient):
             entity_id (str, optional): The ID of the entity for which the service is intended. Defaults to None.
             **kwargs: Additional keyword arguments that will be included in the request payload.
 
-        Returns:
+        Returns
         ---------
             requests.Response: The response object from the POST request made to the Home Assistant API.
 
-        Raises:
+        Raises
         --------
             HTTPError: If an error occurs during the HTTP request, it will raise an HTTPError.
         """
@@ -185,24 +195,31 @@ class Client(metaclass=MetaClient):
         )
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
-        return self.domains
+        for domain in self.domains:
+            attribute = setattr(self, domain)
+            yield attribute(*args, **kwds)
+        # return self.domains
 
-    def get_state(self, entity_id: str) -> dict | str:
+    def get_state(self, entity_id: str) -> dict[str, Any]:
         """Get the state of an entity.
 
-        Parameters:
+        Parameters
         -----------
             entity_id (str): The ID of the entity (e.g., sensor.temperature_1).
 
-        Returns:
+        Returns
         --------
             dict | str : The state data as a dictionary if successful, else the reason for failure.
         """
         url = f"{self.url}/states/{entity_id}"
         response = requests.get(url, headers=self.headers)
-        return response.json() if response.status_code == 200 else response.reason
+        return (
+            response.json()
+            if response.status_code == StatusCode.OK.value
+            else {"error:": response.reason}
+        )
 
-    def set_state(self, entity_id: str, value: Any, attributes: Any = None) -> int:
+    def set_state(self, entity_id: str, value: Any, attributes: Any = None) -> str:
         """Set the state of an entity.
 
         Paramters:
@@ -210,7 +227,7 @@ class Client(metaclass=MetaClient):
             entity_id (str): The entity id of the Home Assistant instance.
             value (Any): The new state of the entity.
 
-        Returns:
+        Returns
         ---------
             int: The HTTP status code of the request.
         """
@@ -219,7 +236,10 @@ class Client(metaclass=MetaClient):
         if attributes:
             data["attributes"] = attributes
         response = requests.post(url, headers=self.headers, json=data)
-        return response.status_code
+
+        if response.status_code != StatusCode.OK.value:
+            return f"{response.status_code}: {response.reason}"
+        return f"{response.status_code}"
 
 
 # Example usage:

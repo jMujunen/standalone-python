@@ -1,6 +1,14 @@
 """ExecutionTimer.py - A reusable class to measure execution time."""
 
+from enum import Enum
 from time import time
+
+
+class TimeUnits(Enum):
+    S = 1
+    M = 60
+    H = 60**2
+    D = 24 * 60**2
 
 
 class ExecutionTimer:
@@ -26,26 +34,20 @@ class ExecutionTimer:
             print(f"\n\033[34mExecution time: {self!s}\033[0m")
 
     def __format__(self, format_spec: str, /) -> str:
-        match format_spec.lower():
-            case "r":
-                return repr(self)
-            case "f":
-                return f"{self.execution_time}"
-        return self.__str__()
+        return "Depreciated Function"
+
+    #     match format_spec.lower():
+    #         case "r":
+    #             return repr(self)
+    #         case "f":
+    #             return f"{self.execution_time}"
+    #     return self.__str__()
 
     def __str__(self) -> str:
         """Convert result from seconds to hours, minutes, seconds, and/or milliseconds."""
-        if self.execution_time < 1:
-            return f"{round(self.execution_time * 1000)}ms"
-        if self.execution_time >= 1 and self.execution_time < 60:
-            return f"{(self.execution_time):.2f}s"
-        if self.execution_time >= 60 and self.execution_time < 3600:
-            minutes = round(self.execution_time / 60)
-            self.execution_time = round(self.execution_time % 60)
-            return f"{minutes}min, {self.execution_time}s"
-        hours = round(self.execution_time / 3600)
-        self.execution_time = round((self.execution_time % 3600) / 60)
-        return f"{hours}h, {self.execution_time}min"
+        for unit in TimeUnits:
+            if self.execution_time < TimeUnits.M.value:
+                return f"{self.execution_time:.2f}{unit.name.lower()}"
+            self.execution_time /= TimeUnits.M.value
 
-    def __repr__(self) -> str:
-        return f"CompletedTimer({self.execution_time})"
+        return f"{self.execution_time / 1024:.2f} {TimeUnits.H.name.lower()}"
