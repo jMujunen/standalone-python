@@ -3,13 +3,12 @@
 from enum import Enum
 from time import time
 
-
 class TimeUnits(Enum):
-    S = 1
-    M = 60
-    H = 60**2
-    D = 24 * 60**2
-
+    ms = 1e-3
+    seconds = 1
+    minutes = 60
+    hours = 60**2
+    days = 24 * 60**2
 
 class ExecutionTimer:
     """Class for timing the execution of a block of code."""
@@ -33,8 +32,8 @@ class ExecutionTimer:
         if self.print_on_exit:
             print(f"\n\033[34mExecution time: {self!s}\033[0m")
 
-    def __format__(self, format_spec: str, /) -> str:
-        return "Depreciated Function"
+    # def __format__(self, format_spec: str, /) -> str:
+    #     return "Depreciated Function"
 
     #     match format_spec.lower():
     #         case "r":
@@ -45,9 +44,23 @@ class ExecutionTimer:
 
     def __str__(self) -> str:
         """Convert result from seconds to hours, minutes, seconds, and/or milliseconds."""
+        template = "{minutes}{major_unit}{seconds} {minor_unit}"
+        time_seconds = self.execution_time
         for unit in TimeUnits:
-            if self.execution_time < TimeUnits.M.value:
-                return f"{self.execution_time:.2f}{unit.name.lower()}"
-            self.execution_time /= TimeUnits.M.value
+            if time_seconds < TimeUnits.seconds.value:
+                return template.format(
+                    minutes="",
+                    major_unit="",
+                    seconds=f"{time_seconds/TimeUnits.ms.value:.0f}",
+                    minor_unit=TimeUnits.ms.name,
+                )
+            if time_seconds < TimeUnits.minutes.value:
+                return f"{time_seconds:.2f}{unit.name.lower()}"
 
-        return f"{self.execution_time / 1024:.2f} {TimeUnits.H.name.lower()}"
+            time_seconds /= TimeUnits.minutes.value
+
+        return f"{time_seconds / 60/24:.2f} {TimeUnits.days.name.lower()}"
+
+
+
+
