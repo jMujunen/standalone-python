@@ -10,10 +10,9 @@ RED, GREEN, BLUE, YELLOW = "\033[31m", "\033[32m", "\033[36m", "\033[33m"
 
 
 class SMS:
-    """
-    Send SMS messages using KDE Connect CLI.
+    """Send SMS messages using KDE Connect CLI.
 
-    Attributes:
+    Attributes
     -----------
         _device_id (str): Device ID of the phone to send SMS messages.
         _contacts (dict): Dictionary mapping contact names to phone numbers.
@@ -23,14 +22,13 @@ class SMS:
         device_id (str): Device ID of the phone to send SMS messages.
         contacts (dict): Dictionary mapping contact names to phone numbers.
 
-    Methods:
+    Methods
     --------
         send(str, str): Send an SMS message to a contact.
     """
 
     def __init__(self, dev_id: str | None = None):
-        """
-        Initialize SMS object with device ID (optional).
+        """Initialize SMS object with device ID (optional).
 
         Args:
         -----
@@ -41,10 +39,9 @@ class SMS:
 
     @property
     def device_id(self) -> str:
-        """
-        Device ID of the phone according to kdeconnect.
+        """Device ID of the phone according to kdeconnect.
 
-        Returns:
+        Returns
         -------
             str: Device ID of the phone according to kde
         """
@@ -63,8 +60,7 @@ class SMS:
         return self._device_id
 
     def send(self, msg: str, destination: str) -> int:
-        """
-        Send an SMS message to a contact.
+        """Send an SMS message to a contact.
 
         Args:
         -----
@@ -98,7 +94,7 @@ class SMS:
     def contacts(self) -> dict:
         """Dictionary mapping contact names to phone numbers.
 
-        Returns:
+        Returns
         --------
             dict: Dictionary of contact name (str) -> phone number (str).
         """
@@ -106,8 +102,7 @@ class SMS:
 
     @contacts.setter
     def contacts(self, contacts: dict) -> None:
-        """
-        Set the contacts dictionary.
+        """Set the contacts dictionary.
 
         Args:
         ------
@@ -124,7 +119,7 @@ class SMS:
 def main(dest: str) -> int:
     """Send a dad joke via SMS to the specified destination.
 
-    Parameters:
+    Parameters
     -----------
         dest (str): The phone number or contact name to send the joke to.
 

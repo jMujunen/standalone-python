@@ -8,7 +8,7 @@ from enum import Enum
 class SizeUnit(Enum):
     """An enumeration representing different units of size measurement.
 
-    Attributes:
+    Attributes
         B (int): Bytes.
         KB (int): Kilobytes, where 1 KB = 1024 bytes.
         MB (int): Megabytes, where 1 MB = 1024^2 bytes.

@@ -1,18 +1,12 @@
 #!/usr/bin/env python3
 """Runs momentis on all clips in the path, removes originals after."""
 
-import os
 from pathlib import Path
 
 import momentis.momentis
 import momentis.utils
 from Color import cprint
 from fsutils import Dir, obj
-
-# from momentis import (
-# KEYWORDS,
-# main as momentis,
-# )
 
 FOLDERS = {
     "PLAYERUNKNOWN'S BATTLEGROUNDS": "PUBG",
@@ -23,16 +17,18 @@ INPUT_PATH = "/mnt/win_ssd/Users/Joona/Videos/NVIDIA/"
 
 
 def main(
-    input_path: str = INPUT_PATH, output_path: str = OUTPUT_PATH, keywords: list[str] = []
+    input_path: str = INPUT_PATH, output_path: str = OUTPUT_PATH, keywords: list[str] | None = None
 ) -> None:
     """Compress videos specified by input Dir and save them to output Dir."""
+    if keywords is None:
+        keywords = []
     input_dir = Dir(input_path)
 
     momentis.momentis.main(input_path=input_path, keywords=keywords)
     processed_dir = Dir(Path(input_path, "opencv-output"))
 
-    output_dir = Dir(output_path)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    # output_dir = Dir(output_path)
+    Path(OUTPUT_PATH).mkdir(parents=True, exist_ok=True)
 
     if processed_dir.exists():
         for vid in processed_dir.videos:
