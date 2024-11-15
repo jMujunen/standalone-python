@@ -5,7 +5,7 @@ Classes:
 --------
     Weather: Fetches and processes weather data from OpenWeatherMap API.
 
-Examples:
+Examples
 --------
     some_city = Weather(api_key, lat, log)
 
@@ -18,11 +18,10 @@ import requests
 
 
 class Weather:
-    """
-    This module provides a Weather class that interacts with OpenWeatherMap API.
+    """This module provides a Weather class that interacts with OpenWeatherMap API.
     It fetches and processes weather data for a given location.
 
-    Attributes:
+    Attributes
     -----------
         api_key (str): The API key from OpenWeatherMap.
         latitude (float): Latitude of the location to fetch weather data for.
@@ -41,7 +40,7 @@ class Weather:
         location (str): The name of the location.
         wind_deg (int): The direction of the wind in degrees.
 
-    Methods:
+    Methods
     --------
         kelvin2celsius(float) -> float: Converts temperature from Kelvin to Celsius.
         __str__() -> str: Returns a string representation of the weather data for the location.
@@ -53,8 +52,7 @@ class Weather:
         latitude,
         longitude,
     ):
-        """
-        Initializes a Weather object.
+        """Initializes a Weather object.
 
         Args:
         ------
@@ -68,13 +66,12 @@ class Weather:
 
     @property
     def data(self):
-        """
-        Fetches and processes weather data from OpenWeatherMap API.
+        """Fetches and processes weather data from OpenWeatherMap API.
 
         If no data is available, it will fetch the data. Otherwise, it will return the stored data.
         This is done to prevent multiple API calls when the weather data is not needed for other purposes.
 
-        Returns:
+        Returns
         --------
             dict: Weather data for the location.
         """
@@ -121,11 +118,11 @@ class Weather:
     def kelvin2celsius(self, kelvin):
         """Converts Kelvin to Celsius.
 
-        Parameters:
+        Parameters
         -----------
             kelvin (float): Temperature in Kelvin
 
-        Returns:
+        Returns
         --------
             int: Temperature in Celsius
         """

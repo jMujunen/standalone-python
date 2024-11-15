@@ -23,7 +23,7 @@ def get_escape_sequence(hex: str) -> str:
     return "\033[38;2;{};{};{}m".format(*rgb)
 
 
-def main():
+def main() -> None:
     path = Dir("~/.themes")
 
     txtfiles = list(

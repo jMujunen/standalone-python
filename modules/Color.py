@@ -16,7 +16,7 @@ Functions:
     cprint: Wrapper arond `print()` which provides a cleaner way of interfacing with this module.
     The alternative is to use print with f-strings or string concatenation which can be tedious to read.
 
-Examples:
+Examples
 ---------
     >>> print(f"{bg.red}Hello World{style.reset}")
     >>> cprint("This is bold and cyan", fg.cyan, style.bold)
@@ -35,7 +35,7 @@ class Parse:
     def __init__(self, text: str, *styles: list) -> None:
         """Initialize the class with text and styles.
 
-        Parameters:
+        Parameters
         -----------
             text (str): The text to be parsed with styles.
             styles (list): The styles to be applied to the text
@@ -46,7 +46,7 @@ class Parse:
     def __str__(self) -> str:
         """Return the text with applied styles.
 
-        Returns:
+        Returns
         --------
             str: The text with applied styles.
         """
@@ -92,15 +92,14 @@ class cprint(Parse):
 
 @dataclass
 class style:
-    r"""
-    Apply `style` text formatting.
+    r"""Apply `style` text formatting.
 
-    Methods:
+    Methods
     --------
         listall(): Prints all available attributes.
         showall(): Similar to listall() but it renders the style as well.
 
-    Examples:
+    Examples
     -------
         >>> style.bold -> '\033[1m'
         >>> style.underline -> '\033[4m'
@@ -130,15 +129,14 @@ class style:
 
 @dataclass
 class fg:
-    r"""
-    Apply `fg` foreground formatting.
+    r"""Apply `fg` foreground formatting.
 
-    Methods:
+    Methods
     --------
         listall(): Prints all available attributes.
         showall(): Similar to listall() but it renders the style as well.
 
-    Examples:
+    Examples
     ---------
         >>> fg.red -> '\033[31m'
         >>> fg.green -> '\033[32m'
@@ -273,15 +271,14 @@ class fg:
 
 @dataclass
 class bg:
-    r"""
-    Apply `bg` foreground formatting.
+    r"""Apply `bg` foreground formatting.
 
-    Methods:
+    Methods
     --------
         listall(): Prints all available attributes.
         showall(): Similar to listall() it renders the style as well.
 
-    Examples:
+    Examples
     ---------
         >>> bg.red -> '\033[41m'
         >>> bg.green -> '\033[42m'
