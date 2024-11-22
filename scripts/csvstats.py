@@ -52,7 +52,7 @@ def main(csv_file: str | Path) -> None:
             mean_value = round(mean(numbers), 2) if mean(numbers) < 13 else int(mean(numbers))
             max_value = round(max(numbers), 2) if max(numbers) < 13 else int(max(numbers))
 
-            parsed_data[col] = (min_value, max_value, mean_value)
+            parsed_data[col] = (min_value, mean_value, max_value)
         except (IndexError, ValueError) as e:
             print("Error processing column", col, ": ", str(e), sep="")
     for column, values in sorted(parsed_data.items()):
