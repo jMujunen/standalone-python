@@ -3,11 +3,11 @@
 
 import argparse
 import os
+import sys
 
 from Color import cprint, fg, style
-from fsutils import Dir, Img, Video
+from fsutils.compiled._DirNode import Dir, Img, Video
 from ThreadPoolHelper import Pool
-import sys
 
 
 def process_file(item: Img | Video) -> tuple[bool, str]:

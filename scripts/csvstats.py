@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-"""avgvalue.py - Calculate the average value of a list of numbers."""
-
 import csv
 import sys
 from pathlib import Path
@@ -51,8 +49,9 @@ def main(csv_file: str | Path) -> None:
         try:
             numbers = [float(x) for x in data[i] if "Network is unreachable" not in x and x]
             min_value = round(min(numbers), 2) if min(numbers) < 13 else int(min(numbers))
-            max_value = round(max(numbers), 2) if max(numbers) < 13 else int(max(numbers))
             mean_value = round(mean(numbers), 2) if mean(numbers) < 13 else int(mean(numbers))
+            max_value = round(max(numbers), 2) if max(numbers) < 13 else int(max(numbers))
+
             parsed_data[col] = (min_value, max_value, mean_value)
         except (IndexError, ValueError) as e:
             print("Error processing column", col, ": ", str(e), sep="")

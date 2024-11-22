@@ -6,9 +6,11 @@ import re
 from pathlib import Path
 
 import clipboard
-from fsutils import Dir, File, mimecfg
+from fsutils.compiled._DirNode import Dir
+from fsutils.mimecfg import FILE_TYPES
 
-mime = mimecfg.FILE_TYPES
+
+mime = FILE_TYPES
 
 hex_regex = re.compile(r"#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})")
 

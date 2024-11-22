@@ -1,6 +1,6 @@
 from collections.abc import Callable
 
-from fsutils import Dir
+from fsutils.compiled._DirNode import Dir
 
 
 def get_methods(obj: object) -> list[tuple[str, Callable]]:

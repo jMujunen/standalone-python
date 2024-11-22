@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import imagehash
 from Color import cprint, fg
-from fsutils import Dir, Img
+from fsutils.compiled._DirNode import Dir, Img
 from ProgressBar import ProgressBar
 
 

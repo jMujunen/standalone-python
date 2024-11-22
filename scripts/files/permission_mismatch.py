@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
-from fsutils import Dir, File, Git
+from fsutils.compiled._DirNode import Dir, File, Git
 from ProgressBar import ProgressBar
 
 SPECS = {

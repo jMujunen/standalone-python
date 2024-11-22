@@ -71,20 +71,26 @@ class cprint(Parse):
         print(Parse(text, *styles), end=end)
 
     @staticmethod
-    def debug(text: Any, end="\n") -> None:
-        print(Parse(f"{fg.orange}[DEBUG]{style.reset} - {text}"), end=end)
+    def debug(*text: Any, end="\n") -> None:
+        result = " ".join(map(str, text))
+        print(Parse(f"{fg.orange}[DEBUG]{style.reset} - {result}"), end=end)
 
     @staticmethod
-    def info(text: Any, end="\n") -> None:
-        print(Parse(f"{fg.blue}[INFO]{style.reset} - {text}"), end=end)
+    def info(*text: Any, end="\n") -> None:
+        result = " ".join(map(str, text))
+
+        print(Parse(f"{fg.blue}[INFO]{style.reset} - {result}"), end=end)
 
     @staticmethod
-    def warn(text: Any, end="\n") -> None:
-        print(Parse(f"{fg.yellow}[WARN]{style.reset} - {text}"), end=end)
+    def warn(*text: Any, end="\n") -> None:
+        result = " ".join(map(str, text))
+
+        print(Parse(f"{fg.yellow}[WARN]{style.reset} - {result}"), end=end)
 
     @staticmethod
-    def error(text: Any, end="\n") -> None:
-        print(Parse(f"{fg.red}[ERROR]{style.reset} - {text}"), end=end)
+    def error(*text: Any, end="\n") -> None:
+        result = " ".join(map(str, text))
+        print(Parse(f"{fg.red}[ERROR]{style.reset} - {result}"), end=end)
 
     def __repr__(self) -> str:
         return f"{self.text}(styles={self.styles})"
@@ -310,8 +316,6 @@ class bg:
             print()
         return list(bg().__dict__.values())
 
-
-# TODO
 
 color_names = {
     "alice blue": Color(240, 248, 255),

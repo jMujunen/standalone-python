@@ -62,5 +62,6 @@ def sizeof(path: str, lines: int, filesizes: bool) -> str | None:
 # Example usage
 if __name__ == "__main__":
     args = parse_args()
+
     with ExecutionTimer():
         sizeof(args.path, args.lines, args.all)

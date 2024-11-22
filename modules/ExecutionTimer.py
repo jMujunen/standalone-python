@@ -3,12 +3,14 @@
 from enum import Enum
 from time import time
 
+
 class TimeUnits(Enum):
     ms = 1e-3
     seconds = 1
     minutes = 60
     hours = 60**2
     days = 24 * 60**2
+
 
 class ExecutionTimer:
     """Class for timing the execution of a block of code."""
@@ -54,13 +56,24 @@ class ExecutionTimer:
                     seconds=f"{time_seconds/TimeUnits.ms.value:.0f}",
                     minor_unit=TimeUnits.ms.name,
                 )
+            if unit.name == "ms":
+                continue
+            time_seconds = time_seconds / unit.value
             if time_seconds < TimeUnits.minutes.value:
-                return f"{time_seconds:.2f}{unit.name.lower()}"
+                return template.format(
+                    minutes="",
+                    major_unit="",
+                    seconds=f"{time_seconds:.2f}",
+                    minor_unit=unit.name,
+                )
+            if time_seconds < TimeUnits.hours.value:
+                return template.format(
+                    minutes="",
+                    major_unit="",
+                    seconds=f"{time_seconds:.0f}",
+                    minor_unit=unit.name,
+                )
 
             time_seconds /= TimeUnits.minutes.value
 
         return f"{time_seconds / 60/24:.2f} {TimeUnits.days.name.lower()}"
-
-
-
-
