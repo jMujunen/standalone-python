@@ -14,10 +14,15 @@ import numpy as np
 FILE = "/tmp/hwinfo.csv"
 
 GROUPS = {
-    "misc": ["ping", "ram_usage", "core_usage"],
-    "gpu": ["gpu_core_temp", "gpu_core_usage", "power"],
-    "temps": ["sys_temp", "gpu_temp", "cpu_temp"],
-    "cpu": ["cpu_max_clock", "cpu_clock"],
+    "misc": ["ping", "ram_usage", "core_usage", "gpu_memory_usage"],
+    "gpu": ["gpu_core_temp", "gpu_core_usage", "power", "gpu_memory_usage"],
+    "temps": [
+        "sys_temp",
+        "gpu_core_temp",
+        "cpu_avg_temp",
+        "cpu_max_temp",
+    ],
+    "cpu": ["cpu_max_clock", "cpu_avg_clock"],
     "volts": ["gpu_voltage", "cpu_voltage"],
     "clocks": ["gpu_core_clock", "gpu_memory_clock", "cpu_max_clock"],
 }
@@ -143,17 +148,3 @@ if __name__ == "__main__":
             print(" ", "\n  ".join(GROUPS[group]))
         sys.exit(0)
     main(args.FILE, args.columns, args.num, args.smooth)
-
-
-# # coding: utf-8
-# FILE = "/home/joona/Logs/Network/tmp2.csv"
-# df = pd.read_csv(FILE, sep=",", header=None, names=["Timestamp", "Value"])
-# fig, ax = plt.subplots(
-#     figsize=(16, 6),
-#     dpi=80,
-#     edgecolor="#5a93a2",
-#     linewidth=1,
-#     tight_layout=True,
-#     facecolor="#364146",
-#     subplot_kw={"facecolor": "#2E3539"},
-# )

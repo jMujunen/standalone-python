@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Strip <pattern> from each line in <clipboard>."""
+"""Manipulate clipboard content."""
 
 import argparse
 import re
 from sys import exit
-
 import clipboard
 
 # TODO - add more presets for common patterns
@@ -99,4 +98,4 @@ if __name__ == "__main__":
     result = main(args.PATTERN, args.replace, args.preset)
     clipboard.copy(result)
     print(result)
-    exit(0)
+    exit()

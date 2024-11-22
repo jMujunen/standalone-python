@@ -42,23 +42,26 @@ def take_screenshot(output_dir: str = "~/Pictures/Screenshots/OCR") -> Path:
 
     Parameters
     -----------
-        output_dir (str): The path to the directory where the screenshot will be saved. Defaults to "~/Pictures/Screenshots/OCR".
+        output_dir (str): Where to save the screenshot. Defaults to "~/Pictures/Screenshots/OCR".
 
     Returns
     --------
         str: The full path of the saved screenshot.
     """
-    output_path = Path(output_dir).expanduser() / "imagegrab.png"
-    Path.mkdir(output_path.parent, parents=True, exist_ok=True)
+    output_folder = Path(output_dir).expanduser()
 
+    Path.mkdir(output_folder, parents=True, exist_ok=True)
     # Take a screenshot of a selected area
     try:
         subprocess.check_output(
             [
-                "spectacle",
-                "-rbn",
-                "--output",
-                str(output_path),
+                "hyprshot",
+                "-m",
+                "region",
+                "-f",
+                "ocr.jpg",
+                "-o",
+                str(output_folder),
             ]
         )
     except subprocess.CalledProcessError:

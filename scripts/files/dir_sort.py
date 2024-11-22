@@ -22,9 +22,12 @@ import datetime
 import os
 import re
 import shutil
+from pathlib import Path
 
-from fsutils import File, Img, Video
-from fsutils.DirNode import Dir, obj
+from fsutils.compiled._DirNode import Dir, obj
+from fsutils.compiled._GenericFile import File
+from fsutils.ImageFile import Img
+from fsutils File import Video
 from ThreadPoolHelper import Pool
 
 DATE_REGEX = re.compile(r"\d{1,4}-(\d{4}).?(\d{2}).?(\d{2}).(\d{2}).?(\d{2}).?(\d{2})")
@@ -112,7 +115,7 @@ def main(root: str, dest: str) -> None:
             if i.endswith((".mp4", ".mov", "mkv"))
         ]
     else:
-        videos = Dir(root).videos
+        videos = Dir(root).videos()
     pool = Pool()
     for result in pool.execute(process_item, list(videos), target_root=dest):
         if not result:

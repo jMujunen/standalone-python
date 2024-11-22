@@ -4,21 +4,16 @@
 import argparse
 import os
 from collections import defaultdict
+from pathlib import Path
 
 from ExecutionTimer import ExecutionTimer
-from fsutils import Dir, File
+from fsutils.compiled._DirNode import Dir, File
 from fsutils.mimecfg import FILE_TYPES
 
 IGNORED = FILE_TYPES.get("ignored", [])
 
 
-def process_file(file: File, no_ignore=False) -> str | None:
-    if not all((file.suffix not in IGNORED, no_ignore)):
-        return file.suffix[1:]  # remove the dot from the extension
-    return None
-
-
-def count_file_types(directory: str, no_ignore=False) -> dict:
+def count_file_types(directory: str) -> dict:
     """Count the number of files in each type within a given directory.
 
     Parameters
@@ -28,28 +23,26 @@ def count_file_types(directory: str, no_ignore=False) -> dict:
 
     """
     file_types = defaultdict(int)
-    path = Dir(directory)
-    files = [item for item in path.file_objects if not all((item.suffix not in IGNORED, no_ignore))]
-    for item in files:
-        file_types[item.suffix[1:]] += 1  # remove the dot from the extension
+    filepaths = Dir(directory).ls()
+    exts = [
+        path.split(".")[-1]
+        for path in filepaths
+        if not any(ignored in Path(path).parts for ignored in IGNORED)
+    ]
+    for ext in exts:
+        file_types[ext] += 1
     return dict(sorted(file_types.items(), key=lambda item: item[1]))
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("directory", nargs="?", default=os.getcwd())
-    parser.add_argument(
-        "--no-ignore",
-        action="store_true",
-        help="Don't ignore files based on the mimecfg",
-        default=False,
-    )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
     with ExecutionTimer():
-        counts = count_file_types(args.directory, args.no_ignore)
+        counts = count_file_types(args.directory)
         for file_type, count in counts.items():
             print(f"{file_type:<20} {count:>10}")
