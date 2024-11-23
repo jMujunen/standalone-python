@@ -27,7 +27,7 @@ from pathlib import Path
 from fsutils.compiled._DirNode import Dir, obj
 from fsutils.compiled._GenericFile import File
 from fsutils.ImageFile import Img
-from fsutils File import Video
+from fsutils.VideoFile import Video
 from ThreadPoolHelper import Pool
 
 DATE_REGEX = re.compile(r"\d{1,4}-(\d{4}).?(\d{2}).?(\d{2}).(\d{2}).?(\d{2}).?(\d{2})")
