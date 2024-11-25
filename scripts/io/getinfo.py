@@ -7,7 +7,8 @@ from collections import defaultdict
 from pathlib import Path
 
 from ExecutionTimer import ExecutionTimer
-from fsutils.compiled._DirNode import Dir, File
+from fsutils.compiled._DirNode import Dir
+from fsutils.compiled._GenericFile import File
 from fsutils.mimecfg import IGNORED_DIRS
 
 
@@ -21,9 +22,7 @@ def count_file_types(directory: str) -> dict:
 
     """
     file_types = defaultdict(int)
-    filepaths = Dir(directory).ls()
-
-    for
+    filepaths = Dir(directory).ls_files()
 
     exts = [
         (
@@ -41,8 +40,12 @@ def count_file_types(directory: str) -> dict:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("directory", nargs="?", default=os.getcwd())
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description=__doc__,
+        exit_on_error=False,
+    )
+    parser.add_argument("directory", nargs="?", default=Path().cwd())
     return parser.parse_args()
 
 
