@@ -23,6 +23,18 @@ def count_file_types(directory: str) -> dict:
     """
     file_types = defaultdict(int)
     filepaths = Dir(directory).ls_files()
+    for item in filepaths:
+        ext = item.path.split(os.sep)[-1].split(".")
+        if len(ext) > 1:
+            file_types[item.path.split(os.sep)[-1].split(".")[-1]] += (
+                1  # remove the dot from the extension
+            )
+        else:
+            file_types["other"] += 1
+    return dict(sorted(file_types.items(), key=lambda item: item[1]))
+
+    file_types = defaultdict(int)
+    filepaths = Dir(directory).ls_files()
 
     exts = [
         (
@@ -51,7 +63,11 @@ def parse_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = parse_args()
+    total = 0
     with ExecutionTimer():
         counts = count_file_types(args.directory)
         for file_type, count in counts.items():
+            total += count
             print(f"{file_type:<20} {count:>10}")
+
+        print("-" * 31, "{:<20} {:>11}".format("\nTotal", total))

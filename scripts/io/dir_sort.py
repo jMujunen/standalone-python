@@ -24,11 +24,12 @@ import re
 import shutil
 from pathlib import Path
 
+from ThreadPoolHelper import Pool
+
 from fsutils.compiled._DirNode import Dir, obj
 from fsutils.compiled._GenericFile import File
 from fsutils.ImageFile import Img
 from fsutils.VideoFile import Video
-from ThreadPoolHelper import Pool
 
 DATE_REGEX = re.compile(r"\d{1,4}-(\d{4}).?(\d{2}).?(\d{2}).(\d{2}).?(\d{2}).?(\d{2})")
 
@@ -106,16 +107,7 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
     return item.name
 
 
-def main(root: str, dest: str) -> None:
-    path = Dir(root)
-    if root == dest:
-        videos = [
-            obj(os.path.join(path.path, i))
-            for i in path.content
-            if i.endswith((".mp4", ".mov", "mkv"))
-        ]
-    else:
-        videos = Dir(root).videos()
+def main(videos: list[Video], dest: str) -> None:
     pool = Pool()
     for result in pool.execute(process_item, list(videos), target_root=dest):
         if not result:
@@ -124,5 +116,15 @@ def main(root: str, dest: str) -> None:
 
 if __name__ == "__main__":
     args = parse_args()
-    # if os.path.exists(args.ROOT) and os.path.exists(args.DEST):
-    main(args.ROOT, args.DEST)
+    # main(args.ROOT, args.DEST)
+    source = Dir(args.ROOT)
+    dest = Dir(args.DEST)
+    if source.path == dest.path:
+        videos = [
+            obj(os.path.join(source.path, i))
+            for i in source.content
+            if i.lower().endswith((".mp4", ".mov", "mkv"))
+        ]
+    else:
+        videos = source.videos()
+    main(videos, args.DEST)
