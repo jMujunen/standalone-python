@@ -6,9 +6,8 @@ import re
 from pathlib import Path
 
 import clipboard
-from fsutils.compiled._DirNode import Dir
-from fsutils.mimecfg import FILE_TYPES
-
+from fsutils.dir import Dir
+from fsutils.utils import FILE_TYPES
 
 mime = FILE_TYPES
 
@@ -34,7 +33,7 @@ def main() -> None:
                 (
                     x.suffix not in mime["video"],
                     x.suffix not in mime["img"],
-                    x.suffix not in [".svg", ".rc", ""],
+                    x.suffix not in {".svg", ".rc", ""},
                 ),
             ),
             path.file_objects,

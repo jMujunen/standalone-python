@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 from Color import cprint
-from fsutils.compiled._DirNode import Dir
+from fsutils.dir import Dir
 
 HOME = "/home/joona"
 

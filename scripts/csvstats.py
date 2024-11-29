@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from statistics import mean
 
+from _csvstats import main as exec
 from ExecutionTimer import ExecutionTimer
 from rich import box
 from rich.console import Console
@@ -82,5 +83,7 @@ if __name__ == "__main__":
     with ExecutionTimer():
         if len(sys.argv) > 1:
             FILE = sys.argv[1]  # Use the file given as argument, if any
+        exec(FILE)
+    with ExecutionTimer():
         main(FILE)
     sys.exit()
