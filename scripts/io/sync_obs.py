@@ -6,7 +6,7 @@ from pathlib import Path
 import momentis.momentis
 import momentis.utils
 from Color import cprint
-from fsutils.compiled._DirNode import Dir, Video, obj
+from fsutils.dir import Dir, Video, obj
 
 FOLDERS = {
     "PLAYERUNKNOWN'S BATTLEGROUNDS": "PUBG",

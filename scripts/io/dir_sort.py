@@ -24,12 +24,11 @@ import re
 import shutil
 from pathlib import Path
 
+from fsutils.dir import Dir, obj
+from fsutils.file import File
+from fsutils.img import Img
+from fsutils.video import Video
 from ThreadPoolHelper import Pool
-
-from fsutils.compiled._DirNode import Dir, obj
-from fsutils.compiled._GenericFile import File
-from fsutils.ImageFile import Img
-from fsutils.VideoFile import Video
 
 DATE_REGEX = re.compile(r"\d{1,4}-(\d{4}).?(\d{2}).?(\d{2}).(\d{2}).?(\d{2}).?(\d{2})")
 

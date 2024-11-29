@@ -5,7 +5,7 @@ import os
 from sys import exit
 
 from Color import cprint, fg
-from fsutils.compiled._DirNode import Dir, obj
+from fsutils.dir import Dir, obj
 from ThreadPoolHelper import Pool
 
 

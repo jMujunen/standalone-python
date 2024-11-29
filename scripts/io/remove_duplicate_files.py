@@ -11,7 +11,7 @@ from pathlib import Path
 
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
-from fsutils.compiled._DirNode import Dir, File, Img
+from fsutils.dir import Dir, File, Img
 from ThreadPoolHelper import Pool
 
 IGNORED_DIRS = [".Trash-1000"]

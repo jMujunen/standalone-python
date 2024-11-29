@@ -7,9 +7,9 @@ from collections import defaultdict
 from pathlib import Path
 
 from ExecutionTimer import ExecutionTimer
-from fsutils.compiled._DirNode import Dir
-from fsutils.compiled._GenericFile import File
-from fsutils.mimecfg import IGNORED_DIRS
+from fsutils.dir import Dir
+from fsutils.file import File
+from fsutils.utils import IGNORED_DIRS
 
 
 def count_file_types(directory: str) -> dict:
@@ -31,23 +31,6 @@ def count_file_types(directory: str) -> dict:
             )
         else:
             file_types["other"] += 1
-    return dict(sorted(file_types.items(), key=lambda item: item[1]))
-
-    file_types = defaultdict(int)
-    filepaths = Dir(directory).ls_files()
-
-    exts = [
-        (
-            p.path.split(".")[-1]
-            if "." in p.path.lstrip(".")
-            and not any([ignored in Path(p.path).parts for ignored in IGNORED_DIRS])  # noqa
-            else "None"
-        )
-        for p in filepaths
-    ]
-
-    for ext in exts:
-        file_types[ext] += 1
     return dict(sorted(file_types.items(), key=lambda item: item[1]))
 
 

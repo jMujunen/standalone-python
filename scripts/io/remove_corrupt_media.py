@@ -6,7 +6,7 @@ import os
 import sys
 
 from Color import cprint, fg, style
-from fsutils.compiled._DirNode import Dir, Img, Video
+from fsutils.dir import Dir, Img, Video
 from ThreadPoolHelper import Pool
 
 

@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from Color import cprint, fg, style
-from fsutils.compiled._DirNode import Dir, Video
+from fsutils.dir import Dir, Video
 from ProgressBar import ProgressBar
 from size import Size
 from ThreadPoolHelper import Pool

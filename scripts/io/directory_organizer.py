@@ -16,9 +16,9 @@ from typing import Any
 
 import cython
 from Color import cprint, fg
-from fsutils.compiled._DirNode import Dir, obj
-from fsutils.compiled._GenericFile import File
-from fsutils.mimecfg import FILE_TYPES, IGNORED_DIRS
+from fsutils.dir import Dir, obj
+from fsutils.file import File
+from fsutils.utils import FILE_TYPES, IGNORED_DIRS
 from ThreadPoolHelper import Pool
 
 MAX_DUPLICATES: cython.int = 2
