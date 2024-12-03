@@ -11,7 +11,7 @@ from rich.table import Table
 import io
 from concurrent.futures import ThreadPoolExecutor
 
-
+cdef public str args
 cdef public unicode file = u"/tmp/hwinfo.csv"
 # cdef public char* FILE = "/tmp/hwinfo.csv".encode('utf-8')
 cdef public unsigned short int INTERVAL = 60  # 60/second, 3600/hour
@@ -100,7 +100,6 @@ cpdef void main(unicode csv_file):
 
     for column, values in sorted(result.items()):
         min_v, mean_v, max_v = values
-        print(column)
         if 'voltage' in column:
             decimals = 2
         else:
@@ -125,4 +124,8 @@ cpdef void main(unicode csv_file):
     console = Console()
     console.print(table)
 
-
+if __name__ == '__main__':
+    args = ' '.join(sys.argv[1:])
+    if len(args) > 0:
+        file = args
+    main(file)
