@@ -5,12 +5,15 @@ import json
 import subprocess
 from enum import Enum
 from os import environ
-from typing import Any
+from typing import Any, Dict, List, Tuple
 
 import requests
 
 TOKEN: str = environ["HASS_TOKEN"]
-HOST: str = environ["HASS_HOST"]
+HASS_HOST: str = environ["HASS_HOST"]
+BASE_URL: str = f"http://{HASS_HOST}:8123/api"
+SERVICES_URL: str = f"{BASE_URL}/services"
+STATES_URL: str = f"{BASE_URL}/states"
 
 
 class StatusCode(Enum):
@@ -26,7 +29,7 @@ class StatusCode(Enum):
 
 def call_service(domain: str, service: str, entity_id=None, **kwargs) -> requests.Response:
     """Call a service on the Home Assistant API."""
-    base_url = f"http://{HOST}:8123/api/services"
+    base_url = f"http://{HASS_HOST}:8123/api/services"
     url = f"{base_url}/{domain}/{service}"
     data = {"entity_id": entity_id} if entity_id else {}
     headers = {"Authorization": "Bearer " + TOKEN}
@@ -83,7 +86,7 @@ class Client(metaclass=MetaClient):
 
     _domains: dict[dict[str, str], str] = {}
 
-    def __init__(self, host=HOST, token=TOKEN) -> None:
+    def __init__(self, host=HASS_HOST, token=TOKEN) -> None:
         self.url = f"http://{host}:8123/api"
         self.base_url = f"http://{host}:8123/api/services"
         self.headers = {"Authorization": f"Bearer {token}", "content-type": "application/json"}
@@ -242,8 +245,114 @@ class Client(metaclass=MetaClient):
         return f"{response.status_code}"
 
 
+class HomeAssistantClient:
+    """Client for interacting with the Home Assistant API."""
+
+    def __init__(self, host: str = HASS_HOST, token: str = TOKEN) -> None:
+        self.host = host
+        self.token = token
+        self.headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
+        self._domains = None
+        self.response = None
+
+    @property
+    def alive(self) -> bool:
+        """Check the status of the client connection."""
+        return (
+            subprocess.run(
+                ["ping", "-c", "1", "-w", "3", "-W", "3", "-t", "3", "-q", self.host],
+                stdout=subprocess.DEVNULL,
+                check=False,
+            ).returncode
+            == 0
+        )
+
+    def _api_call(self, url: str, method: str = "GET", data: dict = None) -> requests.Response:
+        """Make an API call to Home Assistant."""
+        if method == "GET":
+            response = requests.get(url, headers=self.headers)
+        elif method == "POST":
+            response = requests.post(url, headers=self.headers, json=data)
+        else:
+            raise ValueError(f"Unsupported HTTP method: {method}")
+        response.raise_for_status()
+        return response
+
+    def _get_api_reference(self) -> list[dict]:
+        """Get the API reference from Home Assistant."""
+        if self._domains is None:
+            response = self._api_call(SERVICES_URL)
+            self._domains = response.json()
+        return self._domains
+
+    @property
+    def domains(self) -> list[str]:
+        """Get a list of all available domains."""
+        return [domain["domain"] for domain in self._get_api_reference()]
+
+    @property
+    def entities(self) -> list[tuple[str, str, str]]:
+        """Get a list of all entities."""
+        entities = []
+        for domain_info in self._get_api_reference():
+            for service_name, service_info in domain_info["services"].items():
+                if "target" in service_info and "entity" in service_info["target"]:
+                    for entity_id in service_info["target"]["entity"]:
+                        entities.append((domain_info["domain"], service_name, entity_id))
+        return entities
+
+    def call_service(
+        self, domain: str, service: str, entity_id: str = None, **kwargs
+    ) -> requests.Response:
+        """Call a service on the Home Assistant API."""
+        url = f"{SERVICES_URL}/{domain}/{service}"
+        data = {"entity_id": entity_id} if entity_id else {}
+        data.update(kwargs)
+        return self._api_call(url, method="POST", data=data)
+
+    def commands(self, domain: str) -> list[str]:
+        """Get a list of all available services for the specified domain."""
+        for domain_info in self._get_api_reference():
+            if domain_info["domain"] == domain:
+                return list(domain_info["services"].keys())
+        return []
+
+    def domain_api(self, domain: str) -> list[tuple[str, str]]:
+        """Get a list of all API calls for the specified domain."""
+        api_calls = []
+        for domain_info in self._get_api_reference():
+            if domain_info["domain"] == domain:
+                for service_name in domain_info["services"]:
+                    api_calls.append((domain_info["domain"], service_name))
+        return api_calls
+
+    def get_state(self, entity_id: str) -> dict[str, Any]:
+        """Get the state of an entity."""
+        url = f"{STATES_URL}/{entity_id}"
+        response = self._api_call(url)
+        return response.json()
+
+    def set_state(self, entity_id: str, value: Any, attributes: dict = None) -> str:
+        """Set the state of an entity."""
+        url = f"{STATES_URL}/{entity_id}"
+        data = {"state": value}
+        if attributes:
+            data["attributes"] = attributes
+        response = self._api_call(url, method="POST", data=data)
+        return str(response.status_code)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(host={self.host}, response={self.response}, alive={self.alive})".format(
+            **vars(self)
+        )
+
+
 # Example usage:
 if __name__ == "__main__":
-    client = Client(HOST, TOKEN)
+    client = HomeAssistantClient(HASS_HOST, TOKEN)
     domains = client.domains
-    client.switch.toggle("office_lamp")
+    print(f"Available domains: {domains}")
+    client.call_service("switch", "toggle", entity_id="office_lamp")
