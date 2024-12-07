@@ -14,14 +14,13 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
-import cython
 from Color import cprint, fg
 from fsutils.dir import Dir, obj
 from fsutils.file import File
 from fsutils.utils import FILE_TYPES, IGNORED_DIRS
 from ThreadPoolHelper import Pool
 
-MAX_DUPLICATES: cython.int = 2
+MAX_DUPLICATES = 2
 
 DATE_REGEX = re.compile(r"\d{1,4}-(\d{4}).?(\d{2}).?(\d{2}).(\d{2}).?(\d{2}).?(\d{2})")
 
@@ -167,26 +166,27 @@ def process_item(
             existing_files.append(item.path)
             overflow = sorted(existing_files, key=lambda x: Path(x).stat().st_mtime)
             # if dry_run:
-            cprint(f"[REMOVE] - {'\n'.join(overflow[MAX_DUPLICATES:])}", fg.deeppink)
-            cprint(f"[KEEP] - {'\n'.join(overflow[:MAX_DUPLICATES])}", fg.cyan)
+            cprint(f"[REMOVE] - {"\n".join(overflow[MAX_DUPLICATES:])}", fg.deeppink)
+            cprint(f"[KEEP] - {"\n".join(overflow[:MAX_DUPLICATES])}", fg.cyan)
             # return None
             for file in overflow[MAX_DUPLICATES:]:
                 # if dry_run is True:
                 # else:
-                cprint.info(f"Removed {file}")
+                msg = f'Removed {file}'
+                cprint.error(msg)
                 os.remove(file)
         else:
             # If there are no duplicates or the number of copies is under control, just return.
             break
     try:
         shutil.move(item.path, dest_path, copy_function=shutil.copy2)
-        cprint.debug(f"Moved {item!s:<30} -> {dest_path}")
-        cprint.debug(f"Moved {item!s:<30} -> {dest_path}")
     except (PermissionError, FileExistsError, FileNotFoundError) as e:
-        cprint.error(f"{e}: {e.filename} {e.filename2}")
+        msg = f"{e}: {e.filename} {e.filename2}"
+        cprint.error(msg)
         raise e from e
     except Exception as e:
-        cprint.error(f"Unidentified Error: {e!r}: {item.path} {dest_path}")
+        msg = f"Unidentified Error: {e!r}: {item.path} {dest_path}"
+        cprint.error(msg)
         return dest_path
 
 
@@ -198,7 +198,7 @@ def filter_files(root: Dir, filter_spec: str) -> list[File]:
     return [item for item in root if isinstance(item, FileClass)]
 
 
-def main(root: str, destination: str, spec: str, dry_run=False) -> None:
+def main(root: str, destination: str, spec: str, refresh_db=False) -> None:
     """Sort files based on media type and date.
 
     Paramaters:
@@ -212,7 +212,7 @@ def main(root: str, destination: str, spec: str, dry_run=False) -> None:
     path = Dir(root)
     dest = Dir(destination)
     root_object = Dir(root)
-    index = dest.serialize(replace=True)
+    index = dest.serialize(replace=refresh_db)
     # If root and destination are the same, do not recurse into subdirectories
     file_objs = [obj(file) for file in path.content] if root_object == dest else path.file_objects
     sort_spec = sort_spec_formatter(spec)
@@ -222,7 +222,6 @@ def main(root: str, destination: str, spec: str, dry_run=False) -> None:
             process_item,
             file_objs,
             progress_bar=True,
-            dry_run=dry_run,
             index=index,
             target_root=dest,
             sort_spec=sort_spec,
@@ -261,19 +260,32 @@ def parse_args() -> argparse.Namespace:
         help="Only sort this type of file",
         choices=["img", "video", "file"],
     )
-
     parser.add_argument(
-        "--dry-run",
-        help="Print actions instead of performing them",
+        "--current-index",
+        help="Instead of indexing the target directory from scratch, use the existing directory .pkl file as the index",
         action="store_true",
         default=False,
         required=False,
     )
+
+    # parser.add_argument(
+    #     "--dry-run",
+    #     help="Print actions instead of performing them",
+    #     action="store_true",
+    #     default=False,
+    #     required=False,
+    # )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    if not os.path.exists(args.dest):
-        os.makedirs(args.dest, exist_ok=True)
-    main(args.ROOT, args.dest, args.spec, args.dry_run)
+    dest = Path(args.dest)
+    root = args.ROOT
+    spec = args.spec
+    refresh_db = args.current_index
+
+    # Ensure destination directory exists before running the script
+    if not dest.exists:
+        dest.mkdir(parents=True, exist_ok=True)
+    main(root, dest, spec, refresh_db)
