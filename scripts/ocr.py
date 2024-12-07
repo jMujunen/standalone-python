@@ -53,17 +53,15 @@ def take_screenshot(output_dir: str = "~/Pictures/Screenshots/OCR") -> Path:
     Path.mkdir(output_folder, parents=True, exist_ok=True)
     # Take a screenshot of a selected area
     try:
-        subprocess.check_output(
-            [
-                "hyprshot",
-                "-m",
-                "region",
-                "-f",
-                "ocr.jpg",
-                "-o",
-                str(output_folder),
-            ]
-        )
+        subprocess.check_output([
+            "hyprshot",
+            "-m",
+            "region",
+            "-f",
+            "ocr.jpg",
+            "-o",
+            str(output_folder),
+        ])
     except subprocess.CalledProcessError:
         notify("Failed to take screenshot", "dialog-close")
 

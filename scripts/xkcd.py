@@ -39,22 +39,20 @@ def save(data: bytes) -> str:
 
 def main() -> None:
     with ExecutionTimer():
-        while True:
-            print("Connecting to page...")
-            img_url = get_xkcd_comic()
-            print(f"Source located at {img_url}...")
-            reponse = requests.get(img_url)
-            page_content = reponse.content
-            try:
-                with open("/tmp/xkcd.png", "wb") as f:
-                    f.write(page_content)
-                    subprocess.run(
-                        ["kitty", "+kitten", "icat", "/tmp/xkcd.png"],
-                        shell=True,
-                        check=False,
-                    )
-            except Exception as e:
-                print(f"Failed to save/open {url}:\n\n{e!r}")
+        print("Connecting to page...")
+        img_url = get_xkcd_comic()
+        print(f"Source located at {img_url}...")
+        reponse = requests.get(img_url)
+        page_content = reponse.content
+        try:
+            with open("/tmp/xkcd.png", "wb") as f:
+                f.write(page_content)
+            subprocess.run(
+                ["kitty", "+kitten", "icat", "/tmp/xkcd.png"],
+                check=False,
+            )
+        except Exception as e:
+            print(f"Failed to save/open {img_url}:\n\n{e!r}")
 
 
 if __name__ == "__main__":
