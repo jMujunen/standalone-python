@@ -1,19 +1,19 @@
 """Higher level interface for printing colored text in the terminal.
 
-This module utilizes metaclasses to create a higher level (and therefor) human readble interface for
+This module utilizes metaclasses to create a higher level (and therefor) human readable interface for
 printing colored text in the terminal. This is a significant improvement over printing raw escape codes.
 
 Classes:
 -------
     ColorMeta: The base metaclass for all color classes
     Style: Responsible for style changes
-    BackgroundColor: Resposible for backround colors
-    ForegroundColor: Resposible for foreground colors
+    BackgroundColor: Responsible for backround colors
+    ForegroundColor: Responsible for foreground colors
     Parse: Parses the color classes into a single string
 
 Functions:
 ---------
-    cprint: Wrapper arond `print()` which provides a cleaner way of interfacing with this module.
+    cprint: Wrapper around `print()` which provides a cleaner way of interfacing with this module.
     The alternative is to use print with f-strings or string concatenation which can be tedious to read.
 
 Examples
@@ -26,11 +26,156 @@ from collections import namedtuple
 from dataclasses import dataclass, field
 from typing import Any
 
-Color = namedtuple("Color", ["r", "g", "b"])
+import collections
+
+RGB = namedtuple("RGB", ["r", "g", "b"], defaults=(0, 0, 0))
+
+
+@dataclass
+class Color:
+    r: int = field(default_factory=int, init=True)
+    g: int = field(default_factory=int, init=True)
+    b: int = field(default_factory=int, init=True)
+
+    def __post_init__(self):
+        if not all(0 <= value <= 255 for value in self):
+            print(repr(self))
+            raise ValueError("RGB values must be between 0 and 255")
+
+    def __getitem__(self, index, /):
+        return (self.r, self.g, self.b)[index]
+
+    def __iter__(self):
+        yield from (self.r, self.g, self.b)
+
+    @property
+    def ascii(self) -> str:
+        return "\033[38;2;{};{};{}m".format(*self)
+
+    @property
+    def hex(self):
+        return "#{:02x}{:02x}{:02x}".format(*self)
+
+    @classmethod
+    def from_hex(cls, hex_code_color: str):
+        """Create a Color object from hexadecimal color code.
+
+        Parameters
+            hex_color (str): The hexadecimal color code in format "#RRGGBB".
+
+        Returns
+            Color[r, g, b]: The RGB color.
+        """
+        r = int(hex_code_color[1:3], 16)
+        g = int(hex_code_color[3:5], 16)
+        b = int(hex_code_color[5:7], 16)
+
+        return cls(r, g, b)
+
+    def __str__(self) -> str:
+        return self.ascii
+
+    def __repr__(self) -> str:
+        return f'{f"Color({self.r}, {self.g}, {self.b})".ljust(25)} {self} {"▓" * 10}\033[0m'
+
+    def fade(
+        self, steps: int = 10, start: "Color | None" = None, end: "Color | None" = None
+    ) -> list["Color"]:
+        """Generate a list of hexadecimal color codes that transition smoothly
+        from white (#FFFFFF) to the given color (hex_code) and then back to black (#000000).
+
+        Parameters
+        -----------
+            hex_code (str): The target hexadecimal color code.
+            steps (int, optional): Number of steps in the fade. Default is 10.
+            start (str, optional): The starting hexadecimal color code. Default is "FFFFFF".
+            end (str, optional): The ending hexadecimal color code. Default is "000000".
+
+        Returns
+        -------
+            list[Color]: A list of hexadecimal color codes representing the fade.
+        """
+        if start is None:
+            start = Color(255, 255, 255)
+        if end is None:
+            end = Color(0, 0, 0)
+
+        def start_formula(base, end, i):
+            return int(end + (base - end) * i / steps)
+
+        def end_formula(base, end, i):
+            return int(base + (end - base) * i / steps)
+
+        fade_to_mid = (
+            Color(
+                start_formula(self.r, end.r, i),
+                start_formula(self.g, end.g, i),
+                start_formula(self.b, end.b, i),
+            )
+            for i in range(steps)
+        )
+
+        fade_from_mid = (
+            Color(
+                start_formula(self.r, start.r, i),
+                start_formula(self.g, start.g, i),
+                start_formula(self.b, start.b, i),
+            )
+            for i in range(steps)
+        )
+        # Combine the two fades, removing the duplicate mid color
+        fade = *fade_to_mid, *fade_from_mid
+
+        return sorted(fade, key=sum)
+
+    def interpolate(self, other: "Color", ratio: float = 0.5) -> "Color":
+        """Interpolate between two colors based on a given ratio.
+
+        Parameters
+            other (Color[r, g, b]): The second RGB color.
+            ratio (float): The interpolation ratio (0.0 to 1.0).
+
+        Returns
+            Color[r, g, b]: The interpolated RGB color.
+        """
+
+        def formula(c1, c2):
+            return int(c1 + (c2 - c1) * ratio)
+
+        return Color(formula(self.r, other.r), formula(self.g, other.g), formula(self.b, other.b))
+
+    def __add__(self, other):
+        return Color(*(a + b for a, b in zip(self, other, strict=False)))
+
+    def __sub__(self, other):
+        return Color(*(a - b for a, b in zip(self, other, strict=False)))
+
+    def __mul__(self, other: int | float) -> "Color":
+        if not isinstance(other, int | float):
+            raise TypeError("Can only multiply by an integer or float")
+        return Color(*(round(a * other) for a in self))
+
+    def __truediv__(self, other):
+        if not isinstance(other, int | float):
+            raise TypeError("Can only divide by an integer or float")
+        return Color(*(round(a / other) for a in self))
+
+    def __floordiv__(self, other):
+        if not isinstance(other, int | float):
+            raise TypeError("Can only divide by an integer or float")
+        return Color(*(round(a // other) for a in self))
+
+    def __mod__(self, other: int | float) -> "Color":
+        if not isinstance(other, int | float):
+            raise TypeError("Can only modulo by an integer or float")
+        return Color(*(a % other for a in self))
 
 
 class Parse:
     """Parses text with given styles."""
+
+    text: str
+    styles: tuple
 
     def __init__(self, text: str, *styles: list) -> None:
         """Initialize the class with text and styles.
