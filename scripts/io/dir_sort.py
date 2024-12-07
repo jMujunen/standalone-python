@@ -61,7 +61,8 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
     Paramaters:
     -----------
         - item (File): The file object to be moved.
-        - dest_folder (str): The destination folder where the file will be placed.
+        - target_root (str): The destination folder where the file will be placed.
+        - rename (bool) :
 
     Returns
     ---------
