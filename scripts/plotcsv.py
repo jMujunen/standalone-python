@@ -37,7 +37,7 @@ def main(filepath: str, columns: list[Any], num_rows: int = -1, smooth_factor: i
             Default value is a variable calculated based number of rows in the dataframe.
         - `num_rows` defines how many rows to load from the file.
         - `columns` defines which columns to plot.  If column name is not found, it will be ignored \
-            as long as there is atleast one valid column
+            as long as there is at least one valid column
 
     """
 
@@ -45,7 +45,7 @@ def main(filepath: str, columns: list[Any], num_rows: int = -1, smooth_factor: i
         columns = GROUPS[columns[0]]
     if not os.path.isfile(filepath):
         raise FileNotFoundError("File not found.")
-    df = pd.read_csv(filepath, sep=r",\s+", engine="python", index_col=0)
+    df = pd.read_csv(filepath, sep=r",\s*", engine="python", index_col=0)
     df = df.tail(num_rows)
     missing_columns = [col for col in columns if col not in df.columns]
 
@@ -135,6 +135,9 @@ def parse_args() -> argparse.Namespace:
         Supports groups, such as 'cpu' or 'gpu' or 'temps' .""",
         nargs=argparse.REMAINDER,
         default=["temps"],
+    )
+    parser.add_argument(
+        "--combine",help="Combine several files into one plot", action="store_true"
     )
     # TODO: Add support for limiting the range of the x-axis (time)
     return parser.parse_args()
