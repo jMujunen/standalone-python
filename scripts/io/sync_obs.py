@@ -42,7 +42,7 @@ def main(inputDir: Dir, outputDir: Dir) -> list[Video]:
     processed_dir = Dir(Path(inputDir, "opencv-output"))
     Path(OUTPUT_PATH).mkdir(parents=True, exist_ok=True)
     if processed_dir.exists():
-        for vid in processed_dir.videos:
+        for vid in processed_dir.videos():
             # Check for videos where no frames got written
             if vid.size < NULLSIZE:
                 vid.unlink()
