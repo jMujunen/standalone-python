@@ -10,7 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from Color import cprint, fg, style
-from fsutils.dir import Dir, Video
+from fsutils.dir import Dir,
+from fsutils.video import Video
 from ProgressBar import ProgressBar
 from size import Size
 from ThreadPoolHelper import Pool
@@ -25,7 +26,7 @@ def main(input_dir: str, output_dir: str, num: int, *filters):
 
     outdir = Dir(output_dir)
 
-    videos = [vid for vid in Dir(input_dir).videos[:num] if vid.suffix in filters]
+    videos = [vid for vid in Dir(input_dir).videos()[:num] if vid.suffix in filters]
     failed_conversions = []
     successful_conversions = []
     compressed_videos = []
