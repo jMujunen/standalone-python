@@ -133,7 +133,7 @@ def determine_originals(file_paths: list[str], num_keep: int) -> set[str]:
 
 
 def process_item(
-    item: File, target_root: Dir, index: dict[str, list[str]], sort_spec: str, dry_run=False
+    item: File, target_root: Dir, index: dict[str, list[str]], sort_spec: str, keep=False
 ) -> Path | None:
     """Process a single item (file or directory) and move it to the appropriate destination folder.
 
@@ -172,14 +172,17 @@ def process_item(
             for file in overflow[MAX_DUPLICATES:]:
                 # if dry_run is True:
                 # else:
-                msg = f'Removed {file}'
+                msg = f"Removed {file}"
                 cprint.error(msg)
                 os.remove(file)
         else:
             # If there are no duplicates or the number of copies is under control, just return.
             break
     try:
-        shutil.move(item.path, dest_path, copy_function=shutil.copy2)
+        if keep:
+            shutil.copy2(item.path, dest_path)
+        else:
+            shutil.move(item.path, dest_path, copy_function=shutil.copy2)
     except (PermissionError, FileExistsError, FileNotFoundError) as e:
         msg = f"{e}: {e.filename} {e.filename2}"
         cprint.error(msg)
@@ -198,7 +201,7 @@ def filter_files(root: Dir, filter_spec: str) -> list[File]:
     return [item for item in root if isinstance(item, FileClass)]
 
 
-def main(root: str, destination: str, spec: str, refresh_db=False) -> None:
+def main(root: str, destination: str, spec: str, refresh_db=False, keep=False) -> None:
     """Sort files based on media type and date.
 
     Paramaters:
@@ -207,7 +210,7 @@ def main(root: str, destination: str, spec: str, refresh_db=False) -> None:
         - `destination (str)`: The directory to move sorted files into.
         - `spec (str)`: The file extension to sort by.
         - `refresh (bool)`: Whether or not to refresh the database.
-        - `dry_run (bool)`: Whether or not to perform a dry run
+        - `keep (bool)`: If true, do not delete the input directory (root)
     """
     path = Dir(root)
     dest = Dir(destination)
@@ -225,10 +228,12 @@ def main(root: str, destination: str, spec: str, refresh_db=False) -> None:
             index=index,
             target_root=dest,
             sort_spec=sort_spec,
+            keep=keep,
         )
     )
 
-    cleanup(path)
+    if not keep:
+        cleanup(path)
 
     try:
         path.rmdir()
@@ -261,8 +266,15 @@ def parse_args() -> argparse.Namespace:
         choices=["img", "video", "file"],
     )
     parser.add_argument(
-        "--current-index",
+        "--use-index",
         help="Instead of indexing the target directory from scratch, use the existing directory .pkl file as the index",
+        action="store_true",
+        default=False,
+        required=False,
+    )
+    parser.add_argument(
+        "--keep",
+        help="Keep original files in their directories",
         action="store_true",
         default=False,
         required=False,
@@ -283,9 +295,9 @@ if __name__ == "__main__":
     dest = Path(args.dest)
     root = args.ROOT
     spec = args.spec
-    refresh_db = args.current_index
+    refresh_db = not args.use_index
 
     # Ensure destination directory exists before running the script
     if not dest.exists:
         dest.mkdir(parents=True, exist_ok=True)
-    main(root, dest, spec, refresh_db)
+    main(root, dest, spec, refresh_db, args.keep)
