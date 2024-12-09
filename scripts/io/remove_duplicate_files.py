@@ -2,16 +2,15 @@
 """remove_duplicate_media.py - Finds and removes duplicate files and videos."""
 
 import argparse
-import datetime
 import os
 import sys
-from collections import OrderedDict
 from collections.abc import Generator
-from pathlib import Path
 
 from Color import cprint, fg, style
 from ExecutionTimer import ExecutionTimer
-from fsutils.dir import Dir, File, Img
+from fsutils.dir import Dir
+from fsutils.file import File
+
 from ThreadPoolHelper import Pool
 
 IGNORED_DIRS = [".Trash-1000"]
@@ -35,7 +34,7 @@ def determine_originals(file_paths: list[str], num_keep: int) -> list[str]:
         - `file_paths (list[str])`: A list of file paths.
         - `num_keep (int)`: The number of duplicates to keep
     """
-    oldest_to_newest = sorted(file_paths, key=lambda x: os.path.getmtime(x), reverse=False)
+    oldest_to_newest = sorted(file_paths, key=os.path.getmtime, reverse=False)
     keep = []
     remove = []
     for i, path in enumerate(oldest_to_newest):
