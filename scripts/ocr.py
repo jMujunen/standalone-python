@@ -37,7 +37,7 @@ def notify(status: str, icon: str) -> int:
     return subprocess.call(cmd)
 
 
-def take_screenshot(output_dir: str = "~/Pictures/Screenshots/OCR") -> Path:
+def take_screenshot(output_dir: str = "~/Pictures/Screenshots/OCR") -> Path | str:
     """Take a screenshot of the selected area and save it to a specified directory.
 
     Parameters
@@ -48,13 +48,16 @@ def take_screenshot(output_dir: str = "~/Pictures/Screenshots/OCR") -> Path:
     --------
         str: The full path of the saved screenshot.
     """
-    output_folder = Path(output_dir).expanduser()
 
-    Path.mkdir(output_folder, parents=True, exist_ok=True)
+    # output_folder = Path(output_dir).expanduser()
+    output_folder = os.path.expanduser(output_dir)
+    output_path = os.path.join(output_folder, "ocr.jpg")
+    os.makedirs(output_folder, exist_ok=True)
     # Take a screenshot of a selected area
     try:
         subprocess.check_output([
             "hyprshot",
+            "-s",
             "-m",
             "region",
             "-f",
