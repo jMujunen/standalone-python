@@ -22,25 +22,33 @@ Examples
     >>> cprint("This is bold and cyan", fg.cyan, style.bold)
 """
 
-from collections import namedtuple
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, TypeAlias
+import re
 
-import collections
+# RGB = namedtuple("RGB", ["r", "g", "b"], defaults=(0, 0, 0))
 
-RGB = namedtuple("RGB", ["r", "g", "b"], defaults=(0, 0, 0))
+Hex: TypeAlias = str | None
+
+
+hex_regex = re.compile(r"([ABCFEDabcdef-f0-9]{6})")
 
 
 @dataclass
 class Color:
-    r: int = field(default_factory=int, init=True)
-    g: int = field(default_factory=int, init=True)
-    b: int = field(default_factory=int, init=True)
+    r: int = field(default_factory=int, init=True, compare=True, hash=True)
+    g: int = field(default_factory=int, init=True, compare=True, hash=True)
+    b: int = field(default_factory=int, init=True, compare=True, hash=True)
+    # hex: Hex = field(default=None)
 
     def __post_init__(self):
-        if not all(0 <= value <= 255 for value in self):
-            print(repr(self))
-            raise ValueError("RGB values must be between 0 and 255")
+        if isinstance(self.r, str) and len(self.r) == 6 and hex_regex.match(self.r):
+            # Input is Hexadecimal color code
+            self.r, self.g, self.b = self.from_hex(self.r)
+        elif not all(isinstance(val, int) for val in self):
+            raise ValueError("Invalid input type")
+        # Clamp RGB values between 0 and 255
+        self.r, self.g, self.b = (min(255, max(value, 0)) for value in self)
 
     def __getitem__(self, index, /):
         return (self.r, self.g, self.b)[index]
@@ -53,11 +61,11 @@ class Color:
         return "\033[38;2;{};{};{}m".format(*self)
 
     @property
-    def hex(self):
+    def hex(self) -> str:
         return "#{:02x}{:02x}{:02x}".format(*self)
 
     @classmethod
-    def from_hex(cls, hex_code_color: str):
+    def from_hex(cls, hex_color_code: str) -> "Color":
         """Create a Color object from hexadecimal color code.
 
         Parameters
@@ -66,20 +74,15 @@ class Color:
         Returns
             Color[r, g, b]: The RGB color.
         """
-        r = int(hex_code_color[1:3], 16)
-        g = int(hex_code_color[3:5], 16)
-        b = int(hex_code_color[5:7], 16)
-
+        hex_color_code = hex_color_code.lstrip("#")
+        r, g, b = (
+            int(*h)
+            for h in ((hex_color_code[i : i + 2], 16) for i in range(0, len(hex_color_code), 2))
+        )
         return cls(r, g, b)
 
-    def __str__(self) -> str:
-        return self.ascii
-
-    def __repr__(self) -> str:
-        return f'{f"Color({self.r}, {self.g}, {self.b})".ljust(25)} {self} {"▓" * 10}\033[0m'
-
     def fade(
-        self, steps: int = 10, start: "Color | None" = None, end: "Color | None" = None
+        self, steps: int = 10, start: "Color | Hex" = None, end: "Color | Hex" = None
     ) -> list["Color"]:
         """Generate a list of hexadecimal color codes that transition smoothly
         from white (#FFFFFF) to the given color (hex_code) and then back to black (#000000).
@@ -88,23 +91,27 @@ class Color:
         -----------
             hex_code (str): The target hexadecimal color code.
             steps (int, optional): Number of steps in the fade. Default is 10.
-            start (str, optional): The starting hexadecimal color code. Default is "FFFFFF".
-            end (str, optional): The ending hexadecimal color code. Default is "000000".
+            start (str, optional): The starting color. Default is black ("FFFFFF").
+            end (str, optional): The ending color. Default is white ("000000").
 
         Returns
         -------
             list[Color]: A list of hexadecimal color codes representing the fade.
         """
-        if start is None:
-            start = Color(255, 255, 255)
-        if end is None:
-            end = Color(0, 0, 0)
+        match start, end:
+            case str(), str():
+                start = Color.from_hex(start)
+                end = Color.from_hex(end)
+            case str(), Color():
+                start = Color.from_hex(start)
+            case Color(), str():
+                end = Color.from_hex(end)
+            case _:
+                start = Color(255, 255, 255)
+                end = Color(0, 0, 0)
 
         def start_formula(base, end, i):
             return int(end + (base - end) * i / steps)
-
-        def end_formula(base, end, i):
-            return int(base + (end - base) * i / steps)
 
         fade_to_mid = (
             Color(
@@ -142,7 +149,33 @@ class Color:
         def formula(c1, c2):
             return int(c1 + (c2 - c1) * ratio)
 
-        return Color(formula(self.r, other.r), formula(self.g, other.g), formula(self.b, other.b))
+        mapper = (
+            map(formula, self.r, other.r),
+            map(formula, self.g, other.g),
+            map(formula, self.b, other.b),
+        )
+        return Color(*mapper)
+        # return Color(formula(self.r, other.r), formula(self.g, other.g), formula(self.b, other.b))
+
+    @staticmethod
+    def generate_white_spectrum(num_colors) -> list["Color"]:
+        colors = []
+        for i in range(num_colors):
+            # Calculate the RGB values based on position in the spectrum
+            if i < num_colors / 3:
+                r = int((255 / (num_colors / 3)) * i)
+                g = 255
+                b = 0
+            elif i < 2 * num_colors / 3:
+                r = 255
+                g = int(255 - ((255 / (num_colors / 3)) * (i - num_colors / 3)))
+                b = 0
+            else:
+                r = 255
+                g = 0
+                b = int((255 / (num_colors / 3)) * (i - 2 * num_colors / 3))
+            colors.append(Color(r, g, b))
+        return colors
 
     def __add__(self, other):
         return Color(*(a + b for a, b in zip(self, other, strict=False)))
@@ -150,25 +183,25 @@ class Color:
     def __sub__(self, other):
         return Color(*(a - b for a, b in zip(self, other, strict=False)))
 
-    def __mul__(self, other: int | float) -> "Color":
-        if not isinstance(other, int | float):
-            raise TypeError("Can only multiply by an integer or float")
-        return Color(*(round(a * other) for a in self))
+    def __len__(self):
+        return len(self.__dict__)
 
-    def __truediv__(self, other):
-        if not isinstance(other, int | float):
-            raise TypeError("Can only divide by an integer or float")
-        return Color(*(round(a / other) for a in self))
+    def __str__(self) -> str:
+        return self.ascii
 
-    def __floordiv__(self, other):
-        if not isinstance(other, int | float):
-            raise TypeError("Can only divide by an integer or float")
-        return Color(*(round(a // other) for a in self))
+    def __repr__(self) -> str:
+        return f'{f"Color({self.r}, {self.g}, {self.b})".ljust(25)} {self} {"▓" * 10}\033[0m'
 
-    def __mod__(self, other: int | float) -> "Color":
-        if not isinstance(other, int | float):
-            raise TypeError("Can only modulo by an integer or float")
-        return Color(*(a % other for a in self))
+    def __hash__(self):
+        return hash((self.r, self.g, self.b))
+
+    def __gt__(self, other, /):
+        total = self.r + self.b + self.g
+        return total > (other.r + other.b + other.g)
+
+    def __lt__(self, other, /):
+        total = self.r + self.g + self.b
+        return total < (other.r + other.g + other.b)
 
 
 class Parse:
