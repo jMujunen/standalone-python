@@ -55,7 +55,7 @@ def log_cpu(args) -> None:
     line = "datetime,voltage,average_clock,max_clock\n"
 
     if not os.path.exists(output_file):
-        with open(output_file, "w") as file:
+        with open(output_file, "w", encoding="utf-8") as file:
             file.write(line)
             file.close()
     print(
@@ -94,10 +94,10 @@ def log_cpu(args) -> None:
             )
             print(f"{colored_ouput.strip()}", end=end)
             # Write data to file
-            with open(output_file + ".sh", "a") as file:
+            with open(output_file + ".sh", "a", encoding="utf-8") as file:
                 file.write(colored_ouput)
                 file.close()
-            with open(output_file, "a") as file:
+            with open(output_file, "a", encoding="utf-8") as file:
                 file.write(f"{line}\n")
                 file.close()
             if args.nostop:

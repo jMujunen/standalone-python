@@ -5,13 +5,13 @@ import clipboard
 
 import json
 
-from Color import Color, color_names, fg
+from Color import Color, Palette, fg
 
 
 def main(path: str | Path) -> None:
     pallet = json.loads(Path(path).read_text(encoding="utf-8"))
-    offwhite = color_names["gray90"]
-    darkgray = color_names["gray10"]
+    offwhite = Palette.gray90
+    darkgray = Palette.gray10
     colors = [Color.from_hex(color) for color in pallet]
 
     for color in colors:

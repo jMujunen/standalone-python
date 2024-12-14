@@ -1,4 +1,5 @@
 from collections.abc import Callable, Generator, Iterable
+from typing import Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ProgressBar import ProgressBar
@@ -19,7 +20,7 @@ class Pool:
     def execute(
         self,
         function: Callable,
-        data_source: Iterable,
+        data_source: Iterable[Any],
         progress_bar=True,
         *args,
         **kwargs,
