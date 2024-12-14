@@ -61,7 +61,7 @@ def main(root: str, dry_run=False, refresh=False, verbose=False) -> None:
         root_dir = Dir(root)
         # Create a dict mapping of hashed values to their associated files
         duplicate_groups = root_dir.duplicates(refresh=refresh)
-        num_duplicates = sum([len(group) for group in duplicate_groups]) - len(duplicate_groups)
+        num_duplicates = sum(len(group) for group in duplicate_groups) - len(duplicate_groups)
         cprint.info(f"\n{len(duplicate_groups)} sets,  {num_duplicates} duplicate files:")
         # Use a threadpool to remove duplicates if no_confirm  is set (for speed)
         pool = Pool()

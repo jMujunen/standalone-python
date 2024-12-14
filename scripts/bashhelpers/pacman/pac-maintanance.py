@@ -30,7 +30,7 @@ def prune_journal() -> int:
 def rm_orphans() -> int:
     """Remove orphaned packages."""
     return_code = os.system("sudo pacman -Rs $(pacman -Qtdq) 2> /dev/null")
-    return 0 if return_code in (0, 256) else return_code
+    return 0 if return_code in {0, 256} else return_code
 
 
 def check_file_properties() -> int:
@@ -59,7 +59,7 @@ def main(args: argparse.Namespace):
         "check": lambda x: (check_file_properties(), broken(*x)),
         "coredump": prune_core_dump,
     }
-    return sum([action() for action in all_actions.values() if args.__dict__[action.__name__]])
+    return sum(action() for action in all_actions.values() if args.__dict__[action.__name__])
 
 
 def parse_args() -> argparse.Namespace:

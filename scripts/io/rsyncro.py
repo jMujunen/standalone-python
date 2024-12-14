@@ -13,11 +13,12 @@ SRC_DIRS = [
     "Docs/Notes/Obsidian/All Notes",
     ".config/kitty",
     ".config/bat",
+    ".config/hypr",
     ".config/VSCodium/User",
-    ".dotfiles",
-    "scripts",
-    "Logs",
-    ".ipython",
+    ".dotfiles/",
+    "scripts/",
+    ".ipython/",
+    ".config/mpv",
 ]
 
 TARGET_ROOT = "/mnt/hddred/rsync/linux-desktop/joona/"
