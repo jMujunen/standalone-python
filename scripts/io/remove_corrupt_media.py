@@ -28,7 +28,7 @@ def main(path: str, dry_run: bool) -> None:
     print("\n".join(corrupted_files))
 
     if not dry_run and corrupted_files:
-        if input("Are you sure you want to remove these files? [y/N]: ") in ["y", "Y"]:
+        if input("Are you sure you want to remove these files? [y/N]: ") in {"y", "Y"}:
             for f in corrupted_files:
                 try:
                     os.remove(f)

@@ -137,7 +137,7 @@ def parse_args() -> argparse.Namespace:
         default=["temps"],
     )
     parser.add_argument(
-        "--combine",help="Combine several files into one plot", action="store_true"
+        "--combine", help="Combine several files into one plot", action="store_true"
     )
     # TODO: Add support for limiting the range of the x-axis (time)
     return parser.parse_args()
