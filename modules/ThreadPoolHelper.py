@@ -24,7 +24,7 @@ class Pool:
         progress_bar=True,
         *args,
         **kwargs,
-    ) -> Generator:
+    ) -> Generator[Any, None, None]:
         """Execute a callable function concurrently for each item in the data source.
 
         ### Parameters:

@@ -251,24 +251,24 @@ class cprint(Parse):
     @staticmethod
     def debug(*text: Any, end="\n") -> None:
         result = " ".join(map(str, text))
-        print(Parse(f"{fg.orange}[DEBUG]{style.reset} - {result}"), end=end)
+        print(Parse(f"{fg.orange}[DEBUG]{style.reset} - {result}"), end=end)  # type: ignore
 
     @staticmethod
     def info(*text: Any, end="\n") -> None:
         result = " ".join(map(str, text))
 
-        print(Parse(f"{fg.blue}[INFO]{style.reset} - {result}"), end=end)
+        print(Parse(f"{fg.blue}[INFO]{style.reset} - {result}"), end=end)  # type: ignore
 
     @staticmethod
     def warn(*text: Any, end="\n") -> None:
         result = " ".join(map(str, text))
 
-        print(Parse(f"{fg.yellow}[WARN]{style.reset} - {result}"), end=end)
+        print(Parse(f"{fg.yellow}[WARN]{style.reset} - {result}"), end=end)  # type: ignore
 
     @staticmethod
     def error(*text: Any, end="\n") -> None:
         result = " ".join(map(str, text))
-        print(Parse(f"{fg.red}[ERROR]{style.reset} - {result}"), end=end)
+        print(Parse(f"{fg.red}[ERROR]{style.reset} - {result}"), end=end)  # type: ignore
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(styles={self.styles}, text='{self.text}')"
@@ -844,7 +844,7 @@ class Palette(Enum):
 
 
 @dataclass
-class fg(Enum):
+class fg:
     r"""Apply `fg` foreground formatting.
 
     Methods
