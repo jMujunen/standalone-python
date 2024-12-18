@@ -34,31 +34,29 @@ class ExecutionTimer:
         if self.print_on_exit:
             print(f"\n\033[34mExecution time: {self!s}\033[0m")
 
-    # def __format__(self, format_spec: str, /) -> str:
-    #     return "Depreciated Function"
-
-    #     match format_spec.lower():
-    #         case "r":
-    #             return repr(self)
-    #         case "f":
-    #             return f"{self.execution_time}"
-    #     return self.__str__()
-
     def __str__(self) -> str:
-        """Convert result from seconds to hours, minutes, seconds, and/or milliseconds."""
+        """Convert result from seconds to hours, minutes, seconds, and/or milliseconds.
+
+        Returns
+        -------
+            str: A string representation of the execution time, formatted according
+                to the largest possible unit.
+        """
         template = "{minutes}{major_unit}{seconds} {minor_unit}"
         time_seconds = self.execution_time
+
+        # Check if the time is less than a millisecond
         for unit in TimeUnits:
             if time_seconds < TimeUnits.seconds.value:
                 return template.format(
                     minutes="",
                     major_unit="",
-                    seconds=f"{time_seconds/TimeUnits.ms.value:.0f}",
+                    seconds=f"{time_seconds / TimeUnits.ms.value:.0f}",
                     minor_unit=TimeUnits.ms.name,
                 )
             if unit.name == "ms":
                 continue
-            time_seconds = time_seconds / unit.value
+            time_seconds /= unit.value
             if time_seconds < TimeUnits.minutes.value:
                 return template.format(
                     minutes="",
@@ -76,4 +74,5 @@ class ExecutionTimer:
 
             time_seconds /= TimeUnits.minutes.value
 
-        return f"{time_seconds / 60/24:.2f} {TimeUnits.days.name.lower()}"
+        # If no units are left, return the time in days
+        return f"{time_seconds / 60 / 24:.2f} {TimeUnits.days.name.lower()}"
