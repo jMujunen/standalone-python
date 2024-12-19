@@ -74,6 +74,20 @@ class ServiceDispatcher:
 class MetaClient(type):
     """Metaclass for creating a client with domain dispatchers."""
 
+    def __new__(cls, name, bases, dct):
+        new_class = super().__new__(cls, name, bases, dct)
+        new_class._initialize_domains()
+        return new_class
+
+    @classmethod
+    def _initialize_domains(cls) -> None:
+        for domain in ["switch", "weather", "service"]:
+            setattr(cls, domain, DomainDispatcher(None, domain))
+
+
+class MetaClientV2(type):
+    """Metaclass for creating a client with domain dispatchers."""
+
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct)
         # for domain in Client():
@@ -84,7 +98,7 @@ class MetaClient(type):
 class Client(metaclass=MetaClient):
     """Base class for interacting with the Home Assistant API."""
 
-    _domains: dict[dict[str, str], str] = {}
+    _domains: dict[dict[str, str], str]
 
     def __init__(self, host=HASS_HOST, token=TOKEN) -> None:
         self.url = f"http://{host}:8123/api"
@@ -270,7 +284,9 @@ class HomeAssistantClient:
             == 0
         )
 
-    def _api_call(self, url: str, method: str = "GET", data: dict = None) -> requests.Response:
+    def _api_call(
+        self, url: str, method: str = "GET", data: dict | None = None
+    ) -> requests.Response:
         """Make an API call to Home Assistant."""
         if method == "GET":
             response = requests.get(url, headers=self.headers)
@@ -305,7 +321,7 @@ class HomeAssistantClient:
         return entities
 
     def call_service(
-        self, domain: str, service: str, entity_id: str = None, **kwargs
+        self, domain: str, service: str, entity_id: str | None = None, **kwargs
     ) -> requests.Response:
         """Call a service on the Home Assistant API."""
         url = f"{SERVICES_URL}/{domain}/{service}"
@@ -335,7 +351,7 @@ class HomeAssistantClient:
         response = self._api_call(url)
         return response.json()
 
-    def set_state(self, entity_id: str, value: Any, attributes: dict = None) -> str:
+    def set_state(self, entity_id: str, value: Any, attributes: dict | None = None) -> str:
         """Set the state of an entity."""
         url = f"{STATES_URL}/{entity_id}"
         data = {"state": value}
