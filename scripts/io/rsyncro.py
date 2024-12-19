@@ -14,11 +14,13 @@ SRC_DIRS = [
     ".config/kitty",
     ".config/bat",
     ".config/hypr",
+    ".config/waybar
     ".config/VSCodium/User",
     ".dotfiles/",
     "scripts/",
     ".ipython/",
     ".config/mpv",
+    ".mozilla/firefox/h76d4ruz.default-release"
 ]
 
 TARGET_ROOT = "/mnt/hddred/rsync/linux-desktop/joona/"
