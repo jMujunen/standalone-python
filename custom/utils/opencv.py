@@ -1,5 +1,4 @@
 import os
-import re
 from datetime import timedelta
 
 import cv2
@@ -7,7 +6,7 @@ import cython
 import numpy as np
 import pytesseract
 from Color import cprint, fg, style
-from config import INTERVAL
+from momentis.momentis import INTERVAL
 from FrameBuffer import FrameBuffer
 from moviepy.config import change_settings
 from moviepy.editor import ImageSequenceClip
@@ -143,10 +142,6 @@ def create_frame_index(
     # Extract vars from video
     count = 0
     cap = cv2.VideoCapture(vid_path, cv2.CAP_FFMPEG)
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-
-    # Define region of interest
-    # roi = (width - CONSTS["ROI_W"], 0, CONSTS["ROI_W"], CONSTS["ROI_H"])
 
     # Temporary placeholder vars
     kill_detected = False
@@ -183,11 +178,7 @@ def create_frame_index(
                 msg = log_template.format(fg.orange, "SKIPPED", style.reset, "No kill", count)
                 log.append("\t".join([msg, name]))
                 print(f"{msg}", end="\r")
-                # Debug logging
-        # else:
-        #     msg = log_template.format(fg.lightskyblue, "INFO", style.reset, "Current", count)
-        #     log.append(msg)
-        #     print(f"{msg:60}")
+
         count += 1
     # Flag for garbage collection
     cap.release()
