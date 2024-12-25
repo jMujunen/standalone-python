@@ -8,6 +8,7 @@ import momentis.utils
 from Color import cprint
 from fsutils.dir import Dir, obj
 from fsutils.video import Video
+import os
 
 FOLDERS = {
     "PLAYERUNKNOWN'S BATTLEGROUNDS": "PUBG",
@@ -15,6 +16,7 @@ FOLDERS = {
 
 OUTPUT_PATH = "/mnt/ssd/OBS/Joona/opencv-output"
 INPUT_PATH = "/mnt/win_ssd/Users/Joona/Videos/NVIDIA/"
+
 KEYWORDS = [
     "sofunny",
     "meso",
@@ -30,16 +32,20 @@ KEYWORDS = [
 NULLSIZE = 300
 
 
-def main(inputDir: Dir, outputDir: Dir) -> list[Video]:
+def post_process():
+    pass
+
+
+def main(input_dir: str, output_dir: str) -> list[Video]:
     """Compress videos specified by input Dir and save them to output Dir."""
 
-    momentis.momentis.main(
-        input_path=inputDir,
-        keywords=KEYWORDS,
-        debug=False,
-        output_path=outputDir.path,
-    )
-    processed_dir = Dir(Path(inputDir, "opencv-output"))
+    # momentis.momentis.main(
+    #     input_path=input_dir,
+    #     keywords=KEYWORDS,
+    #     debug=False,
+    #     output_path=output_dir,
+    # )
+    processed_dir = Dir(os.path.join(input_dir, "opencv-output"))
     Path(OUTPUT_PATH).mkdir(parents=True, exist_ok=True)
     if processed_dir.exists():
         for vid in processed_dir.videos():
@@ -67,7 +73,7 @@ def remove_flagged(flagged: list[Video]) -> None:
 if __name__ == "__main__":
     import sys
 
-    results = main(Dir(INPUT_PATH), Dir(OUTPUT_PATH))
+    results = main(INPUT_PATH, OUTPUT_PATH)
     if len(sys.argv) > 1 and sys.argv[1] == "--remove" and results:
         remove_flagged(results)
     else:

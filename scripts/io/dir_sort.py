@@ -86,7 +86,7 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
     # Rename the file to include time of capture if cli flag is set
     if rename:
         dest_path = os.path.join(
-            dest_folder, f'{modification_time.strftime("%H:%M.%S")}{item.suffix}'
+            dest_folder, f"{modification_time.strftime('%H:%M.%S')}{item.suffix}"
         )
     else:
         dest_path = os.path.join(dest_folder, item.name)
@@ -100,7 +100,7 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
             os.remove(item.path)
             break
         dest_path = os.path.join(
-            dest_folder, f'{modification_time.strftime("%H:%M.%S")}_{count}{item.suffix}'
+            dest_folder, f"{modification_time.strftime('%H:%M.%S')}_{count}{item.suffix}"
         )
         count += 1
     shutil.move(item.path, dest_path, copy_function=shutil.copy2)
@@ -114,8 +114,14 @@ def main(videos: list[Video], dest: str) -> None:
             print("\033[31mError\033[0m")
 
 
+class args:
+    ROOT = "/mnt/hdd/webcam"
+    DEST = "/mnt/hdd/sorted-webcam-clips"
+
+
 if __name__ == "__main__":
-    args = parse_args()
+    # args = parse_args()
+
     # main(args.ROOT, args.DEST)
     source = Dir(args.ROOT)
     dest = Dir(args.DEST)

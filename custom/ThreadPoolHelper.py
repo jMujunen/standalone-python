@@ -68,3 +68,4 @@ class Pool:
                     if progress_bar:
                         pb.increment()
         yield from ()
+        print()
