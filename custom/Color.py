@@ -209,9 +209,13 @@ class cprint(Parse):
         print(Parse(f"{fg.orange}[DEBUG]{style.reset} - {result}"), end=end)  # type: ignore
 
     @staticmethod
+    def success(*text: str | Exception, end="\n") -> None:
+        result = " ".join(map(str, text))
+        print(Parse(f"{fg.green}[DEBUG]{style.reset} - {result}"), end=end)  # type: ignore
+
+    @staticmethod
     def info(*text: str | Exception, end="\n") -> None:
         result = " ".join(map(str, text))
-
         print(Parse(f"{fg.blue}[INFO]{style.reset} - {result}"), end=end)  # type: ignore
 
     @staticmethod
@@ -382,7 +386,7 @@ class Color:
         return self.ascii
 
     def __repr__(self) -> str:
-        return f'{f"Color({self.r}, {self.g}, {self.b})".ljust(25)} {self} {"▓" * 10}\033[0m'
+        return f"{f'Color({self.r}, {self.g}, {self.b})'.ljust(25)} {self} {'▓' * 10}\033[0m"
 
     def __hash__(self):
         return hash((self.r, self.g, self.b))
