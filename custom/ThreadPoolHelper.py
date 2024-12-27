@@ -45,7 +45,7 @@ class Pool:
             - Results are yielded as they are completed.
             - Exceptions encountered during task execution are caught and printed.
         """
-        if progress_bar and isinstance(data_source, Generator):
+        if isinstance(data_source, Generator):
             # Convert generators to lists as calling `len` on a generator depletes it
             data_source = list(data_source)
 
