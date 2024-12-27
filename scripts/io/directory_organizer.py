@@ -13,7 +13,7 @@ import sys
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
-
+import contextlib
 from Color import cprint, fg
 from fsutils.dir import Dir, obj
 from fsutils.file import File
@@ -25,13 +25,11 @@ MAX_DUPLICATES = 2
 DATE_REGEX = re.compile(r"\d{1,4}-(\d{4}).?(\d{2}).?(\d{2}).(\d{2}).?(\d{2}).?(\d{2})")
 
 
-def cleanup(top: Path) -> None:
+def cleanup(top: str) -> None:
     """Remove empty directories recursively."""
-    for root, dirs, files in os.walk(top):
+    for root, dirs, _ in os.walk(top, topdown=False):
         for d in dirs:
-            cleanup(Path(root, d))
-        if not dirs and not files:
-            Path(root).rmdir()
+            Path(root, d).rmdir()
 
 
 def sort_spec_formatter(spec: str) -> str:
@@ -97,7 +95,7 @@ def get_prefix(item: File, target: str, sort_spec: str) -> Path | None:
                 item.capture_date.strftime(sort_spec),  # type: ignore
             )
         case "Dir":
-            return item.unlink() if not os.listdir(item.path) else None
+            return Path(item.path).unlink() if not os.listdir(item.path) else None
         case _:
             return categorize_other(item, target)
 
@@ -105,7 +103,7 @@ def get_prefix(item: File, target: str, sort_spec: str) -> Path | None:
 def gen_stat(lst: list) -> Generator[zip]:
     for item in itertools.combinations(lst, 2):
         pair = obj(item[0]), obj(item[1])
-        yield zip(*(p.stat()[-3:] for p in pair), strict=False)
+        yield zip(*(p.times() for p in pair), strict=False)
 
 
 def determine_originals(file_paths: list[str], num_keep: int) -> set[str]:
@@ -155,42 +153,44 @@ def process_item(
     count = 0
     existing_files = index.get(item.sha256(), [])
     while dest_path.exists():
-        cprint.warn(f"File {item.name} already exists in destination directory.")
-        if len(existing_files) < MAX_DUPLICATES:
-            # Rename the file while under MAX_DUPLICATES
-            count += 1
-            path, name = os.path.split(dest_path)
-            dest_path = Path(path, f"{count}-{item.name}")
-        elif len(existing_files) > MAX_DUPLICATES:
-            # Remove newest items while MAX_DUPLICATES is exceeded.
-            existing_files.append(item.path)
-            overflow = sorted(existing_files, key=lambda x: Path(x).stat().st_mtime)
-            # if dry_run:
-            cprint(f"[REMOVE] - {'\n'.join(overflow[MAX_DUPLICATES:])}", fg.deeppink)
-            cprint(f"[KEEP] - {'\n'.join(overflow[:MAX_DUPLICATES])}", fg.cyan)
-            # return None
-            for file in overflow[MAX_DUPLICATES:]:
-                # if dry_run is True:
-                # else:
-                msg = f"Removed {file}"
-                cprint.error(msg)
-                os.remove(file)
-        else:
-            # If there are no duplicates or the number of copies is under control, just return.
-            break
-    try:
-        if keep:
-            shutil.copy2(item.path, dest_path)
-        else:
-            shutil.move(item.path, dest_path, copy_function=shutil.copy2)
-    except (PermissionError, FileExistsError, FileNotFoundError) as e:
-        msg = f"{e}: {e.filename} {e.filename2}"
-        cprint.error(msg)
-        raise e from e
-    except Exception as e:
-        msg = f"Unidentified Error: {e!r}: {item.path} {dest_path}"
-        cprint.error(msg)
-        return dest_path
+        with contextlib.suppress(FileNotFoundError, FileExistsError):
+            # cprint.warn(f"File {item.name} already exists in destination directory.")
+            if len(existing_files) < MAX_DUPLICATES:
+                # Rename the file while under MAX_DUPLICATES
+                count += 1
+                path, _ = os.path.split(dest_path)
+                dest_path = Path(path, f"{count}-{item.name}")
+            elif len(existing_files) > MAX_DUPLICATES:
+                # Remove newest items while MAX_DUPLICATES is exceeded.
+                existing_files.append(item.path)
+                overflow = sorted(existing_files, key=lambda x: Path(x).stat().st_mtime)
+                # if dry_run:
+                cprint(f"[REMOVE] - {'\n'.join(overflow[MAX_DUPLICATES:])}", fg.deeppink)
+                cprint(f"[KEEP] - {'\n'.join(overflow[:MAX_DUPLICATES])}", fg.cyan)
+                # return None
+                for file in overflow[MAX_DUPLICATES:]:
+                    # if dry_run is True:
+                    # else:
+                    msg = f"Removed {file}"
+                    cprint.error(msg)
+                    os.remove(file)
+            else:
+                # If there are no duplicates or the number of copies is under control, just return.
+                break
+    with contextlib.suppress(FileExistsError, FileNotFoundError):
+        try:
+            if keep:
+                shutil.copy2(item.path, dest_path)
+            else:
+                shutil.move(item.path, dest_path, copy_function=shutil.copy2)
+        except PermissionError as e:
+            msg = f"{e!r}"
+            cprint.error(msg)
+
+        except Exception as e:
+            msg = f"Unidentified Error: {e!r}: {item.path} {dest_path}"
+            cprint.error(msg)
+            return dest_path
 
 
 def filter_files(root: Dir, filter_spec: str) -> list[File]:
@@ -215,7 +215,7 @@ def main(root: str, destination: str, spec: str, refresh_db=False, keep=False) -
     path = Dir(root)
     dest = Dir(destination)
     root_object = Dir(root)
-    index = dest.serialize(replace=refresh_db)
+    index = dest.serialize(replace=True)
     # If root and destination are the same, do not recurse into subdirectories
     file_objs = (
         [obj(file) for file in path.content]
@@ -239,10 +239,10 @@ def main(root: str, destination: str, spec: str, refresh_db=False, keep=False) -
     if not keep:
         cleanup(path)
 
-    try:
-        path.rmdir()
-    except OSError as e:
-        cprint.error(f"OSError while removing dir: {e.strerror}: {e.filename}")
+        try:
+            Path(root).rmdir()
+        except OSError as e:
+            cprint.error(f"OSError while removing dir: {e.strerror}: {e.filename}")
 
 
 def parse_args() -> argparse.Namespace:
