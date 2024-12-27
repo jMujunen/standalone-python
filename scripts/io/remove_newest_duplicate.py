@@ -13,7 +13,7 @@ from fsutils.dir import Dir, obj
 from ThreadPoolHelper import Pool
 
 
-def gen_stat(lst):  # -> Generator[zip[Any]]:
+def gen_stat(lst) -> Generator[zip[Any]]:
     """Given a list of file paths, return a generator tuples of the stat results for each pair
     for each pair of files in the list.
     """
@@ -22,7 +22,7 @@ def gen_stat(lst):  # -> Generator[zip[Any]]:
         yield zip(*(p.stat()[-3:] for p in pair), strict=False)
 
 
-def determine_originals(file_paths: list[str], num_keep: int):  # -> set[str]:
+def determine_originals(file_paths: list[str], num_keep: int) -> set[str]:
     """Given a list of file paths and the number of duplicates to keep,
     return a list of file paths that should be kept.
 
