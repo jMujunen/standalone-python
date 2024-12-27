@@ -10,18 +10,30 @@ from pathlib import Path
 from typing import Any
 
 from Color import cprint, fg, style
-from fsutils.dir import Dir,
+from fsutils.dir import Dir
 from fsutils.video import Video
 from ProgressBar import ProgressBar
 from size import Size
 from ThreadPoolHelper import Pool
+from fsutils.utils.mimecfg import FILE_TYPES
+
 
 RENAME_SPEC = {
     "PLAYERUNKNOWN": "PUBG",
 }
 
 
-def main(input_dir: str, output_dir: str, num: int, *filters):
+def main(
+    input_dir: str, output_dir: str, num: int, *filters
+) -> tuple[list[Video], list[Video], int, int]:
+    """Batch process all .mp4 files in a directory.
+
+    Args:
+        input_dir (str): If not specified, the current working directory is used.
+        output_dir (str): If not specified, the current working directory is used.
+        num (int): Number of files to process at once. Defaults to all.
+        filters (list[str]): List of file extensions to filter by. Defaults to all
+    """
     pool = Pool()
 
     outdir = Dir(output_dir)
@@ -68,7 +80,7 @@ def main(input_dir: str, output_dir: str, num: int, *filters):
     size_before = sum(pool.execute(lambda x: x.size, videos, progress_bar=True))
     size_after = sum(pool.execute(lambda x: x.size, compressed_videos, progress_bar=True))
     # Notify user of completion
-    cprint("\nBatch conversion completed.", fg.green)
+    cprint.success("\nBatch conversion completed.", fg.green)
     return successful_conversions, failed_conversions, size_before, size_after
 
 
@@ -156,6 +168,6 @@ if __name__ == "__main__":
             try:
                 os.remove(file.path)
             except OSError as e:
-                cprint.error(f"{e!r}")  # remove error message
-            except Exception:
-                pass
+                cprint.error(f"{e!r}")
+            except Exception:  # noqa: S112
+                continue
