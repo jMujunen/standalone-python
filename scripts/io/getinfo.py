@@ -16,7 +16,7 @@ def parse_args() -> argparse.Namespace:
         description=__doc__,
         exit_on_error=False,
     )
-    parser.add_argument("directory", nargs="?", default=Path().cwd())
+    parser.add_argument("directory", nargs="?", default=os.getcwd())
     return parser.parse_args()
 
 

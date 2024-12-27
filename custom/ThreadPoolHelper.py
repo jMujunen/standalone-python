@@ -63,7 +63,9 @@ class Pool:
                     break
                 except Exception as e:
                     if not self.suppress_exceptions:
-                        print(f"\nThreadpool Exception: {e!r}")
+                        print(
+                            f"\n\033[31mThreadpool Exception: {e!r} {function.__name__} {function.__module__}\033[0m"
+                        )
                 finally:
                     if progress_bar:
                         pb.increment()
