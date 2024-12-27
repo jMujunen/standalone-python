@@ -17,7 +17,7 @@ from typing import Any
 from Color import cprint, fg
 from fsutils.dir import Dir, obj
 from fsutils.file import File
-from fsutils.utils import FILE_TYPES, IGNORED_DIRS
+from fsutils.utils.mimecfg import FILE_TYPES, IGNORED_DIRS
 from ThreadPoolHelper import Pool
 
 MAX_DUPLICATES = 2
@@ -166,8 +166,8 @@ def process_item(
             existing_files.append(item.path)
             overflow = sorted(existing_files, key=lambda x: Path(x).stat().st_mtime)
             # if dry_run:
-            cprint(f"[REMOVE] - {"\n".join(overflow[MAX_DUPLICATES:])}", fg.deeppink)
-            cprint(f"[KEEP] - {"\n".join(overflow[:MAX_DUPLICATES])}", fg.cyan)
+            cprint(f"[REMOVE] - {'\n'.join(overflow[MAX_DUPLICATES:])}", fg.deeppink)
+            cprint(f"[KEEP] - {'\n'.join(overflow[:MAX_DUPLICATES])}", fg.cyan)
             # return None
             for file in overflow[MAX_DUPLICATES:]:
                 # if dry_run is True:
@@ -217,7 +217,11 @@ def main(root: str, destination: str, spec: str, refresh_db=False, keep=False) -
     root_object = Dir(root)
     index = dest.serialize(replace=refresh_db)
     # If root and destination are the same, do not recurse into subdirectories
-    file_objs = [obj(file) for file in path.content] if root_object == dest else path.file_objects
+    file_objs = (
+        [obj(file) for file in path.content]
+        if root_object == dest
+        else [obj(file) for file in path.ls_files()]
+    )
     sort_spec = sort_spec_formatter(spec)
     pool = Pool()
     list(
@@ -292,12 +296,12 @@ def parse_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = parse_args()
-    dest = Path(args.dest)
+    dest = args.dest
     root = args.ROOT
     spec = args.spec
     refresh_db = not args.use_index
 
     # Ensure destination directory exists before running the script
-    if not dest.exists:
-        dest.mkdir(parents=True, exist_ok=True)
+    if not Path(args.dest).exists():
+        Path(dest).mkdir(parents=True, exist_ok=True)
     main(root, dest, spec, refresh_db, args.keep)
