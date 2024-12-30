@@ -4,17 +4,6 @@
 Example:
 --------
 >>> ./dir_sort.py /media/ /mnt/ssd/media/ --level day
-
-outputs
-
-2024
-├── August
-│   ├── 10
-│   ├── 11
-├── July
-│   └── 14
-└── September
-    ├── 1
 """
 
 import argparse
@@ -75,8 +64,7 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
         case Dir():
             return os.remove(item.path) if item.is_empty else None
         case _:
-            modification_time = datetime.datetime.fromtimestamp(Path.stat(item.path).st_mtime)
-
+            modification_time = item.mtime
     year, month, day = (
         modification_time.year,
         modification_time.strftime("%B").capitalize(),
@@ -120,9 +108,7 @@ class args:
 
 
 if __name__ == "__main__":
-    # args = parse_args()
-
-    # main(args.ROOT, args.DEST)
+    args = parse_args()
     source = Dir(args.ROOT)
     dest = Dir(args.DEST)
     if source.path == dest.path:
