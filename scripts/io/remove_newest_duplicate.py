@@ -13,16 +13,16 @@ from fsutils.dir import Dir, obj
 from ThreadPoolHelper import Pool
 
 
-def gen_stat(lst) -> Generator[zip[Any]]:
+def gen_stat(lst) -> Generator:
     """Given a list of file paths, return a generator tuples of the stat results for each pair
     for each pair of files in the list.
     """
     for i in itertools.combinations(lst, 2):
         pair = obj(i[0]), obj(i[1])
-        yield zip(*(p.stat()[-3:] for p in pair), strict=False)
+        yield zip(*(p.times() for p in pair), strict=False)
 
 
-def determine_originals(file_paths: list[str], num_keep: int) -> set[str]:
+def determine_originals(file_paths: list[str], num_keep=2) -> tuple[set[str], ...]:
     """Given a list of file paths and the number of duplicates to keep,
     return a list of file paths that should be kept.
 
@@ -68,13 +68,13 @@ def main(db: dict[str, list[str]], num_keep: int, dry_run=False, debug=False) ->
         if debug and remove:
             cprint("Remove:", fg.red)
             for item in remove:
-                cprint(f"{item:<60}{datetime.datetime.fromtimestamp(os.path.getmtime(item))}")
+                cprint(f"{item:<120}{datetime.datetime.fromtimestamp(os.path.getmtime(item))}")
 
             cprint("Keep:", fg.green)
             for item in _:
-                cprint(f"{item:<60}{datetime.datetime.fromtimestamp(os.path.getmtime(item))}")
+                cprint(f"{item:<120}{datetime.datetime.fromtimestamp(os.path.getmtime(item))}")
             print("-" * 80)
-        if remove:
+        elif remove:
             size_of_removed += sum(
                 pool.execute(remove_file, remove, dry_run=dry_run, debug=debug, progress_bar=False)
             )
