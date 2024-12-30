@@ -6,7 +6,7 @@ import subprocess
 from enum import Enum
 from os import environ
 from typing import Any, Dict, List, Tuple
-
+from dataclasses import dataclass, field
 import requests
 
 TOKEN: str = environ["HASS_TOKEN"]
@@ -25,6 +25,21 @@ class StatusCode(Enum):
     NOT_FOUND = 404
     BAD_METHOD = 405
     INTERNAL_ERROR = 500
+
+
+@dataclass
+class Entity:
+    """Represents an entity in Home Assistant."""
+
+    entity_id: str = field(default_factory=str)
+    state: str = field(default_factory=str)
+    attributes: dict = field(default_factory=dict)
+    last_changed: str = field(default_factory=str)
+    last_updated: str = field(default_factory=str)
+
+    def __post_init__(self) -> None:
+        if isinstance(self.entity_id, dict):
+            self.__dict__.update(self.entity_id)
 
 
 def call_service(domain: str, service: str, entity_id=None, **kwargs) -> requests.Response:
@@ -180,7 +195,7 @@ class Client(metaclass=MetaClient):
         --------
             HTTPError: If an error occurs during the HTTP request, it will raise an HTTPError.
         """
-        base_url = f"http://{kwargs.get("host")}:8123/api/services"
+        base_url = f"http://{kwargs.get('host')}:8123/api/services"
         url = f"{base_url}/{domain}/{service}"
         data = {"entity_id": entity_id} if entity_id else {}
         response = requests.post(
@@ -235,6 +250,10 @@ class Client(metaclass=MetaClient):
             if response.status_code == StatusCode.OK.value
             else {"error:": response.reason}
         )
+
+    def entity(self, entity_id: str) -> Entity:
+        """Retrieve an entity by its ID."""
+        return Entity(self.get_state(entity_id))
 
     def set_state(self, entity_id: str, value: Any, attributes: Any = None) -> str:
         """Set the state of an entity.
