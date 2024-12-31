@@ -8,38 +8,36 @@ import pytesseract
 from Color import cprint, fg, style
 from momentis.momentis import INTERVAL
 from FrameBuffer import FrameBuffer
-from moviepy.config import change_settings
-from moviepy.editor import ImageSequenceClip
+import moviepy
 from numpy import ndarray
 
-# Change settings to use ffmpeg directly
-change_settings({"IMAGEMAGICK_BINARY": "ffmpeg"})
 
-
-def name_in_killfeed(
-    img: ndarray, keywords: list[str], roi: tuple[int, ...] | None = None
-) -> tuple[bool, str]:
+def name_in_killfeed(img: ndarray, keywords: list[str], *args: tuple[int, ...]) -> tuple[bool, str]:
     """Check if a kill-related keyword is present in the text extracted from the ndarray.
 
     Parameters
     -----------
         - `img (ndarray)` : The image to extract text from
-        - `rio (tuple)` : The region of interest to extract text from
-
+        - `keywords (list[str])` : The keywords to search for in the text
+        - `*args (tuple[int])` : The region of interest(s) to extract text from in the format: x, y, w, h
     """
-    if roi is not None:
-        x, y, w, h = roi
-        # Crop the frame to the region of interest (rio)
-        img = img[y : y + h, x : x + w]
-    gray_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, threshold = cv2.threshold(gray_frame, 100, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    _2, threshold2 = cv2.threshold(gray_frame, 175, 255, cv2.THRESH_BINARY)
-    text = pytesseract.image_to_string(threshold, lang="eng")
-    text2 = pytesseract.image_to_string(threshold2, lang="eng")
-    concatted_text = "\n".join([text, text2])
-    # cv2.imshow("threshold", threshold)
+    preprocessed_frames = []
+    if args is not None:
+        for arg in args:
+            x, y, w, h = arg  # type: ignore
+            roi = img[y : y + h, x : x + w]
+            # Crop the frame to the region of interest (rio)
+            gray_frame = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+            preprocessed_frames.append(cv2.threshold(gray_frame, 175, 255, cv2.THRESH_BINARY)[1])
+            preprocessed_frames.append(
+                cv2.threshold(gray_frame, 150, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+            )
+
+    concatted_img = cv2.hconcat(preprocessed_frames)
+    text = pytesseract.image_to_string(concatted_img, lang="eng")
+
     # Check if any kill-related keyword is present in the extracted text
-    if any(keyword.lower() in concatted_text.lower() for keyword in keywords):
+    if any(keyword.lower() in text.lower() for keyword in keywords):
         return True, text.lower()
     return False, text.lower()
 
@@ -90,8 +88,8 @@ def find_continuous_segments(frames: list[int]) -> list[list[int]]:
     return segments
 
 
-def create_video_clip(frames: list[np.ndarray], fps=60) -> ImageSequenceClip:
-    return ImageSequenceClip(frames, fps=fps)
+def create_video_clip(frames: list[np.ndarray], fps=60) -> moviepy.ImageSequenceClip:
+    return moviepy.ImageSequenceClip(frames, fps=fps)
 
 
 def save_keyframe(
