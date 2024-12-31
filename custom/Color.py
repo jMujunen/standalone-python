@@ -78,169 +78,11 @@ class style(Enum):
 
 
 @dataclass
-class fg:
-    r"""Apply `fg` foreground formatting.
-
-    Methods
-    --------
-        listall(): Prints all available attributes.
-        showall(): Similar to listall() but it renders the style as well.
-
-    Examples
-    ---------
-        >>> fg.red -> '\033[31m'
-        >>> fg.green -> '\033[32m'
-        >>> print(f"{fg.red}This is red text{style.reset}")
-    """
-
-    @staticmethod
-    def ls() -> list[str]:
-        """Print all available attributes."""
-        for k, v in fg.__dict__.items():
-            if not k.startswith("__"):
-                print(f"{v}{k}", end=f"{style.reset}\t")
-                print()
-        return list(filter(lambda x: not str(x).startswith("__"), fg.__dict__.values()))
-
-
-class bg(Enum):
-    r"""Apply background formatting.
-
-    Methods
-    --------
-        listall(): Prints all available attributes.
-        showall(): Similar to listall() it renders the style as well.
-
-    Examples
-    ---------
-        >>> bg.red -> '\033[41m'
-        >>> bg.green -> '\033[42m'
-        >>> print(f"{bg.red}This is red text{style.reset}")
-    """
-
-    black = "\033[40m"
-    red = "\033[41m"
-    green = "\033[42m"
-    yellow = "\033[43m"
-    blue = "\033[44m"
-    magenta = "\033[45m"
-    cyan = "\033[46m"
-    light_grey = "\033[47m"
-    dark_grey = "\033[100m"
-    light_red = "\033[101m"
-    light_green = "\033[102m"
-    light_yellow = "\033[103m"
-    light_blue = "\033[104m"
-    light_magenta = "\033[105m"
-    light_cyan = "\033[106m"
-    white = "\033[107m"
-
-    @staticmethod
-    def all() -> None:
-        for item in bg:
-            print(f"{item.name} {item.value}", end=f"{style.reset}\t")
-        print()
-
-    def __str__(self) -> str:
-        return self.value
-
-
-class Parse:
-    """Parses text with given styles."""
-
-    text: str | Exception
-    styles: tuple
-
-    def __init__(self, text: str | Exception, *styles: Decoration) -> None:
-        """Initialize the class with text and styles.
-
-        Parameters
-        -----------
-            text (str): The text to be parsed with styles.
-            styles (list): The styles to be applied to the text
-        """
-        self.text = text
-        self.styles = styles
-
-    def __str__(self) -> str:
-        """Return the text with applied styles.
-
-        Returns
-        --------
-            str: The text with applied styles.
-        """
-        styled_text = repr(self.text) if isinstance(self.text, Exception) else self.text
-        for s in self.styles:
-            styled_text = f"{s}{styled_text}{style.reset}"
-        return styled_text
-
-
-class cprint(Parse):
-    """Print the text with given styles."""
-
-    def __init__(self, text: str | Exception, *styles: Decoration, end="\n") -> None:
-        """Initialize the class with text and styles.
-
-        Parameters
-        -----------
-            text (str): The text to be printed.
-            styles (list): The styles to be applied to the text
-            end (str): The end character to be used after printing the text.
-        """
-        self.text = str(text) if not isinstance(text, Exception) else text.args[0]
-        self.styles = styles
-        self(text, *styles, end=end)
-
-    @staticmethod
-    def __call__(text: str | Exception, *styles: tuple[style | bg | fg, ...], end="\n") -> None:
-        """Print the text with given styles.
-
-        Parameters
-        -----------
-            text (str): The text to be printed.
-            *styles (list): The styles to be applied to the text
-            end (str): The end character to be used after printing the text.
-        """
-        print(Parse(text, *styles), end=end)
-
-    @staticmethod
-    def debug(*text: str | Exception, end="\n") -> None:
-        result = " ".join(map(str, text))
-        print(Parse(f"{fg.orange}[DEBUG]{style.reset} - {result}"), end=end)  # type: ignore
-
-    @staticmethod
-    def success(*text: str | Exception, end="\n") -> None:
-        result = " ".join(map(str, text))
-        print(Parse(f"{fg.green}[DEBUG]{style.reset} - {result}"), end=end)  # type: ignore
-
-    @staticmethod
-    def info(*text: str | Exception, end="\n") -> None:
-        result = " ".join(map(str, text))
-        print(Parse(f"{fg.blue}[INFO]{style.reset} - {result}"), end=end)  # type: ignore
-
-    @staticmethod
-    def warn(*text: str | Exception, end="\n") -> None:
-        result = " ".join(map(str, text))
-
-        print(Parse(f"{fg.yellow}[WARN]{style.reset} - {result}"), end=end)  # type: ignore
-
-    @staticmethod
-    def error(*text: str | Exception, end="\n") -> None:
-        result = " ".join(map(str, text))
-        print(Parse(f"{fg.red}[ERROR]{style.reset} - {result}"), end=end)  # type: ignore
-
-    def __repr__(self) -> str:
-        enums: filter[Decoration] = filter(lambda x: isinstance(x, Enum), self.styles)
-        colors: filter[Color] = filter(lambda x: isinstance(x, Color), self.styles)
-        styles = *colors, *enums
-        return f"{self.__class__.__name__}(styles={styles}, text='{self.text}')"
-
-
-@dataclass
 class Color:
     r: int = field(default_factory=int, init=True, compare=True, hash=True)
     g: int = field(default_factory=int, init=True, compare=True, hash=True)
     b: int = field(default_factory=int, init=True, compare=True, hash=True)
+    bg: bool = field(default=False, init=True, compare=True, hash=True, kw_only=True)
 
     def __post_init__(self) -> None:
         if isinstance(self.r, str) and len(self.r) == 6 and hex_regex.match(self.r):
@@ -383,10 +225,12 @@ class Color:
         return len(self.__dict__)
 
     def __str__(self) -> str:
+        if self.bg:
+            return f"\033[7m{self.ascii}"
         return self.ascii
 
     def __repr__(self) -> str:
-        return f"{f'Color({self.r}, {self.g}, {self.b})'.ljust(25)} {self} {'▓' * 10}\033[0m"
+        return f"{f'Color({self.r}, {self.g}, {self.b})'.ljust(20)} {self} {self.hex} \033[0m"
 
     def __hash__(self):
         return hash((self.r, self.g, self.b))
@@ -400,7 +244,7 @@ class Color:
         return total < (other.r + other.g + other.b)
 
 
-class Palette(Enum):
+class Palette:
     alice_blue = Color(240, 248, 255)
     antique_white = Color(250, 235, 215)
     antiquewhite1 = Color(255, 239, 219)
@@ -903,12 +747,6 @@ class Palette(Enum):
     yellow3 = Color(205, 205, 0)
     yellow4 = Color(139, 139, 0)
 
-    def __init__(self, color: Color):
-        """Initialize a new instance of the Color class."""
-        self.color = color
-        self.ascii = "\033[38;2;{};{};{}m".format(*self.color)
-        self.hex = "#{:02x}{:02x}{:02x}".format(*self.color)
-
     @staticmethod
     def rainbow(num_colors) -> list["Color"]:
         colors = []
@@ -929,9 +767,162 @@ class Palette(Enum):
             colors.append(Color(r, g, b))
         return colors
 
-    def __iter__(self) -> Iterator:
-        return iter(self.__dict__.values())
+    def __iter__(self) -> Generator:
+        yield from self.__dict__
+
+    def clear(self) -> None:
+        """Clear all items from the palette."""
+        for k, v in self.__dict__.items():
+            if isinstance(v, Color):
+                delattr(self, k)
 
 
-for item in Palette:
-    setattr(fg, item.name, item.value)
+@dataclass
+class fg(Palette):
+    r"""Apply `fg` foreground formatting.
+
+    Methods
+    --------
+        listall(): Prints all available attributes.
+        showall(): Similar to listall() but it renders the style as well.
+
+    Examples
+    ---------
+        >>> fg.red -> '\033[31m'
+        >>> fg.green -> '\033[32m'
+        >>> print(f"{fg.red}This is red text{style.reset}")
+    """
+
+    @staticmethod
+    def ls() -> list[str]:
+        """Print all available attributes."""
+        for k, v in fg.__dict__.items():
+            if not k.startswith("__"):
+                print(f"{v}{k}", end=f"{style.reset}\t")
+                print()
+        return list(filter(lambda x: isinstance(x, Color), Palette.__dict__.values()))
+
+
+@dataclass
+class bg:
+    r"""Apply background formatting.
+
+    Methods
+    --------
+        listall(): Prints all available attributes.
+        showall(): Similar to listall() it renders the style as well.
+
+    Examples
+    ---------
+        >>> bg.red -> '\033[41m'
+        >>> bg.green -> '\033[42m'
+        >>> print(f"{bg.red}This is red text{style.reset}")
+    """
+
+    black = "\033[40m"
+    red = "\033[41m"
+    green = "\033[42m"
+    yellow = "\033[43m"
+    blue = "\033[44m"
+    magenta = "\033[45m"
+    cyan = "\033[46m"
+    light_grey = "\033[47m"
+    dark_grey = "\033[100m"
+    light_red = "\033[101m"
+    light_green = "\033[102m"
+    light_yellow = "\033[103m"
+    light_blue = "\033[104m"
+    light_magenta = "\033[105m"
+    light_cyan = "\033[106m"
+    white = "\033[107m"
+
+
+class Parse:
+    """Parses text with given styles."""
+
+    text: str | Exception
+    styles: tuple
+
+    def __init__(self, text: str | Exception, *styles: Decoration) -> None:
+        """Initialize the class with text and styles.
+
+        Parameters
+        -----------
+            text (str): The text to be parsed with styles.
+            styles (list): The styles to be applied to the text
+        """
+        self.text = text
+        self.styles = styles
+
+    def __str__(self) -> str:
+        """Return the text with applied styles.
+
+        Returns
+        --------
+            str: The text with applied styles.
+        """
+        styled_text = repr(self.text) if isinstance(self.text, Exception) else self.text
+        for s in self.styles:
+            styled_text = f"{s}{styled_text}{style.reset}"
+        return styled_text
+
+
+class cprint(Parse):
+    """Print the text with given styles."""
+
+    def __init__(self, text: str | Exception, *styles: Decoration, end="\n") -> None:
+        """Initialize the class with text and styles.
+
+        Parameters
+        -----------
+            text (str): The text to be printed.
+            styles (list): The styles to be applied to the text
+            end (str): The end character to be used after printing the text.
+        """
+        self.text = str(text) if not isinstance(text, Exception) else text.args[0]
+        self.styles = styles
+        self(text, *styles, end=end)
+
+    @staticmethod
+    def __call__(text: str | Exception, *styles: tuple[style | bg | fg, ...], end="\n") -> None:
+        """Print the text with given styles.
+
+        Parameters
+        -----------
+            text (str): The text to be printed.
+            *styles (list): The styles to be applied to the text
+            end (str): The end character to be used after printing the text.
+        """
+        print(Parse(text, *styles), end=end)
+
+    @staticmethod
+    def debug(*text: str | Exception, end="\n") -> None:
+        result = " ".join(map(str, text))
+        print(Parse(f"{fg.orange}[DEBUG]{style.reset} - {result}"), end=end)  # type: ignore
+
+    @staticmethod
+    def success(*text: str | Exception, end="\n") -> None:
+        result = " ".join(map(str, text))
+        print(Parse(f"{fg.green}[DEBUG]{style.reset} - {result}"), end=end)  # type: ignore
+
+    @staticmethod
+    def info(*text: str | Exception, end="\n") -> None:
+        result = " ".join(map(str, text))
+        print(Parse(f"{fg.blue}[INFO]{style.reset} - {result}"), end=end)  # type: ignore
+
+    @staticmethod
+    def warn(*text: str | Exception, end="\n") -> None:
+        result = " ".join(map(str, text))
+
+        print(Parse(f"{fg.yellow}[WARN]{style.reset} - {result}"), end=end)  # type: ignore
+
+    @staticmethod
+    def error(*text: str | Exception, end="\n") -> None:
+        result = " ".join(map(str, text))
+        print(Parse(f"{fg.red}[ERROR]{style.reset} - {result}"), end=end)  # type: ignore
+
+    def __repr__(self) -> str:
+        enums: filter[Decoration] = filter(lambda x: isinstance(x, Enum), self.styles)
+        colors: filter[Color] = filter(lambda x: isinstance(x, Color), self.styles)
+        styles = *colors, *enums
+        return f"{self.__class__.__name__}(styles={styles}, text='{self.text}')"

@@ -16,8 +16,12 @@ def main(path: str | Path) -> None:
 
     for color in colors:
         for step in color.fade(start=offwhite, end=darkgray):
-            print(f"{step}▓▓▓▓▓▓", end="\033[0m")
+            print(f"{step}{step.hex.strip('#')}", end="\033[0m ")
         print()
+        for step in color.fade(start=offwhite, end=darkgray):
+            print(f"{step}▓▓▓▓▓▓▓", end="\033[0m")
+        print()
+    print()
 
 
 if __name__ == "__main__":
