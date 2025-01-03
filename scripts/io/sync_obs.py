@@ -6,7 +6,7 @@ from pathlib import Path
 import momentis.momentis
 import momentis.utils
 from Color import cprint
-from fsutils.dir import Dir, obj
+from fsutils.dir import Dir
 from fsutils.video import Video
 from fsutils.utils.Exceptions import CorruptMediaError
 import os
