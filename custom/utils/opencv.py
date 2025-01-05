@@ -6,10 +6,30 @@ import cython
 import numpy as np
 import pytesseract
 from Color import cprint, fg, style
-from momentis.momentis import INTERVAL
 from FrameBuffer import FrameBuffer
 import moviepy
 from numpy import ndarray
+from collections import namedtuple
+
+INTERVAL = 60
+WRITER_FPS = 60
+BUFFER = 120
+log_template = "[{}] {} - Frame {}"
+
+ROI_W, ROI_H = (800, 200)
+ALT_W, ALT_H = (800, 200)
+
+MONITOR_DIMS = (1920, 1080)
+VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv"}
+
+NULLSIZE = 300
+
+dimensions = namedtuple("dimensions", ["w", "h"])
+video_props = namedtuple("video_props", ["w", "h", "fps"])
+
+ROI = dimensions(w=800, h=200)
+
+region_of_interest = namedtuple("region_of_interest", ["x", "y", "w", "h"])
 
 
 def name_in_killfeed(img: ndarray, keywords: list[str], *args: tuple[int, ...]) -> tuple[bool, str]:
