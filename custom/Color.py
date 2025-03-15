@@ -28,6 +28,7 @@ from collections.abc import Iterator
 from collections.abc import Generator
 import re
 from enum import Enum
+from typing import TypeAlias
 
 
 type Hex = str | None
@@ -819,22 +820,22 @@ class bg:
         >>> print(f"{bg.red}This is red text{style.reset}")
     """
 
-    black = "\033[40m"
-    red = "\033[41m"
-    green = "\033[42m"
-    yellow = "\033[43m"
-    blue = "\033[44m"
-    magenta = "\033[45m"
-    cyan = "\033[46m"
-    light_grey = "\033[47m"
-    dark_grey = "\033[100m"
-    light_red = "\033[101m"
-    light_green = "\033[102m"
-    light_yellow = "\033[103m"
-    light_blue = "\033[104m"
-    light_magenta = "\033[105m"
-    light_cyan = "\033[106m"
-    white = "\033[107m"
+    black: str = "\033[40m"
+    red: str = "\033[41m"
+    green: str = "\033[42m"
+    yellow: str = "\033[43m"
+    blue: str = "\033[44m"
+    magenta: str = "\033[45m"
+    cyan: str = "\033[46m"
+    light_grey: str = "\033[47m"
+    dark_grey: str = "\033[100m"
+    light_red: str = "\033[101m"
+    light_green: str = "\033[102m"
+    light_yellow: str = "\033[103m"
+    light_blue: str = "\033[104m"
+    light_magenta: str = "\033[105m"
+    light_cyan: str = "\033[106m"
+    white: str = "\033[107m"
 
 
 class Parse:
@@ -884,7 +885,7 @@ class cprint(Parse):
         self(text, *styles, end=end)
 
     @staticmethod
-    def __call__(text: str | Exception, *styles: tuple[style | bg | fg, ...], end="\n") -> None:
+    def __call__(text: str | Exception, *styles: Decoration, end="\n") -> None:
         """Print the text with given styles.
 
         Parameters
