@@ -24,7 +24,7 @@ RENAME_SPEC = {
 
 
 def main(
-    input_dir: str, output_dir: str, num: int, *filters
+    input_dir: str, num: int | None = None, *filters
 ) -> tuple[list[Video], list[Video], int, int]:
     """Batch process all .mp4 files in a directory.
 
@@ -36,49 +36,47 @@ def main(
     """
     pool = Pool()
 
-    outdir = Dir(output_dir)
-
-    videos = [vid for vid in Dir(input_dir).videos()[:num] if vid.suffix in filters]
+    videos = [vid for vid in Dir(input_dir).videos()[:num] if vid.suffix.lower() in filters]
     failed_conversions = []
     successful_conversions = []
     compressed_videos = []
     # Create the output directories if they don't exist
-    try:
-        outdir.mkdir(parents=True, exist_ok=True)
-    except OSError as e:
-        print(f"[\033[31m Error creating output directory '{outdir}': {e} \033[0m]")
-        sys.exit(1)
 
     if not videos:
         cprint(f"No videos found in '{input_dir}'", fg.yellow)
         sys.exit(1)
 
-    template = "{file:<25}: ({before_color}{size_before:<10} | {bitrate_before:<10}{reset1}) -> ({after_color}{size_after:<10} | {bitrate_after}{reset2})"
-    with ProgressBar(len(videos)) as progress:
+    template = "\n{file:<25} {before_color}{bitrate_before}{reset} -> {after_color}{bitrate_after:<20}{reset}({diff_color}{diff}{reset})"
+    with ProgressBar(len(videos)) as pb:
         for video in videos:
             try:
-                result = video.compress()
+                compressed = video.compress()
                 successful_conversions.append(video)
-                compressed_videos.append(result)
+                compressed_videos.append(compressed)
+                size_diff = compressed.size - video.size
+                if size_diff > 0:
+                    size_diff = f"+{size_diff}"
                 print(
                     template.format(
                         file=video.name,
                         before_color=fg.red,
                         after_color=fg.green,
-                        reset1=style.reset,
-                        reset2=style.reset,
-                        size_before=video.size_human,
+                        diff_color=fg.orange,
+                        reset=style.reset,
                         bitrate_before=video.bitrate_human,
-                        size_after=result.size_human,
-                        bitrate_after=result.bitrate_human,
+                        bitrate_after=compressed.bitrate_human,
+                        diff=size_diff,
                     )
                 )
+            except KeyboardInterrupt:
+                cprint.error("Conversion interrupted by user.")
+                break
             except Exception as e:
                 cprint.error(f"Failed to compress {video.name}: {e:!r}")
                 failed_conversions.append(video)
-        progress.increment()
-    size_before = sum(pool.execute(lambda x: x.size, videos, progress_bar=True))
-    size_after = sum(pool.execute(lambda x: x.size, compressed_videos, progress_bar=True))
+            pb.increment()
+    size_before = sum(pool.execute(lambda x: x.size, successful_conversions, progress_bar=False))
+    size_after = sum(pool.execute(lambda x: x.size, compressed_videos, progress_bar=False))
     # Notify user of completion
     cprint.success("\nBatch conversion completed.", fg.green)
     return successful_conversions, failed_conversions, size_before, size_after
@@ -91,13 +89,11 @@ def parse_arguments() -> argparse.Namespace:
         "INPUT",
         help="Input directory",
     )
-    parser.add_argument("OUTPUT", help="Output directory")
     parser.add_argument(
         "-n",
         "--num",
         help="Number of of files to compress in one sitting",
-        type=int,
-        default=-1,
+        default=None,
     )
     parser.add_argument(
         "--keep",
@@ -144,26 +140,21 @@ if __name__ == "__main__":
     # print(*vars(args).values())
     # exit()
 
-    main(args.INPUT, args.OUTPUT, args.num, args.keep, ".mkv")
-    try:
-        success, failed, size_before, size_after = main(
-            args.INPUT, args.OUTPUT, args.num, args.keep
-        )
-        if not success and failed:
-            cprint.error("Failed to compress the following files:\n" + "\n".join(failed))
-            sys.exit("\n".join(failed))
-        elif not success and not failed:
-            cprint("Nothing to convert. Exiting...", fg.yellow)
-            sys.exit(0)
-    except KeyboardInterrupt:
-        cprint("KeyboardInterrupt", fg.red)
-        sys.exit(127)
+    success, failed, size_before, size_after = main(args.INPUT, args.num, args.extension)
+    if not success and failed:
+        cprint.error("Failed to compress the following files:\n" + "\n".join(failed))
+        sys.exit("\n".join(failed))
+    elif not success and not failed:
+        cprint("Nothing to convert. Exiting...", fg.yellow)
+        sys.exit(0)
 
     space_saved = Size(size_before - size_after)
 
     cprint(f"\nSpace saved: {space_saved}", fg.green, style.bold)
+
     if not args.keep:
         # remove old uncompressed files
+        print("Removing old uncompressed files...")
         for file in success:
             try:
                 os.remove(file.path)
