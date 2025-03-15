@@ -2,25 +2,34 @@ from typing import Any
 from collections.abc import Callable
 import datetime
 from ExecutionTimer import ExecutionTimer
+import time
+from functools import wraps
 
 
-def exectimer(func: Callable[..., Any], /) -> Callable[..., Any]:
-    """Measure execution time of a function."""
+def exectimer[**P, R](func: Callable[P, R]) -> Callable[P, R]:
+    """Decorator wrapper which measures the execution time of `func`.
 
-    def wrapper(*args, **kwargs) -> Any:
+    Args:
+        func (Callable): The function whose execution time will be measured.
+
+    Returns:
+        Callable: A wrapper function that measures and prints the execution
+                  time of the original function.
+    """  # noqa: D401
+
+    @wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         with ExecutionTimer(print_on_exit=False) as timer:
             result = func(*args, **kwargs)
-        msg = f"{func.__name__} took {timer.execution_time:.4f} seconds to execute."
+        msg = f"\n{func.__name__} took {timer.execution_time:.4f} seconds to execute."
         print(msg)
         return result
 
     return wrapper
 
-import time
 
-def clstimer(cls):
-    """
-    Class decorator to measure the execution time of all methods in the class.
+def clstimer(cls: type) -> type:
+    """Class decorator to measure the execution time of all methods in the class.
 
     The execution time is printed for each method.
     Note that this decorator will not work if used with abstract base classes (ABC).
@@ -44,9 +53,9 @@ def clstimer(cls):
 
     return cls
 
+
 def _timer_wrapper(func):
-    """
-    Timer wrapper that measures the execution time of a function.
+    """Timer wrapper that measures the execution time of a function.
 
     Args:
         func (callable): The function to be timed.
