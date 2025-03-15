@@ -237,7 +237,7 @@ def main(root: str, destination: str, spec: str, refresh_db=False, keep=False) -
     )
 
     if not keep:
-        cleanup(path)
+        cleanup(path.path)
 
         try:
             Path(root).rmdir()

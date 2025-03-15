@@ -49,26 +49,22 @@ class Pool:
             # Convert generators to lists as calling `len` on a generator depletes it
             data_source = list(data_source)
 
-        with (
-            ThreadPoolExecutor(max_workers=self.num_threads) as executor,
-            ProgressBar(len(data_source)) as pb,
-        ):
+        pb = ProgressBar(len(data_source)) if progress_bar else None  # type: ignore
+
+        with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
             futures = [executor.submit(function, item, *args, **kwargs) for item in data_source]
             for future in as_completed(futures):
                 try:
                     result = future.result()
                     yield result
-                except StopIteration:
-                    break
-                except KeyboardInterrupt:
+                except (StopIteration, KeyboardInterrupt):
                     break
                 except Exception as e:
                     if not self.suppress_exceptions:
                         print(
                             f"\n\033[31mThreadpool Exception: {e!r} {function.__name__} {function.__module__}\033[0m"
                         )
-                if progress_bar:
+                if pb:
                     pb.increment()
 
         yield from ()
-        print()
