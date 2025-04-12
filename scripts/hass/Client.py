@@ -116,6 +116,12 @@ class Client(metaclass=MetaClient):
     _domains: dict[dict[str, str], str]
 
     def __init__(self, host=HASS_HOST, token=TOKEN) -> None:
+        """Initialize a new Client instance.
+
+        Args:
+            host (str, optional): The hostname or IP address of the Home Assistant instance.
+            token (str, optional): The access token for authentication. Defaults to TOKEN.
+        """
         self.url = f"http://{host}:8123/api"
         self.base_url = f"http://{host}:8123/api/services"
         self.headers = {"Authorization": f"Bearer {token}", "content-type": "application/json"}
