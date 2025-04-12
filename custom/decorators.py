@@ -21,7 +21,7 @@ def exectimer[**P, R](func: Callable[P, R]) -> Callable[P, R]:
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         with ExecutionTimer(print_on_exit=False) as timer:
             result = func(*args, **kwargs)
-        msg = f"\n{func.__name__} took {timer.execution_time:.4f} seconds to execute."
+        msg = f"\n{func.__name__} took {timer.execution_time:.6f} seconds to execute."
         print(msg)
         return result
 
