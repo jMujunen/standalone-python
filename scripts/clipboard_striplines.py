@@ -3,7 +3,7 @@
 
 import argparse
 import re
-from sys import exit
+import sys
 import clipboard
 
 # TODO - add more presets for common patterns
@@ -11,7 +11,7 @@ PRESETS = {
     # Concatenate a multiline string into a single line separated a space
     "whitespace": lambda x: re.sub(r"(\n|\t|\s+)", " ", x, flags=re.MULTILINE).strip(),
     # Remove REPL prompt chars "...:"
-    "ipy": lambda x: re.sub(r"(\.{3}:\s?|(In|Out) \[\d+\]:\s)", "", x, flags=re.MULTILINE),
+    "ipy": lambda x: re.sub(r"(\.{3}:\s?|(In |Out)\[\d+\]:\s)", "", x, flags=re.MULTILINE),
     None: lambda x: x,
 }
 
@@ -98,4 +98,4 @@ if __name__ == "__main__":
     result = main(args.PATTERN, args.replace, args.preset)
     clipboard.copy(result)
     print(result)
-    exit()
+    sys.exit()
