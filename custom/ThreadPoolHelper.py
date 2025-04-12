@@ -1,4 +1,5 @@
-from collections.abc import Callable, Generator, Iterable
+from collections.abc import Generator, Iterable
+from collections.abc import Callable
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -17,14 +18,14 @@ class Pool:
         self.num_threads = num_threads
         self.suppress_exceptions = suppress_exceptions
 
-    def execute(
+    def execute[**P, R](
         self,
-        function: Callable,
+        function: Callable[P, R],
         data_source: Iterable[Any],
         progress_bar=True,
         *args,
         **kwargs,
-    ) -> Generator[Any, None, None]:
+    ) -> Generator[R, None, None]:
         """Execute a callable function concurrently for each item in the data source.
 
         ### Parameters:
@@ -51,20 +52,33 @@ class Pool:
 
         pb = ProgressBar(len(data_source)) if progress_bar else None  # type: ignore
 
+        exceptions = []
+        template = "\033[31m{}: \033[0m{name}({item}, {args}, {kwargs})"
         with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
-            futures = [executor.submit(function, item, *args, **kwargs) for item in data_source]
+            futures = {
+                executor.submit(function, item, *args, **kwargs): item for item in data_source
+            }
             for future in as_completed(futures):
+                item = futures[future]
                 try:
-                    result = future.result()
-                    yield result
+                    yield future.result()
                 except (StopIteration, KeyboardInterrupt):
                     break
                 except Exception as e:
+                    details = {
+                        "name": function.__name__,
+                        "args": args,
+                        "kwargs": kwargs,
+                        "item": item,
+                    }
+                    e.__setattr__("details", details)
                     if not self.suppress_exceptions:
-                        print(
-                            f"\n\033[31mThreadpool Exception: {e!r} {function.__name__} {function.__module__}\033[0m"
-                        )
+                        print(f"\n{e!r}", template.format(e.__class__.__name__, **details))
+
+                    exceptions.append(e)
+
                 if pb:
                     pb.increment()
-
+        # if exceptions:
+        # raise ExceptionGroup("ThreadPoolHelper", exceptions)
         yield from ()
