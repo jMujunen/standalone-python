@@ -67,6 +67,10 @@ def get_prefix(item: File, target: str, sort_spec: str) -> Path | None:
         - item (File): The file object.
         - target (str): The target directory path.
         - sort_spec (str): The sorting specification, e.g., 'year', 'month', 'day'
+
+    Returns
+    -------
+        - Path | None: The destination path for the file or None if it should be ignored.
     """
     if item.suffix.lower() in FILE_TYPES["trash"]:
         Path(item.path).unlink()
@@ -101,6 +105,16 @@ def get_prefix(item: File, target: str, sort_spec: str) -> Path | None:
 
 
 def gen_stat(lst: list) -> Generator[zip]:
+    """Generate statistics for pairs of items in the given list using the provided object function.
+
+    Parameters
+    ----------
+        - `lst (list)`: A list of items to generate statistics for.
+
+    Returns
+    --------
+        - `Generator[zip]`: A generator yielding tuples of statistics for each pair of items in the list.
+    """
     for item in itertools.combinations(lst, 2):
         pair = obj(item[0]), obj(item[1])
         yield zip(*(p.times() for p in pair), strict=False)
@@ -114,6 +128,10 @@ def determine_originals(file_paths: list[str], num_keep: int) -> set[str]:
     -----------
         - `file_paths (list[str])`: A list of file paths.
         - `num_keep (int)`: The number of duplicates to keep
+
+    Returns
+    --------
+        - `set[str]`: A set of file paths that should be removed.
     """
     oldest_to_newest = sorted(file_paths, key=lambda x: Path(x).stat().st_mtime, reverse=False)
     keep = []
@@ -141,6 +159,10 @@ def process_item(
         - target_root (Dir): The root directory where all files will be moved.
         - index(int): The current index of the item in the list of items.
         - sort_spec(str): The sorting specification, either "day", "month" or "year".
+
+    Returns
+    ----------
+        - Path: The path of the destination folder where the item was moved. None if no destination folder was found.
     """
     dest_folder = get_prefix(item=item, target=target_root.path, sort_spec=sort_spec)
     if dest_folder is None:
@@ -183,10 +205,11 @@ def process_item(
                 shutil.copy2(item.path, dest_path)
             else:
                 shutil.move(item.path, dest_path, copy_function=shutil.copy2)
+            return dest_path
         except PermissionError as e:
             msg = f"{e!r}"
             cprint.error(msg)
-
+            return None
         except Exception as e:
             msg = f"Unidentified Error: {e!r}: {item.path} {dest_path}"
             cprint.error(msg)
@@ -194,7 +217,17 @@ def process_item(
 
 
 def filter_files(root: Dir, filter_spec: str) -> list[File]:
-    """Filter files based on a given specification."""
+    """Filter files based on a given specification.
+
+    Parameters
+    ----------
+        - `root (Dir)`: The root directory to search for files.
+        - `filter_spec (str)`: The type of file to filter by.
+
+    Returns
+    -------
+        - `list[File]`: A list of files that match the filter specification.
+    """
     filter_spec = filter_spec.capitalize()
     module = sys.modules[__name__]
     FileClass = getattr(module, filter_spec)
@@ -215,7 +248,8 @@ def main(root: str, destination: str, spec: str, refresh_db=False, keep=False) -
     path = Dir(root)
     dest = Dir(destination)
     root_object = Dir(root)
-    index = dest.serialize(replace=True)
+    index = dest.serialize(replace=refresh_db)
+
     # If root and destination are the same, do not recurse into subdirectories
     file_objs = (
         [obj(file) for file in path.content]
@@ -224,17 +258,19 @@ def main(root: str, destination: str, spec: str, refresh_db=False, keep=False) -
     )
     sort_spec = sort_spec_formatter(spec)
     pool = Pool()
-    list(
-        pool.execute(
-            process_item,
-            file_objs,
-            progress_bar=True,
-            index=index,
-            target_root=dest,
-            sort_spec=sort_spec,
-            keep=keep,
-        )
-    )
+    num_moved = 0
+
+    for result in pool.execute(
+        process_item,
+        file_objs,
+        progress_bar=True,
+        index=index,
+        target_root=dest,
+        sort_spec=sort_spec,
+        keep=keep,
+    ):
+        if result:
+            num_moved += 1
 
     if not keep:
         cleanup(path.path)
@@ -243,6 +279,8 @@ def main(root: str, destination: str, spec: str, refresh_db=False, keep=False) -
             Path(root).rmdir()
         except OSError as e:
             cprint.error(f"OSError while removing dir: {e.strerror}: {e.filename}")
+
+    print(f"Moved {num_moved} files out of {len(file_objs)} files.")
 
 
 def parse_args() -> argparse.Namespace:
@@ -270,8 +308,8 @@ def parse_args() -> argparse.Namespace:
         choices=["img", "video", "file"],
     )
     parser.add_argument(
-        "--use-index",
-        help="Instead of indexing the target directory from scratch, use the existing directory .pkl file as the index",
+        "--refresh",
+        help="Refresh the index even if it exists",
         action="store_true",
         default=False,
         required=False,
@@ -299,9 +337,8 @@ if __name__ == "__main__":
     dest = args.dest
     root = args.ROOT
     spec = args.spec
-    refresh_db = not args.use_index
-
+    refresh = args.refresh
     # Ensure destination directory exists before running the script
     if not Path(args.dest).exists():
         Path(dest).mkdir(parents=True, exist_ok=True)
-    main(root, dest, spec, refresh_db, args.keep)
+    main(root, dest, spec, refresh, args.keep)
