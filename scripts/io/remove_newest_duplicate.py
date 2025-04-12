@@ -2,7 +2,7 @@
 
 import datetime
 from collections.abc import Generator
-import itertools
+from itertools import combinations
 from typing import Any
 import os
 from sys import exit
@@ -11,18 +11,12 @@ import argparse
 from Color import cprint, fg
 from fsutils.dir import Dir, obj
 from ThreadPoolHelper import Pool
+from decorators import exectimer
 
 
-def gen_stat(lst) -> Generator:
-    """Given a list of file paths, return a generator tuples of the stat results for each pair
-    for each pair of files in the list.
-    """
-    for i in itertools.combinations(lst, 2):
-        pair = obj(i[0]), obj(i[1])
-        yield zip(*(p.times() for p in pair), strict=False)
-
-
-def determine_originals(file_paths: list[str], num_keep=2) -> tuple[set[str], ...]:
+def process_files(
+    file_paths: list[str], num_keep: int = 2, dry_run: bool = False
+) -> tuple[int, int]:
     """Given a list of file paths and the number of duplicates to keep,
     return a list of file paths that should be kept.
 
@@ -31,19 +25,22 @@ def determine_originals(file_paths: list[str], num_keep=2) -> tuple[set[str], ..
         - `file_paths (list[str])`: A list of file paths.
         - `num_keep (int)`: The number of duplicates to keep
     """
-    oldest_to_newest = sorted(file_paths, key=os.path.getmtime, reverse=False)
-    keep = set()
-    remove = set()
+
+    def sort_key(filepath: str) -> tuple[float, float, float]:
+        st = os.stat(filepath)
+        return (st.st_ctime, st.st_mtime, st.st_atime)
+
+    oldest_to_newest = sorted(file_paths, key=sort_key, reverse=False)
+    size = 0
+    count = 0
     for i, path in enumerate(oldest_to_newest):
         if i < num_keep:
-            keep.add(path)
-        else:
-            for st_result in gen_stat(oldest_to_newest):
-                for st in st_result:
-                    if st[0] != st[1] and st[0] < st[1]:
-                        break
-                remove.add(path)
-    return remove, keep
+            # keep.add(path)
+            continue
+        # remove.append(path)
+        size += os.path.getsize(path)
+        count += 1
+    return size, count
 
 
 def remove_file(file_path, dry_run=False, debug=False) -> int:
@@ -56,30 +53,30 @@ def remove_file(file_path, dry_run=False, debug=False) -> int:
     return size
 
 
-def main(db: dict[str, list[str]], num_keep: int, dry_run=False, debug=False) -> int:
+def main(db: dict[str, set[str]], num_keep: int, dry_run=False, debug=False) -> int:
     """Remove newest files for duplicates found in <PATH>."""
     pool = Pool()
     size_of_removed = 0
     num_removed = 0
     print("\nCalculating...")
     for duplicate_items in pool.execute(
-        determine_originals, db.values(), progress_bar=True, num_keep=num_keep
+        process_files, db.values(), progress_bar=True, num_keep=num_keep, dry_run=dry_run
     ):
-        remove, _ = duplicate_items
-        if debug and remove:
-            cprint("Remove:", fg.red)
-            for item in remove:
-                cprint(f"{item:<120}{datetime.datetime.fromtimestamp(os.path.getmtime(item))}")
+        size, count = duplicate_items
+        size_of_removed += size
+        num_removed += count
+        # if debug and remove:
+        #     cprint("Remove:", fg.red)
+        #     for item in remove:
+        #         cprint(f"{item:<120}{datetime.datetime.fromtimestamp(os.path.getmtime(item))}")
 
-            cprint("Keep:", fg.green)
-            for item in _:
-                cprint(f"{item:<120}{datetime.datetime.fromtimestamp(os.path.getmtime(item))}")
-            print("-" * 80)
-        elif remove:
-            size_of_removed += sum(
-                pool.execute(remove_file, remove, dry_run=dry_run, debug=debug, progress_bar=False)
-            )
-            num_removed += len(remove)
+        #     cprint("Keep:", fg.green)
+        #     for item in _:
+        #         cprint(f"{item:<120}{datetime.datetime.fromtimestamp(os.path.getmtime(item))}")
+        #     print("-" * 80)
+        # elif remove:
+        #     size_of_removed = sum()
+        #     num_removed += len(remove)
 
     print(f"\nSpace saved: {Size(size_of_removed)!s} by removing {num_removed} files")
     return 0
@@ -100,6 +97,9 @@ def parse_args() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
+    # path = Dir("/mnt/hddred/rsync/Arch/joona/python")
+    # db = path.db
+    # exit(main(db=db, num_keep=2, dry_run=True, debug=False))
     args = parse_args()
     dir_object = Dir(args.path)
     if not dir_object.exists():
