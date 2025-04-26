@@ -15,17 +15,15 @@ from ThreadPoolHelper import Pool
 
 IGNORED_DIRS = [".Trash-1000"]
 
-MAX_DUPLICATE_FILES = 2
 
-
-def process_file(file: File) -> tuple[int, str] | None:
+def process_file(file: File) -> tuple[str, str] | None:
     """Concurrent processing. This is called from the ThreadPool instance."""
     if any(ignored in file.path for ignored in IGNORED_DIRS) or not file.exists:
         return None
-    return (hash(file), file.path)
+    return (file.sha256(), file.path)
 
 
-def determine_originals(file_paths: list[str], num_keep: int) -> list[str]:
+def determine_originals(file_paths: list[str], num_keep: int):  # -> list[str]:
     """Given a list of file paths and the number of duplicates to keep,
     return a list of file paths that should be kept.
 
@@ -42,26 +40,24 @@ def determine_originals(file_paths: list[str], num_keep: int) -> list[str]:
             keep.append(path)
         else:
             remove.append(path)
-    return remove
+    return remove, keep
 
 
-def remove_group(
-    file_paths: list[str], num_keep: int = MAX_DUPLICATE_FILES, dry_run: bool = False
-) -> Generator:
+def remove_group(file_paths: list[str], num_keep: int = 2, dry_run: bool = True) -> Generator:
     """Remove the oldest duplicates in each group."""
-    for file in determine_originals(file_paths, num_keep=num_keep):
+    for rfile, kfile in determine_originals(file_paths, num_keep=num_keep):
         if not dry_run:
-            os.remove(file)
-        yield file
+            os.remove(rfile)
+        yield rfile
 
 
-def main(root: str, dry_run=False, refresh=False, verbose=False) -> None:
+def main(root: str, dry_run=True, refresh=False, verbose=False) -> None:
     count = 0
     with ExecutionTimer():
         root_dir = Dir(root)
         # Create a dict mapping of hashed values to their associated files
-        duplicate_groups = root_dir.duplicates(refresh=refresh)
-        num_duplicates = sum(len(group) for group in duplicate_groups) - len(duplicate_groups)
+        duplicate_groups = root_dir.duplicates(updatedb=refresh)
+        num_duplicates = sum(len(group) for group in duplicate_groups)
         cprint.info(f"\n{len(duplicate_groups)} sets,  {num_duplicates} duplicate files:")
         # Use a threadpool to remove duplicates if no_confirm  is set (for speed)
         pool = Pool()
