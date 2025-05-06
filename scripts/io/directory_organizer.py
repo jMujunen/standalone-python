@@ -234,7 +234,7 @@ def filter_files(root: Dir, filter_spec: str) -> list[File]:
     return [item for item in root if isinstance(item, FileClass)]
 
 
-def main(root: str, destination: str, spec: str, refresh_db=False, keep=False) -> None:
+def main(root: str, destination: str, spec: str, refresh_db: bool, keep: bool) -> None:
     """Sort files based on media type and date.
 
     Paramaters:
@@ -248,7 +248,8 @@ def main(root: str, destination: str, spec: str, refresh_db=False, keep=False) -
     path = Dir(root)
     dest = Dir(destination)
     root_object = Dir(root)
-    index = dest.serialize(replace=refresh_db)
+
+    dest_index = dest.serialize(replace=refresh_db)
 
     # If root and destination are the same, do not recurse into subdirectories
     file_objs = (
@@ -256,6 +257,7 @@ def main(root: str, destination: str, spec: str, refresh_db=False, keep=False) -
         if root_object == dest
         else [obj(file) for file in path.ls_files()]
     )
+
     sort_spec = sort_spec_formatter(spec)
     pool = Pool()
     num_moved = 0
@@ -264,7 +266,7 @@ def main(root: str, destination: str, spec: str, refresh_db=False, keep=False) -
         process_item,
         file_objs,
         progress_bar=True,
-        index=index,
+        index=dest_index,
         target_root=dest,
         sort_spec=sort_spec,
         keep=keep,
@@ -341,4 +343,12 @@ if __name__ == "__main__":
     # Ensure destination directory exists before running the script
     if not Path(args.dest).exists():
         Path(dest).mkdir(parents=True, exist_ok=True)
+    print(f"Keep : {args.keep}, Update Index: {args.refresh}")
     main(root, dest, spec, refresh, args.keep)
+    # main(
+    #     "/mnt/ssd/staging/GALAXY_TABLET",
+    #     "/mnt/hdd/Media/ELLA",
+    #     "month",
+    #     refresh_db=False,
+    #     keep=True,
+    # )
