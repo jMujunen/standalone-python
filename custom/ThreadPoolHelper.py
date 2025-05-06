@@ -3,7 +3,7 @@ from collections.abc import Callable
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from ProgressBar import ProgressBar
+from tqdm import tqdm
 
 
 class Pool:
@@ -13,7 +13,7 @@ class Pool:
         - `num_threads (int)`: The number of threads to use in the thread pool.
     """
 
-    def __init__(self, num_threads=20, suppress_exceptions=False):
+    def __init__(self, num_threads: int = 20, suppress_exceptions: bool = False):
         """Initialize the thread pool with a specified number of threads."""
         self.num_threads = num_threads
         self.suppress_exceptions = suppress_exceptions
@@ -22,7 +22,7 @@ class Pool:
         self,
         function: Callable[P, R],
         data_source: Iterable[Any],
-        progress_bar=True,
+        progress_bar: bool = True,
         *args,
         **kwargs,
     ) -> Generator[R, None, None]:
@@ -50,11 +50,13 @@ class Pool:
             # Convert generators to lists as calling `len` on a generator depletes it
             data_source = list(data_source)
 
-        pb = ProgressBar(len(data_source)) if progress_bar else None  # type: ignore
-
         exceptions = []
         template = "\033[31m{}: \033[0m{name}({item}, {args}, {kwargs})"
-        with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
+
+        with (
+            ThreadPoolExecutor(max_workers=self.num_threads) as executor,
+            tqdm(total=len(data_source)) as bar,
+        ):
             futures = {
                 executor.submit(function, item, *args, **kwargs): item for item in data_source
             }
@@ -77,8 +79,6 @@ class Pool:
 
                     exceptions.append(e)
 
-                if pb:
-                    pb.increment()
-        # if exceptions:
-        # raise ExceptionGroup("ThreadPoolHelper", exceptions)
+                if progress_bar:
+                    bar.update()
         yield from ()
