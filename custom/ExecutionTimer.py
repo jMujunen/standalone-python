@@ -19,8 +19,11 @@ class ExecutionTimer:
     end_time: float = 0.0
     execution_time: float = 0.0
 
-    def __init__(self, print_on_exit=True) -> None:
+    def __init__(self, title: str | None = None, /, print_on_exit=True) -> None:
         """Initialize the instance."""
+        self.title = title
+        if title is not None:
+            print(f"\n\033[94m{title}\033[0m")
         self.print_on_exit = print_on_exit
 
     def __enter__(self):
