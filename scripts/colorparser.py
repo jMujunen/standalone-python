@@ -106,7 +106,7 @@ def main(color: str) -> None:
         # RGB format
         rgb_values = re.findall(r"\d+", color_input)
         ascii_code = rgb_to_ascii(*rgb_values)
-    elif re.match(r"^#(?:[0-9a-fA-F]{3}){1,2}$", color_input):
+    elif re.match(r"^#?(?:[0-9a-fA-F]{3}){1,2}$", color_input):
         # Hex format
         ascii_code = hex_to_ascii(color_input)
     else:
