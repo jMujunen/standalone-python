@@ -38,7 +38,7 @@ def process_files(
             # keep.add(path)
             continue
         # remove.append(path)
-        size += os.path.getsize(path)
+        size += remove_file(path, dry_run=dry_run)
         count += 1
     return size, count
 
