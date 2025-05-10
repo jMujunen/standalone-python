@@ -5,6 +5,7 @@ Additionally, creates an organized tree for any images or videos which get
 sorted by capture date and moved to its respective folder"""
 
 import argparse
+import contextlib
 import itertools
 import os
 import re
@@ -12,17 +13,20 @@ import shutil
 import sys
 from collections.abc import Generator
 from pathlib import Path
+from re import Pattern
 from typing import Any
-import contextlib
+
 from Color import cprint, fg
-from fsutils.dir import Dir, obj
-from fsutils.file import File
+from fsutils.dir import Dir, File
+from fsutils.file import Base
 from fsutils.utils.mimecfg import FILE_TYPES, IGNORED_DIRS
 from ThreadPoolHelper import Pool
 
 MAX_DUPLICATES = 2
 
-DATE_REGEX = re.compile(r"\d{1,4}-(\d{4}).?(\d{2}).?(\d{2}).(\d{2}).?(\d{2}).?(\d{2})")
+DATE_REGEX: Pattern[str] = re.compile(
+    r"\d{1,4}-(\d{4}).?(\d{2}).?(\d{2}).(\d{2}).?(\d{2}).?(\d{2})"
+)
 
 
 def cleanup(top: str) -> None:
@@ -44,12 +48,12 @@ def sort_spec_formatter(spec: str) -> str:
             raise ValueError(f"Invalid sort spec: {spec}")
 
 
-def categorize_other(y: File, x: str | Path) -> Path:
+def categorize_other(y: Base, x: str | Path) -> Path:
     """Move files that are not categorized to the other directory based of mimetype.
 
     Paramaters:
     -----------
-        - item (File): The file object.
+        - item (Base): The file object.
         - target_root (Dir): The target root directory
     """
     prefix = Path(x, "Other")
@@ -59,12 +63,12 @@ def categorize_other(y: File, x: str | Path) -> Path:
     return prefix
 
 
-def get_prefix(item: File, target: str, sort_spec: str) -> Path | None:
-    """Categorize a file into the appropriate destination folder based on its type and creation date.
+def get_prefix(item: Base, target: str, sort_spec: str) -> Path | None:
+    """Categorize a Base into the appropriate destination folder based on its type and creation date.
 
     Parameters
     ----------
-        - item (File): The file object.
+        - item (Base): The file object.
         - target (str): The target directory path.
         - sort_spec (str): The sorting specification, e.g., 'year', 'month', 'day'
 
@@ -116,7 +120,7 @@ def gen_stat(lst: list) -> Generator[zip]:
         - `Generator[zip]`: A generator yielding tuples of statistics for each pair of items in the list.
     """
     for item in itertools.combinations(lst, 2):
-        pair = obj(item[0]), obj(item[1])
+        pair = File(item[0]), File(item[1])
         yield zip(*(p.times() for p in pair), strict=False)
 
 
@@ -133,7 +137,9 @@ def determine_originals(file_paths: list[str], num_keep: int) -> set[str]:
     --------
         - `set[str]`: A set of file paths that should be removed.
     """
-    oldest_to_newest = sorted(file_paths, key=lambda x: Path(x).stat().st_mtime, reverse=False)
+    oldest_to_newest = sorted(
+        file_paths, key=lambda x: Path(x).stat().st_mtime, reverse=False
+    )
     keep = []
     remove = []
     for i, path in enumerate(oldest_to_newest):
@@ -149,13 +155,17 @@ def determine_originals(file_paths: list[str], num_keep: int) -> set[str]:
 
 
 def process_item(
-    item: File, target_root: Dir, index: dict[str, list[str]], sort_spec: str, keep=False
+    item: Base,
+    target_root: Dir,
+    index: dict[str, list[str]],
+    sort_spec: str,
+    keep=False,
 ) -> Path | None:
     """Process a single item (file or directory) and move it to the appropriate destination folder.
 
     Paramaters:
     -------------
-        - item (File): The media file to be sorted.
+        - item (Base): The media file to be sorted.
         - target_root (Dir): The root directory where all files will be moved.
         - index(int): The current index of the item in the list of items.
         - sort_spec(str): The sorting specification, either "day", "month" or "year".
@@ -176,7 +186,7 @@ def process_item(
     existing_files = index.get(item.sha256(), [])
     while dest_path.exists():
         with contextlib.suppress(FileNotFoundError, FileExistsError):
-            # cprint.warn(f"File {item.name} already exists in destination directory.")
+            # cprint.warn(f"Base {item.name} already exists in destination directory.")
             if len(existing_files) < MAX_DUPLICATES:
                 # Rename the file while under MAX_DUPLICATES
                 count += 1
@@ -187,7 +197,10 @@ def process_item(
                 existing_files.append(item.path)
                 overflow = sorted(existing_files, key=lambda x: Path(x).stat().st_mtime)
                 # if dry_run:
-                cprint(f"[REMOVE] - {'\n'.join(overflow[MAX_DUPLICATES:])}", fg.deeppink)
+                cprint(
+                    f"[REMOVE] - {'\n'.join(overflow[MAX_DUPLICATES:])}",
+                    fg.deeppink,
+                )
                 cprint(f"[KEEP] - {'\n'.join(overflow[:MAX_DUPLICATES])}", fg.cyan)
                 # return None
                 for file in overflow[MAX_DUPLICATES:]:
@@ -216,24 +229,6 @@ def process_item(
             return dest_path
 
 
-def filter_files(root: Dir, filter_spec: str) -> list[File]:
-    """Filter files based on a given specification.
-
-    Parameters
-    ----------
-        - `root (Dir)`: The root directory to search for files.
-        - `filter_spec (str)`: The type of file to filter by.
-
-    Returns
-    -------
-        - `list[File]`: A list of files that match the filter specification.
-    """
-    filter_spec = filter_spec.capitalize()
-    module = sys.modules[__name__]
-    FileClass = getattr(module, filter_spec)
-    return [item for item in root if isinstance(item, FileClass)]
-
-
 def main(root: str, destination: str, spec: str, refresh_db: bool, keep: bool) -> None:
     """Sort files based on media type and date.
 
@@ -253,9 +248,9 @@ def main(root: str, destination: str, spec: str, refresh_db: bool, keep: bool) -
 
     # If root and destination are the same, do not recurse into subdirectories
     file_objs = (
-        [obj(file) for file in path.content]
+        [File(file) for file in path.content]
         if root_object == dest
-        else [obj(file) for file in path.ls_files()]
+        else path.fileobjects()
     )
 
     sort_spec = sort_spec_formatter(spec)
@@ -290,7 +285,9 @@ def parse_args() -> argparse.Namespace:
         description="Take a directory tree and sort the contents by media type and date",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("ROOT", help="The top level directory to start sorting from", type=str)
+    parser.add_argument(
+        "ROOT", help="The top level directory to start sorting from", type=str
+    )
     parser.add_argument(
         "--dest",
         help="Destination folder for sorted files",

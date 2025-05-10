@@ -24,9 +24,11 @@ def get_xkcd_comic() -> str:
     if img_tag:
         for tag in img_tag:
             if PATTERN.match(tag["src"]):
-                return f'https:{tag["src"]}'
+                return f"https:{tag['src']}"
 
-    raise Exception("No img tag found for the following cfg. `<img src=.*imgs.xkcd.com/comics/.*>`")
+    raise Exception(
+        "No img tag found for the following cfg. `<img src=.*imgs.xkcd.com/comics/.*>`"
+    )
 
 
 def save(data: bytes) -> str:

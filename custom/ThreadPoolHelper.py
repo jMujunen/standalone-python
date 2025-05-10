@@ -25,7 +25,7 @@ class Pool:
         progress_bar: bool = True,
         *args,
         **kwargs,
-    ) -> Generator[R, None, None]:
+    ) -> Generator[R]:
         """Execute a callable function concurrently for each item in the data source.
 
         ### Parameters:
@@ -55,7 +55,7 @@ class Pool:
 
         with (
             ThreadPoolExecutor(max_workers=self.num_threads) as executor,
-            tqdm(total=len(data_source)) as bar,
+            tqdm(total=len(data_source), disable=not progress_bar) as bar,
         ):
             futures = {
                 executor.submit(function, item, *args, **kwargs): item for item in data_source

@@ -34,5 +34,8 @@ def parse_args() -> argparse.Namespace:
 if __name__ == "__main__":
     args = parse_args()
     momentis.momentis.main(
-        input_path=INPUT_PATH, keywords=KEYWORDS, debug=args.debug, output_path=OUTPUT_PATH
+        input_path=INPUT_PATH,
+        keywords=KEYWORDS,
+        debug=args.debug,
+        output_path=OUTPUT_PATH,
     )

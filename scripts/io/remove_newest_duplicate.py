@@ -60,7 +60,11 @@ def main(db: dict[str, set[str]], num_keep: int, dry_run=False, debug=False) -> 
     num_removed = 0
     print("\nCalculating...")
     for duplicate_items in pool.execute(
-        process_files, db.values(), progress_bar=True, num_keep=num_keep, dry_run=dry_run
+        process_files,
+        db.values(),
+        progress_bar=True,
+        num_keep=num_keep,
+        dry_run=dry_run,
     ):
         size, count = duplicate_items
         size_of_removed += size
@@ -89,9 +93,13 @@ def parse_args() -> argparse.Namespace:
         description="Remove newest files for duplicates found in <PATH>"
     )
     parser.add_argument("path", help="Path to start search from")
-    parser.add_argument("-n", "--num", default=1, type=int, help="Number of duplicates to keep")
+    parser.add_argument(
+        "-n", "--num", default=1, type=int, help="Number of duplicates to keep"
+    )
     parser.add_argument("--dry-run", action="store_true", required=False, default=False)
-    parser.add_argument("--refresh-db", action="store_true", required=False, default=False)
+    parser.add_argument(
+        "--refresh-db", action="store_true", required=False, default=False
+    )
     parser.add_argument("--debug", action="store_true", required=False, default=False)
     return parser.parse_args()
 

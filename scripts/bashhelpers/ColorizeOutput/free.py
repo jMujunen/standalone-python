@@ -14,7 +14,11 @@ from Styler import Styler
 def parse_data() -> str:
     r"""Parse the output from `free | grep "Mem\|Swap"`."""
     command_output = subprocess.run(
-        'free | grep -oP "(Mem|Swap):.*"', shell=True, capture_output=True, text=True, check=False
+        'free | grep -oP "(Mem|Swap):.*"',
+        shell=True,
+        capture_output=True,
+        text=True,
+        check=False,
     ).stdout.strip()
     mem, swap = command_output.split("\n")
     mem_total, mem_used, mem_free, mem_shared, cached, mem_avail = mem.split()[1:]
@@ -23,7 +27,9 @@ def parse_data() -> str:
     # Mem used is calculation:
     # 100 minus ratio of free to total memory multiplied by 100.
     # 100 - free/total * 100
-    mem_used_percent = f"{(abs(round((float(mem_free) / float(mem_total)) * 100 - 100, 1)))}%"
+    mem_used_percent = (
+        f"{(abs(round((float(mem_free) / float(mem_total)) * 100 - 100, 1)))}%"
+    )
 
     # Same calculation as mem used. If there's no swap (i.e., it's zero) set it as N/A
     try:

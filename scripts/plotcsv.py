@@ -28,7 +28,9 @@ GROUPS = {
 }
 
 
-def main(filepath: str, columns: list[Any], num_rows: int = -1, smooth_factor: int = 1) -> None:
+def main(
+    filepath: str, columns: list[Any], num_rows: int = -1, smooth_factor: int = 1
+) -> None:
     """Load CSV file into a dataframe and plot specified columns.
 
     Parameters
@@ -56,7 +58,7 @@ def main(filepath: str, columns: list[Any], num_rows: int = -1, smooth_factor: i
     # Plot the data even if some of the specified columns are missing from the file
     if missing_columns:
         print(
-            f"\033[33m[WARNING]\033[0m Columns \033[1;4m{", ".join(missing_columns)}\033[0m do not exist in the file."
+            f"\033[33m[WARNING]\033[0m Columns \033[1;4m{', '.join(missing_columns)}\033[0m do not exist in the file."
         )
         columns = [col for col in columns if col in df.columns] or df.columns  # type: ignore
     print(columns)
@@ -122,12 +124,18 @@ def parse_args() -> argparse.Namespace:
         default="/tmp/hwinfo.csv",
     )
     parser.add_argument(
-        "-s", "--smooth", help="Smoothing factor for the moving average", type=int, default=1
+        "-s",
+        "--smooth",
+        help="Smoothing factor for the moving average",
+        type=int,
+        default=1,
     )
     parser.add_argument(
         "-n", "--num", help="Limit the number of rows to plot", type=int, default=-1
     )
-    parser.add_argument("-l", "--list", action="store_true", help="List available columns")
+    parser.add_argument(
+        "-l", "--list", action="store_true", help="List available columns"
+    )
     parser.add_argument(
         "-c",
         "--columns",

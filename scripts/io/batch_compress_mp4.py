@@ -36,7 +36,9 @@ def main(
     """
     pool = Pool()
 
-    videos = [vid for vid in Dir(input_dir).videos()[:num] if vid.suffix.lower() in filters]
+    videos = [
+        vid for vid in Dir(input_dir).videos()[:num] if vid.suffix.lower() in filters
+    ]
     failed_conversions = []
     successful_conversions = []
     compressed_videos = []
@@ -75,8 +77,12 @@ def main(
                 cprint.error(f"Failed to compress {video.name}: {e:!r}")
                 failed_conversions.append(video)
             pb.increment()
-    size_before = sum(pool.execute(lambda x: x.size, successful_conversions, progress_bar=False))
-    size_after = sum(pool.execute(lambda x: x.size, compressed_videos, progress_bar=False))
+    size_before = sum(
+        pool.execute(lambda x: x.size, successful_conversions, progress_bar=False)
+    )
+    size_after = sum(
+        pool.execute(lambda x: x.size, compressed_videos, progress_bar=False)
+    )
     # Notify user of completion
     cprint.success("\nBatch conversion completed.", fg.green)
     return successful_conversions, failed_conversions, size_before, size_after
@@ -84,7 +90,9 @@ def main(
 
 def parse_arguments() -> argparse.Namespace:
     """Parse args."""
-    parser = argparse.ArgumentParser(description="Batch process all .mp4 files in a directory")
+    parser = argparse.ArgumentParser(
+        description="Batch process all .mp4 files in a directory"
+    )
     parser.add_argument(
         "INPUT",
         help="Input directory",
@@ -102,7 +110,9 @@ def parse_arguments() -> argparse.Namespace:
         default=False,
     )
     subparsers = parser.add_subparsers(
-        dest="filter", required=False, help="Specify a filter for the files to compress"
+        dest="filter",
+        required=False,
+        help="Specify a filter for the files to compress",
     )
     # Filter by codec
     codec_subparser = subparsers.add_parser("codec", help="Filter by codec")
