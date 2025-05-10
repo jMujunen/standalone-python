@@ -43,9 +43,11 @@ def determine_originals(file_paths: list[str], num_keep: int):  # -> list[str]:
     return remove, keep
 
 
-def remove_group(file_paths: list[str], num_keep: int = 2, dry_run: bool = True) -> Generator:
+def remove_group(
+    file_paths: list[str], num_keep: int = 2, dry_run: bool = True
+) -> Generator:
     """Remove the oldest duplicates in each group."""
-    for rfile, kfile in determine_originals(file_paths, num_keep=num_keep):
+    for rfile, _kfile in determine_originals(file_paths, num_keep=num_keep):
         if not dry_run:
             os.remove(rfile)
         yield rfile
@@ -84,10 +86,16 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--refresh", help="Re-index path files before comparing", action="store_true", default=False
+        "--refresh",
+        help="Re-index path files before comparing",
+        action="store_true",
+        default=False,
     )
     parser.add_argument(
-        "--verbose", help="Print more information", action="store_true", default=False
+        "--verbose",
+        help="Print more information",
+        action="store_true",
+        default=False,
     )
     return parser.parse_args()
 

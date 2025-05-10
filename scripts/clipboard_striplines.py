@@ -11,7 +11,9 @@ PRESETS = {
     # Concatenate a multiline string into a single line separated a space
     "whitespace": lambda x: re.sub(r"(\n|\t|\s+)", " ", x, flags=re.MULTILINE).strip(),
     # Remove REPL prompt chars "...:"
-    "ipy": lambda x: re.sub(r"(\.{3}:\s?|(In |Out)\[\d+\]:\s)", "", x, flags=re.MULTILINE),
+    "ipy": lambda x: re.sub(
+        r"(\.{3}:\s?|(In |Out)\[\d+\]:\s)", "", x, flags=re.MULTILINE
+    ),
     None: lambda x: x,
 }
 
@@ -80,7 +82,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--rstrip", help="Only strip from the right", action="store_true", default=False
     )
-    parser.add_argument("-l", "--list", help="List presets", action="store_true", default=False)
+    parser.add_argument(
+        "-l", "--list", help="List presets", action="store_true", default=False
+    )
     parser.add_argument(
         "--preset",
         choices=PRESETS,

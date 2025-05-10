@@ -74,7 +74,8 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
     # Rename the file to include time of capture if cli flag is set
     if rename:
         dest_path = os.path.join(
-            dest_folder, f"{modification_time.strftime('%H:%M.%S')}{item.suffix}"
+            dest_folder,
+            f"{modification_time.strftime('%H:%M.%S')}{item.suffix}",
         )
     else:
         dest_path = os.path.join(dest_folder, item.name)
@@ -88,7 +89,8 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
             os.remove(item.path)
             break
         dest_path = os.path.join(
-            dest_folder, f"{modification_time.strftime('%H:%M.%S')}_{count}{item.suffix}"
+            dest_folder,
+            f"{modification_time.strftime('%H:%M.%S')}_{count}{item.suffix}",
         )
         count += 1
     shutil.move(item.path, dest_path, copy_function=shutil.copy2)

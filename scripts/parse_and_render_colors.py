@@ -22,6 +22,9 @@ def main(path: str | Path) -> None:
             print(f"{step}▓▓▓▓▓▓▓", end="\033[0m")
         print()
     print()
+    for color in sorted(colors):
+        print(f"{color}{color.hex.strip('#')} ▓▓▓▓▓▓")
+    print()
 
 
 if __name__ == "__main__":

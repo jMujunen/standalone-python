@@ -41,7 +41,9 @@ def main(dirs: list[str]) -> None:
             items = len(Dir(str(src)).files)
             if not target.exists():
                 target.mkdir(parents=True, exist_ok=True)
-            result = subprocess.getoutput(cmd_template.format(src=src, dest=target, items=items))
+            result = subprocess.getoutput(
+                cmd_template.format(src=src, dest=target, items=items)
+            )
 
             # Log the output of rsync command until the end of iterations
             msgs.append(result)

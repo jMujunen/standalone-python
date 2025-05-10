@@ -2,15 +2,15 @@
 
 from fsutils.video import Video
 from fsutils.img import Img
-from fsutils.dir import Dir, obj
+from fsutils.dir import Dir
 import argparse
 import ctypes
 import ctypes.util
 import os
 import shutil
-import sys
+
 from pathlib import Path
-from Color import cprint, fg, bg, style
+from Color import cprint, fg
 
 libc = ctypes.CDLL(ctypes.util.find_library("c"), use_errno=True)
 
@@ -107,7 +107,7 @@ def get_dest(item: Video | Img, target: str) -> Path:
             raise TypeError(f"Unknown file type: {item.__class__.__name__}")
 
 
-def main(refresh=False, remove=False) -> None:
+def main(refresh=True, remove=False) -> None:
     """Sync camera SD card with local storage.
 
     Parameters
@@ -132,9 +132,9 @@ def main(refresh=False, remove=False) -> None:
             if not dest.parent.exists():
                 dest.parent.mkdir(exist_ok=True, parents=True)
 
-            shutil.move(img.path, img_dest, copy_function=shutil.copy2) if remove else shutil.copy2(
-                img.path, dest
-            )
+            shutil.move(
+                img.path, img_dest, copy_function=shutil.copy2
+            ) if remove else shutil.copy2(img.path, dest)
             cprint(f"Moved {img.path} to {dest}", fg.green)
         else:
             cprint(f"Skipping {img.path}...", fg.yellow)
@@ -144,9 +144,9 @@ def main(refresh=False, remove=False) -> None:
             dest = get_dest(vid, vid_dest.path)
             if not dest.parent.exists():
                 dest.parent.mkdir(exist_ok=True, parents=True)
-            shutil.move(vid.path, vid_dest, copy_function=shutil.copy2) if remove else shutil.copy2(
-                vid.path, dest
-            )
+            shutil.move(
+                vid.path, vid_dest, copy_function=shutil.copy2
+            ) if remove else shutil.copy2(vid.path, dest)
             cprint(f"Moved {vid.path} to {dest}", fg.green)
         else:
             cprint(f"Skipping {vid.path}...", fg.yellow)
@@ -155,9 +155,14 @@ def main(refresh=False, remove=False) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Sync camera SD card with local storage")
     parser.add_argument(
-        "--refresh", action="store_true", help="Refresh the destination index before syncing"
+        "--no-refresh",
+        action="store_true",
+        help="Dont recalculate destination index before syncing",
+        default=False,
     )
-    parser.add_argument("--remove", action="store_true", help="Move files instead of copying")
+    parser.add_argument(
+        "--remove", action="store_true", help="Move files instead of copying"
+    )
     return parser.parse_args()
 
 
@@ -165,6 +170,6 @@ if __name__ == "__main__":
     args = parse_args()
     mount("/dev/sdd1", "/mnt/flash", "exfat", "rw")
     cprint.info("Mounted /dev/sdd1 to /mnt/flash")
-    main(args.refresh, args.remove)
+    main(not args.no_refresh, args.remove)
     umount("/mnt/flash")
     cprint.info("Unmounted /mnt/flash")

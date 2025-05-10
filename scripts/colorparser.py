@@ -44,7 +44,9 @@ def rgb_to_hex(rgb: tuple[int | str, ...]) -> str:
     return "#{:02x}{:02x}{:02x}".format(*rgb)
 
 
-def generate_fade(hex_code: str, steps=10, start_color="FFFFFF", end_color="000000") -> list[str]:
+def generate_fade(
+    hex_code: str, steps=10, start_color="FFFFFF", end_color="000000"
+) -> list[str]:
     """Generate a list of hexadecimal color codes that trasciition smoothly
     from white (#FFFFFF) to the given color (hex_code) and then back to black (#000000).
 

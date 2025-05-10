@@ -59,7 +59,7 @@ def log_cpu(args) -> None:
             file.write(line)
             file.close()
     print(
-        f"[\033[38;2;57;206;196m {count} \033[0m] " f"\033[1;32m {line.strip()} \033[0m",
+        f"[\033[38;2;57;206;196m {count} \033[0m] \033[1;32m {line.strip()} \033[0m",
         end="\n",
     )
 

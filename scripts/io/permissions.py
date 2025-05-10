@@ -29,7 +29,12 @@ def set_permissions(path: str, fix) -> tuple[str, str, str, bool] | None:
     if fix:
         os.chmod(path, mode)
     else:
-        return path, oct(original_mode)[-3:], oct(mode)[-3:], original_mode != mode
+        return (
+            path,
+            oct(original_mode)[-3:],
+            oct(mode)[-3:],
+            original_mode != mode,
+        )
     new_mode = Path.stat(path).st_mode
     fixed = new_mode != original_mode
     return path, oct(original_mode)[-3:], oct(new_mode)[-3:], fixed

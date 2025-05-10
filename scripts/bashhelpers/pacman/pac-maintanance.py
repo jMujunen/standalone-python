@@ -59,7 +59,9 @@ def main(args: argparse.Namespace):
         "check": lambda x: (check_file_properties(), broken(*x)),
         "coredump": prune_core_dump,
     }
-    return sum(action() for action in all_actions.values() if args.__dict__[action.__name__])
+    return sum(
+        action() for action in all_actions.values() if args.__dict__[action.__name__]
+    )
 
 
 def parse_args() -> argparse.Namespace:

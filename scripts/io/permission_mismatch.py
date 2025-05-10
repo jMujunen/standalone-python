@@ -24,7 +24,9 @@ def get_permissions(file: File) -> tuple[File, bool, int, int] | None:
         cprint(f"{file.path} does not exist", fg.red)
         return None
     mode = file.mode
-    preferred_mode = SPECS.get(file.__class__, 644) if file.__class__ in list(SPECS.keys()) else 644
+    preferred_mode = (
+        SPECS.get(file.__class__, 644) if file.__class__ in list(SPECS.keys()) else 644
+    )
 
     if mode != preferred_mode:
         return file, False, mode, preferred_mode
@@ -56,14 +58,16 @@ def main(path: Dir) -> None:
             f"{file.path:<80} ({fg.red}{mode}{style.reset}, {fg.green}{preffered}{style.reset}, {(file.__class__.__name__)})"
         )
     print("\n\n")
-    print(f"{style.bold}{num_flagged}/{num_files}{style.reset} have mismatched permissions")
+    print(
+        f"{style.bold}{num_flagged}/{num_files}{style.reset} have mismatched permissions"
+    )
 
 
 if __name__ == "__main__":
     with ExecutionTimer():
         if len(sys.argv) == 2 and os.path.isdir(sys.argv[1]):
             path = Dir(sys.argv[1])
-            print(f'{"Path":<80} (current mode, preffered mode)')
+            print(f"{'Path':<80} (current mode, preffered mode)")
             main(path)
         else:
             print("Usage: python3 perm_mismatch.py <directory>")

@@ -21,14 +21,21 @@ def main(path: str, dry_run: bool) -> None:
     files = Dir(path).images + Dir(path).videos
     num_files = len(files)
 
-    cprint(f"Processing {style.bold}{num_files}{style.reset} items", fg.green, style.bold)
+    cprint(
+        f"Processing {style.bold}{num_files}{style.reset} items",
+        fg.green,
+        style.bold,
+    )
 
     results = pool.execute(process_file, files, progress_bar=True)
     corrupted_files = [path for (corrupt, path) in results if corrupt]
     print("\n".join(corrupted_files))
 
     if not dry_run and corrupted_files:
-        if input("Are you sure you want to remove these files? [y/N]: ") in {"y", "Y"}:
+        if input("Are you sure you want to remove these files? [y/N]: ") in {
+            "y",
+            "Y",
+        }:
             for f in corrupted_files:
                 try:
                     os.remove(f)
@@ -42,7 +49,9 @@ def main(path: str, dry_run: bool) -> None:
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Finds and removes corrupt images and videos")
+    parser = argparse.ArgumentParser(
+        description="Finds and removes corrupt images and videos"
+    )
     parser.add_argument("path", help="Path to the directory")
     parser.add_argument(
         "--dry-run",

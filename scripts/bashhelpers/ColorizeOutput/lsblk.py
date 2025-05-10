@@ -15,7 +15,9 @@ def main(*args) -> str:
         # Match device names
         lsblk_styler.body_style(r"(sd[a-z][^0-9]|nvme[0-9]n[0-9][^a-z0-9])", "33"),
         # Match Partitions
-        lsblk_styler.body_style(r"(sd[a-z][0-9]|nvme[0-9]n[0-9][a-z0-9]+)", "38;2;93;163;209"),
+        lsblk_styler.body_style(
+            r"(sd[a-z][0-9]|nvme[0-9]n[0-9][a-z0-9]+)", "38;2;93;163;209"
+        ),
         # Match digit percentages
         # Color by value
         lsblk_styler.body_style(r"(.?\d+%)", "32"),
