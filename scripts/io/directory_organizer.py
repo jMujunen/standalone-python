@@ -6,24 +6,22 @@ sorted by capture date and moved to its respective folder"""
 
 import argparse
 import contextlib
-import itertools
+import logging
 import os
 import re
 import shutil
-import sys
-import heapq
 from collections.abc import Generator
-from collections import defaultdict
 from pathlib import Path
 from re import Pattern
-from typing import Any, Dict, List, Set, Tuple, Optional
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from Color import cprint, fg
 from fsutils.dir import Dir, File
 from fsutils.file import Base
 from fsutils.utils.mimecfg import FILE_TYPES, IGNORED_DIRS
 from ThreadPoolHelper import Pool
+
+logging.basicConfig(level=logging.WARNING)
+logger = logging.getLogger(__name__)
 
 MAX_DUPLICATES = 2
 
@@ -37,7 +35,7 @@ def cleanup(top: str) -> None:
     This version attempts to remove directories only once, reducing redundant operations.
     """
     empty_dirs = set()
-    
+
     # First pass: collect all empty directories
     for root, dirs, _ in os.walk(top, topdown=False):
         for d in dirs:
@@ -47,7 +45,7 @@ def cleanup(top: str) -> None:
                     empty_dirs.add(dir_path)
             except (PermissionError, OSError):
                 continue
-    
+
     # Second pass: remove empty directories
     for dir_path in sorted(empty_dirs, key=lambda p: len(str(p)), reverse=True):
         with contextlib.suppress(OSError):
@@ -126,7 +124,7 @@ def get_prefix(item: Base, target: str, sort_spec: str) -> Path | None:
             return categorize_other(item, target)
 
 
-def gen_stat(lst: list) -> Generator[Tuple, None, None]:
+def gen_stat(lst: list) -> Generator[zip[tuple], None, None]:
     """Generate statistics for pairs of items in the given list using the provided object function.
     Optimized version that caches file stats to avoid redundant file operations.
 
@@ -140,15 +138,15 @@ def gen_stat(lst: list) -> Generator[Tuple, None, None]:
     """
     # Cache file stats to avoid redundant operations
     file_cache = {}
-    
+
     def get_file_times(path):
         if path not in file_cache:
             file_cache[path] = File(path).times()
         return file_cache[path]
-    
+
     # Generate combinations more efficiently
     for i, item1 in enumerate(lst):
-        for item2 in lst[i+1:]:
+        for item2 in lst[i + 1 :]:
             yield zip(get_file_times(item1), get_file_times(item2), strict=False)
 
 
@@ -168,7 +166,7 @@ def determine_originals(file_paths: list[str], num_keep: int) -> set[str]:
     """
     if not file_paths or len(file_paths) <= num_keep:
         return set()
-        
+
     # Cache file stats to avoid redundant stat calls - O(n)
     file_stats = {}
     for path in file_paths:
@@ -176,11 +174,11 @@ def determine_originals(file_paths: list[str], num_keep: int) -> set[str]:
             file_stats[path] = Path(path).stat().st_mtime
         except (FileNotFoundError, PermissionError):
             # Handle missing files gracefully
-            file_stats[path] = float('inf')  # Consider missing files as newest
-    
+            file_stats[path] = float("inf")  # Consider missing files as newest
+
     # Sort files by modification time - O(n log n)
     sorted_paths = sorted(file_paths, key=lambda x: file_stats[x])
-    
+
     # Keep the oldest num_keep files, mark the rest for removal
     return set(sorted_paths[num_keep:])
 
@@ -191,12 +189,13 @@ def process_item(
     index: dict[str, list[str]],
     sort_spec: str,
     keep=False,
-    file_stats_cache: Dict[str, float] = None,
+    dry_run=True,
+    file_stats_cache: dict[str, float] = None,
 ) -> Path | None:
     """Process a single item (file or directory) and move it to the appropriate destination folder.
     Optimized version with caching and reduced file operations.
 
-    Parameters:
+    Parameters
     -------------
         - item (Base): The media file to be sorted.
         - target_root (Dir): The root directory where all files will be moved.
@@ -205,25 +204,25 @@ def process_item(
         - keep(bool): Whether to keep the original file.
         - file_stats_cache(Dict): Cache for file modification times to avoid redundant stat calls.
 
-    Returns:
+    Returns
     ----------
         - Path: The path of the destination folder where the item was moved. None if no destination folder was found.
     """
     # Use a shared cache for file stats if provided
     file_stats_cache = file_stats_cache or {}
-    
+
     # Get destination folder
     dest_folder = get_prefix(item=item, target=target_root.path, sort_spec=sort_spec)
     if dest_folder is None:
         return None
-        
+
     # Create destination folder if it doesn't exist (with a single call)
     dest_folder.mkdir(parents=True, exist_ok=True)
 
     # Handle duplicates more efficiently
     file_hash = item.sha256()
     existing_files = index.get(file_hash, [])
-    
+
     if len(existing_files) >= MAX_DUPLICATES:
         # Cache file stats to avoid redundant stat calls
         for file_path in existing_files:
@@ -231,17 +230,22 @@ def process_item(
                 try:
                     file_stats_cache[file_path] = Path(file_path).stat().st_mtime
                 except (FileNotFoundError, PermissionError):
-                    file_stats_cache[file_path] = float('inf')  # Consider missing files as newest
-        
+                    file_stats_cache[file_path] = float(
+                        "inf"
+                    )  # Consider missing files as newest
+
         # Sort by modification time using cached values
         overflow = sorted(existing_files, key=lambda x: file_stats_cache[x])
-        
+
         # Remove files exceeding MAX_DUPLICATES
         for file in overflow[MAX_DUPLICATES:]:
             try:
-                os.remove(file)
-                msg = f"Removed {file}"
-                cprint.error(msg)
+                if dry_run:
+                    cprint(f"Would remove {file}", fg.red)
+                else:
+                    os.remove(file)
+                    msg = f"Removed {file}"
+                    cprint.error(msg)
             except (FileNotFoundError, PermissionError) as e:
                 cprint.error(f"Error removing {file}: {e}")
 
@@ -257,20 +261,20 @@ def process_item(
             if not dest_path.exists():
                 break
             count += 1
-    
+
     # Perform the file operation
     try:
         if keep:
             shutil.copy2(item.path, dest_path)
         else:
             shutil.move(item.path, dest_path, copy_function=shutil.copy2)
-            
+
         # Update the index with the new file location
         if file_hash in index:
             index[file_hash].append(str(dest_path))
         else:
             index[file_hash] = [str(dest_path)]
-            
+
         return dest_path
     except PermissionError as e:
         msg = f"{e!r}"
@@ -286,7 +290,7 @@ def main(root: str, destination: str, spec: str, refresh_db: bool, keep: bool) -
     """Sort files based on media type and date.
     Optimized version with better memory usage and parallel processing.
 
-    Parameters:
+    Parameters
     ----------
         - `root (str)`: The directory to start sorting from.
         - `destination (str)`: The directory to move sorted files into.
@@ -310,22 +314,21 @@ def main(root: str, destination: str, spec: str, refresh_db: bool, keep: bool) -
 
     # Format the sort specification
     sort_spec = sort_spec_formatter(spec)
-    
+
     # Create a shared cache for file stats to reduce redundant file operations
     file_stats_cache = {}
-    
+
     # Process files in batches for better memory efficiency
-    batch_size = min(1000, len(file_objs))  # Adjust batch size based on total files
     num_moved = 0
     total_files = len(file_objs)
-    
+
     # Use the existing Pool implementation but with optimized parameters
     pool = Pool()
-    
+
     # Process files with the shared cache
     for result in pool.execute(
-        process_item,
-        file_objs,
+        function=process_item,
+        data_source=file_objs,
         progress_bar=True,
         index=dest_index,
         target_root=dest,
@@ -335,7 +338,7 @@ def main(root: str, destination: str, spec: str, refresh_db: bool, keep: bool) -
     ):
         if result:
             num_moved += 1
-    
+
     # Clean up if not keeping original files
     if not keep:
         print("Cleaning up empty directories...")
@@ -392,48 +395,43 @@ def parse_args() -> argparse.Namespace:
         default=False,
         required=False,
     )
-    parser.add_argument(
-        "--batch-size",
-        help="Number of files to process in each batch",
-        type=int,
-        default=1000,
-    )
+
     parser.add_argument(
         "--threads",
         help="Number of threads to use for processing",
         type=int,
         default=None,  # Will use default from ThreadPoolHelper
     )
-    # parser.add_argument(
-    #     "--dry-run",
-    #     help="Print actions instead of performing them",
-    #     action="store_true",
-    #     default=False,
-    #     required=False,
-    # )
+    parser.add_argument(
+        "--dry-run",
+        help="Print actions instead of performing them",
+        action="store_true",
+        default=False,
+        required=False,
+    )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     import time
+
     start_time = time.time()
-    
+
     args = parse_args()
     dest = args.dest
     root = args.ROOT
     spec = args.spec
     refresh = args.refresh
-    
+
     # Ensure destination directory exists before running the script
     if not Path(args.dest).exists():
         Path(dest).mkdir(parents=True, exist_ok=True)
-    
-    print(f"Keep: {args.keep}, Update Index: {args.refresh}")
-    print(f"Starting directory organization...")
-    
+
+    print("Starting directory organization...")
+
     # Run the main function
     main(root, dest, spec, refresh, args.keep)
-    
+
     # Print execution time
     elapsed_time = time.time() - start_time
     print(f"Total execution time: {elapsed_time:.2f} seconds")
