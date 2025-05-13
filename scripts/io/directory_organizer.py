@@ -6,15 +6,14 @@ sorted by capture date and moved to its respective folder"""
 
 import argparse
 import contextlib
-import itertools
 import os
 import re
 import shutil
-import sys
-from collections.abc import Generator
+from argparse import Namespace
+from collections import defaultdict
+from enum import Enum
 from pathlib import Path
 from re import Pattern
-from typing import Any
 
 from Color import cprint, fg
 from fsutils.dir import Dir, File
@@ -29,23 +28,17 @@ DATE_REGEX: Pattern[str] = re.compile(
 )
 
 
+class SortSpec(Enum):
+    YEAR = "%Y"
+    MONTH = "%Y/%h"
+    DAY = "%Y/%h/%d"
+
+
 def cleanup(top: str) -> None:
     """Remove empty directories recursively."""
     for root, dirs, _ in os.walk(top, topdown=False):
         for d in dirs:
             Path(root, d).rmdir()
-
-
-def sort_spec_formatter(spec: str) -> str:
-    match spec:
-        case "year":
-            return "%Y"
-        case "month":
-            return "%Y/%h"
-        case "day":
-            return "%Y/%h/%d"
-        case _:
-            raise ValueError(f"Invalid sort spec: {spec}")
 
 
 def categorize_other(y: Base, x: str | Path) -> Path:
@@ -108,22 +101,6 @@ def get_prefix(item: Base, target: str, sort_spec: str) -> Path | None:
             return categorize_other(item, target)
 
 
-def gen_stat(lst: list) -> Generator[zip]:
-    """Generate statistics for pairs of items in the given list using the provided object function.
-
-    Parameters
-    ----------
-        - `lst (list)`: A list of items to generate statistics for.
-
-    Returns
-    --------
-        - `Generator[zip]`: A generator yielding tuples of statistics for each pair of items in the list.
-    """
-    for item in itertools.combinations(lst, 2):
-        pair = File(item[0]), File(item[1])
-        yield zip(*(p.times() for p in pair), strict=False)
-
-
 def determine_originals(file_paths: list[str], num_keep: int) -> set[str]:
     """Given a list of file paths and the number of duplicates to keep,
     return a list of file paths that should be removed.
@@ -137,21 +114,51 @@ def determine_originals(file_paths: list[str], num_keep: int) -> set[str]:
     --------
         - `set[str]`: A set of file paths that should be removed.
     """
-    oldest_to_newest = sorted(
-        file_paths, key=lambda x: Path(x).stat().st_mtime, reverse=False
-    )
-    keep = []
-    remove = []
-    for i, path in enumerate(oldest_to_newest):
-        if i < num_keep:
-            keep.append(path)
-        else:
-            for st_result in gen_stat(oldest_to_newest):
-                for st in st_result:
-                    if st[0] != st[1] and st[0] < st[1]:
-                        break
-                remove.append(path)
-    return set(remove)
+    hash_map = defaultdict(list)
+
+    # Group files by their SHA-256 hash
+    for path in file_paths:
+        try:
+            sha256_hash = File(path).sha256()
+            hash_map[sha256_hash].append(path)
+        except Exception as e:
+            cprint.warn(f"Error hashing {path}: {e}")
+
+    remove_set = set()
+    for paths in hash_map.values():
+        if len(paths) <= num_keep:
+            continue
+        # Sort by modification time (oldest first)
+        sorted_paths = sorted(paths, key=lambda p: Path(p).stat().st_mtime)
+        # Remove the newest ones beyond num_keep
+        remove_set.update(sorted_paths[num_keep:])
+
+    return remove_set
+
+
+def get_next_available_path(dest_folder: Path, item: Base) -> Path:
+    """Find the next available path for an item in a destination folder.
+
+    Parameters
+    ----------
+        - `dest_folder (Path)`: The destination folder where the item will be placed.
+        - `item (Base)`: The item to find a path for.
+
+    Returns
+    ---------
+        - `Path`: The next available path for the item.
+    """
+    existing_files = os.listdir(dest_folder)
+    base_name = item.name
+    pattern = re.compile(rf"(\d+)-{re.escape(base_name)}")
+
+    max_count = 0
+    for fname in existing_files:
+        match = pattern.match(fname)
+        if match:
+            max_count = max(max_count, int(match.group(1)))
+
+    return dest_folder / f"{max_count + 1}-{base_name}"
 
 
 def process_item(
@@ -247,13 +254,9 @@ def main(root: str, destination: str, spec: str, refresh_db: bool, keep: bool) -
     dest_index = dest.serialize(replace=refresh_db)
 
     # If root and destination are the same, do not recurse into subdirectories
-    file_objs = (
-        [File(file) for file in path.content]
-        if root_object == dest
-        else path.fileobjects()
-    )
+    file_objs = [File(file) for file in path.content] if root_object == dest else path.fileobjects()
 
-    sort_spec = sort_spec_formatter(spec)
+    sort_spec = SortSpec[spec.capitalize()]
     pool = Pool()
     num_moved = 0
 
@@ -285,9 +288,7 @@ def parse_args() -> argparse.Namespace:
         description="Take a directory tree and sort the contents by media type and date",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument(
-        "ROOT", help="The top level directory to start sorting from", type=str
-    )
+    parser.add_argument("ROOT", help="The top level directory to start sorting from", type=str)
     parser.add_argument(
         "--dest",
         help="Destination folder for sorted files",
@@ -332,20 +333,14 @@ def parse_args() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
-    args = parse_args()
+    args: Namespace = parse_args()
     dest = args.dest
     root = args.ROOT
     spec = args.spec
     refresh = args.refresh
+    keep = args.keep
     # Ensure destination directory exists before running the script
-    if not Path(args.dest).exists():
+    if not Path(dest).exists():
         Path(dest).mkdir(parents=True, exist_ok=True)
-    print(f"Keep : {args.keep}, Update Index: {args.refresh}")
-    main(root, dest, spec, refresh, args.keep)
-    # main(
-    #     "/mnt/ssd/staging/GALAXY_TABLET",
-    #     "/mnt/hdd/Media/ELLA",
-    #     "month",
-    #     refresh_db=False,
-    #     keep=True,
-    # )
+    print(f"Keep : {keep}, Update Index: {refresh}")
+    main(root, dest, spec, refresh, keep)

@@ -3,9 +3,9 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from ProgressBar import ProgressBar
-from Color import cprint
+
 from fsutils.dir import Dir
+from ProgressBar import ProgressBar
 
 HOME = "/home/joona"
 

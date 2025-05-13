@@ -1,7 +1,6 @@
-from collections.abc import Generator, Iterable
-from collections.abc import Callable
-from typing import Any
+from collections.abc import Callable, Generator, Iterable
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any
 
 from tqdm import tqdm
 
@@ -22,8 +21,8 @@ class Pool:
         self,
         function: Callable[P, R],
         data_source: Iterable[Any],
-        progress_bar: bool = True,
         *args,
+        progress_bar: bool = True,
         **kwargs,
     ) -> Generator[R]:
         """Execute a callable function concurrently for each item in the data source.
@@ -58,7 +57,8 @@ class Pool:
             tqdm(total=len(data_source), disable=not progress_bar) as bar,
         ):
             futures = {
-                executor.submit(function, item, *args, **kwargs): item for item in data_source
+                executor.submit(function, item, *args, **kwargs): item
+                for item in data_source
             }
             for future in as_completed(futures):
                 item = futures[future]
@@ -71,11 +71,13 @@ class Pool:
                         "name": function.__name__,
                         "args": args,
                         "kwargs": kwargs,
-                        "item": item,
+                        "item": str(item),
                     }
                     e.__setattr__("details", details)
                     if not self.suppress_exceptions:
-                        print(f"\n{e!r}", template.format(e.__class__.__name__, **details))
+                        print(
+                            f"\n{e!r}", template.format(e.__class__.__name__, **details)
+                        )
 
                     exceptions.append(e)
 

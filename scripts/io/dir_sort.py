@@ -13,8 +13,8 @@ import re
 import shutil
 from pathlib import Path
 
-from fsutils.dir import Dir, obj
-from fsutils.file import File
+from fsutils.dir import Dir, File
+from fsutils.file import Base
 from fsutils.img import Img
 from fsutils.video import Video
 from ThreadPoolHelper import Pool
@@ -44,12 +44,12 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def process_item(item: File, target_root: str, rename=True) -> str | None:
+def process_item(item: Base, target_root: str, rename=True) -> str | None:
     """Move a file to the specified destination folder.
 
     Paramaters:
     -----------
-        - item (File): The file object to be moved.
+        - item (Base): The file object to be moved.
         - target_root (str): The destination folder where the file will be placed.
         - rename (bool) :
 
@@ -83,7 +83,7 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
         os.makedirs(dest_folder, exist_ok=True)
     count = 1
     while os.path.exists(dest_path):
-        dest_object = obj(dest_path)
+        dest_object = File(dest_path)
         # Keep destination file, remove source file if they are duplicate
         if item == dest_object:
             os.remove(item.path)
@@ -104,9 +104,9 @@ def main(videos: list[Video], dest: str) -> None:
             print("\033[31mError\033[0m")
 
 
-class args:
-    ROOT = "/mnt/hdd/webcam"
-    DEST = "/mnt/hdd/sorted-webcam-clips"
+# class args:
+#     ROOT = "/mnt/hdd/webcam"
+#     DEST = "/mnt/hdd/sorted-webcam-clips"
 
 
 if __name__ == "__main__":
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     dest = Dir(args.DEST)
     if source.path == dest.path:
         videos = [
-            obj(os.path.join(source.path, i))
+            File(os.path.join(source.path, i))
             for i in source.content
             if i.lower().endswith((".mp4", ".mov", "mkv"))
         ]

@@ -1,17 +1,9 @@
 #!/usr/bin/env python3
 """Runs momentis on all clips in the path, shows the results."""
 
-from pathlib import Path
-
-import momentis.momentis
-from Color import cprint
-from fsutils.dir import Dir
-from fsutils.video import Video
-from fsutils.utils.Exceptions import CorruptMediaError
-import os
-from ProgressBar import ProgressBar
 import argparse
 
+import momentis.momentis
 
 FOLDERS = {
     "PLAYERUNKNOWN'S BATTLEGROUNDS": "PUBG",
