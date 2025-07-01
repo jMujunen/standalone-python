@@ -25,7 +25,6 @@ from collections.abc import Generator
 import re
 from enum import Enum
 import colorsys
-
 type Hex = str | None
 type Decoration = fg | bg | style
 hex_regex = re.compile(r"([ABCFEDabcdef-f0-9]{6})")
@@ -242,6 +241,7 @@ class Color:
 
 
 palette: dict[str, Color] = {
+    "white": Color(255, 255, 255),
     "red": Color(200, 118, 120),
     "lightpink3": Color(139, 95, 101),
     "lightpink2": Color(205, 140, 149),
