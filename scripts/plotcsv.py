@@ -4,12 +4,12 @@
 
 import argparse
 import os
-import pandas as pd
 import sys
 from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 FILE = "/tmp/hwinfo.csv"
 
