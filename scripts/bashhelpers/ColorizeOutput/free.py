@@ -50,24 +50,22 @@ def parse_data() -> str:
 def colorize() -> str:
     """Colorizes the text based on usage."""
     free = Styler(parse_data(), skip_subprocess=True)
-    free.colorized_command_output(
-        [
-            # Mem used
-            free.body_style(r"(?<=Mem:......)([1-4]\d\.\d%)", fg.green),  # 10-40%
-            free.body_style(r"(?<=Mem:......)([5-7]\d\.\d%)", fg.yellow),  # 50-70%
-            free.body_style(r"(?<=Mem:......)([8-9]\d\.\d%)", fg.red),  # 80-90%
-            # Mem cached
-            free.body_style(r"[^\s:]\s{5}([(1-3]\d\.\d%)", fg.red),  # 10-30%
-            free.body_style(r"[^\s:]\s{5}([4-6]\d\.\d%)", fg.yellow),  # 40-60%
-            free.body_style(r"[^\s:]\s{5}([6-9]\d\.\d%)", fg.green),  # 60-90%
-            # Swap
-            free.body_style(r"(?<=Swap:.....)([2-5]\d\.\d%)", fg.yellow),  # 30-50%
-            free.body_style(r"(?<=Swap:.....)([5-9]\d\.\d%)", fg.red),  # 50-90%
-            free.body_style(r"(?<=Swap:.....)(100.\d?%)", fg.red),
-            # Header
-            free.body_style(r"^([\s]+.*)\n", style.bold),
-        ]
-    )
+
+    # Mem used
+    free.body_style(r"(?<=Mem:......)([1-4]\d\.\d%)", fg.green)  # 10-40%
+    free.body_style(r"(?<=Mem:......)([5-7]\d\.\d%)", fg.yellow)  # 50-70%
+    free.body_style(r"(?<=Mem:......)([8-9]\d\.\d%)", fg.red)  # 80-90%
+    # Mem cached
+    free.body_style(r"[^\s:]\s{5}([(1-3]\d\.\d%)", fg.red)  # 10-30%
+    free.body_style(r"[^\s:]\s{5}([4-6]\d\.\d%)", fg.yellow)  # 40-60%
+    free.body_style(r"[^\s:]\s{5}([6-9]\d\.\d%)", fg.green)  # 60-90%
+    # Swap
+    free.body_style(r"(?<=Swap:.....)([2-5]\d\.\d%)", fg.yellow)  # 30-50%
+    free.body_style(r"(?<=Swap:.....)([5-9]\d\.\d%)", fg.red)  # 50-90%
+    free.body_style(r"(?<=Swap:.....)(100.\d?%)", fg.red)
+    # Header
+    free.body_style(r"^([\s]+.*)\n", style.bold)
+
     return free.sort()
 
 

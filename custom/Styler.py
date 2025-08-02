@@ -34,14 +34,14 @@ class Styler:
         if skip_subprocess is True:
             self.command_output = command
             return
-        self.command_output = self.run_command(command, *args)
+        self.command_output = self._run_command(command, *args)
 
     @property
     def styles(self) -> list[str]:
         # Property for getting the list of styles applied to the command output.
         return self._styles
 
-    def body_style(self, pattern: str, color: int | str) -> tuple[re.Pattern[str], str, str]:
+    def body_style(self, pattern: str, color: int | str) -> None:
         """Apply a style (color) to all instances of a specific pattern in the command output.
 
         Args:
@@ -51,7 +51,7 @@ class Styler:
 
         Returns:
         ----------
-            tuple: A tuple containing the compiled regex, prefix and suffix strings used for styling.
+            None: Applies the style to the command output directly.
         """
         # TODO Add support for setting foreground and background colors with color codes as integers
 
@@ -60,9 +60,15 @@ class Styler:
         regex = re.compile(pattern)
 
         self._styles.append((regex, color_prefix, color_suffix))
-        return (regex, str(color_prefix), "\033[0m")
 
-    def run_command(self, prog, *args) -> str:
+        matches = re.findall(regex, self.command_output)
+
+        for match in matches:
+            self.command_output = self.command_output.replace(
+                match, f"{color_prefix}{match}{color_suffix}"
+            )
+
+    def _run_command(self, prog, *args) -> str:
         """Run the command and captures its output.
 
         Returns
@@ -108,34 +114,6 @@ class Styler:
         else:
             sorted_rows = sorted(rows)
         self.command_output = "\n".join(sorted_rows).replace("\n\n", "\n")
-        return self.command_output
-
-    def colorized_command_output(
-        self, style: list[tuple[re.Pattern[str], str, str]] | list[re.Pattern[str]]
-    ) -> str:
-        """Apply a list of styles to the command output and returns it.
-
-        Args:
-        ----------
-            style (Union[tuple[re.Pattern, [str]]): A tuple or list of tuples where
-            each tuplecontains a pattern and color code for styling text in the output.
-
-        Returns:
-        ----------
-            str: The colorized version of the command's stdout. Each instance of
-            the patterns in the style tuples are replaced with the corresponding color codes.
-        """
-        if not isinstance(style[0], tuple):
-            style = [style]
-        for s in style:
-            regex, color_prefix, color_suffix = s
-            matches = re.findall(regex, self.command_output)
-
-            for match in matches:
-                self.command_output = self.command_output.replace(
-                    match, f"{color_prefix}{match}{color_suffix}"
-                )
-
         return self.command_output
 
     def remove_by_regex(self, pattern: str) -> None:
@@ -190,9 +168,11 @@ class Styler:
         """
         lines = self.command_output.split("\n")
         for i in range(len(lines)):
-            line = lines[i].split()
+            line = re.split(r"(\s+)", lines[i])
             if column < len(line):
-                color_prefix = f"\x1b[{color}m" if ESCAPE_REGEX.match(str(color)) else color
+                color_prefix = (
+                    f"\x1b[{color}m" if ESCAPE_REGEX.match(str(color)) else color
+                )
                 color_suffix = "\033[0m"
                 line[column] = f"{color_prefix}{line[column]}{color_suffix}"
             lines[i] = " ".join(line)
