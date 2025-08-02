@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
 
-from fsutils.video import Video
-from fsutils.img import Img
-from fsutils.dir import Dir
 import argparse
 import ctypes
 import ctypes.util
 import os
 import shutil
-
 from pathlib import Path
+
 from Color import cprint, fg
+from fsutils.dir import Dir
+from fsutils.img import Img
+from fsutils.video import Video
 
 libc = ctypes.CDLL(ctypes.util.find_library("c"), use_errno=True)
 
 SRC = "/mnt/flash/DCIM/107D5600/"
-IMG_DEST = "/mnt/ssd/Media/Photos/RAW"
-VID_DEST = "/mnt/ssd/Media/Videos"
+SRC2 = "/mnt/flash/DCIM/108D5600/"
+IMG_DEST = "/mnt/hddred/MediaRoot/SERVER_MEDIA/RAW"
+VID_DEST = "/mnt/hddred/MediaRoot/SERVER_MEDIA/Videos"
 
 
 def mount(source: str, target: str, fs: str, options: str) -> int:
@@ -29,9 +30,14 @@ def mount(source: str, target: str, fs: str, options: str) -> int:
         fs (str): The type of filesystem to use.
         options (str): Options for mounting the filesystem.
 
-    Returns
+    Returns:
     ---------
         int: The return code of the mount call.
+
+    Raises:
+    -------
+        OSError: If the mount fails.
+
     """
     libc.mount.argtypes = (
         ctypes.c_char_p,
@@ -57,13 +63,17 @@ def mount(source: str, target: str, fs: str, options: str) -> int:
 def umount(target: str) -> int:
     """Unmount a filesystem.
 
-    Parameters
+    Parameters:
     -----------
         target (str): The target directory to unmount the filesystem from.
 
-    Returns
+    Returns:
     ---------
         int: The return code of the umount call.
+
+    Raises:
+    -------
+        OSError: If an error occurs while unmounting the filesystem.
     """
     libc.umount.argtypes = (ctypes.c_char_p,)
     ret = libc.umount(target.encode())
@@ -82,13 +92,17 @@ def get_dest(item: Video | Img, target: str) -> Path:
 
     Parameters
     ----------
-        - item (File): The file object.
-        - target (str): The target directory path.
-        - sort_spec (str): The sorting specification, e.g., 'year', 'month', 'day'
+        item (File): The file object.
+        target (str): The target directory path.
+        sort_spec (str): The sorting specification, e.g., 'year', 'month', 'day'
 
-    Returns
+    Returns:
     -------
-        - Path | None: The destination path for the file or None if it should be ignored.
+        Path | None: The destination path for the file or None if it should be ignored.
+
+    Raises:
+    --------
+       TypeError: If the item is not an instance of Video or Img.
     """
     match item.__class__.__name__:
         case "Img":
@@ -104,7 +118,8 @@ def get_dest(item: Video | Img, target: str) -> Path:
                 f"{item.capture_date.strftime('%Y-%m-%d_%H:%M:%S')}{item.suffix}",
             )
         case _:
-            raise TypeError(f"Unknown file type: {item.__class__.__name__}")
+            msg = f"Unknown file type: {item.__class__.__name__}"
+            raise TypeError(msg)
 
 
 def main(refresh=True, remove=False) -> None:
@@ -115,45 +130,59 @@ def main(refresh=True, remove=False) -> None:
         refresh (bool): Refresh the destination index before syncing.
         remove (bool): Move files instead of copying.
     """
-    src = Dir(SRC)
+    # src = Dir(SRC)
+    src2 = Dir(SRC2)
     img_dest = Dir(IMG_DEST)
     vid_dest = Dir(VID_DEST)
 
     # Create/update file indexes.
-    src.serialize(replace=True)
+    src2.serialize(replace=True)
     if refresh:
         img_dest.serialize(replace=True)
         vid_dest.serialize(replace=True)
 
     # Sync media files.
-    for img in src.images():
+    for img in src2.images():
         if img not in img_dest:
             dest = get_dest(img, img_dest.path)
             if not dest.parent.exists():
                 dest.parent.mkdir(exist_ok=True, parents=True)
 
             shutil.move(
-                img.path, img_dest, copy_function=shutil.copy2
+                img.path,
+                img_dest.path,
+                copy_function=shutil.copy2,
             ) if remove else shutil.copy2(img.path, dest)
-            cprint(f"Moved {img.path} to {dest}", fg.green)
+            # cprint(f"Moved {img.path} to {dest}", fg.green)
         else:
             cprint(f"Skipping {img.path}...", fg.yellow)
 
-    for vid in src.videos():
+    for vid in src2.videos():
         if vid not in vid_dest:
             dest = get_dest(vid, vid_dest.path)
             if not dest.parent.exists():
                 dest.parent.mkdir(exist_ok=True, parents=True)
             shutil.move(
-                vid.path, vid_dest, copy_function=shutil.copy2
+                vid.path,
+                vid_dest.path,
+                copy_function=shutil.copy2,
             ) if remove else shutil.copy2(vid.path, dest)
-            cprint(f"Moved {vid.path} to {dest}", fg.green)
+            # cprint(f"Moved {vid.path} to {dest}", fg.green)
         else:
             cprint(f"Skipping {vid.path}...", fg.yellow)
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Sync camera SD card with local storage")
+    parser = argparse.ArgumentParser(
+        description="Sync camera SD card with local storage",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    parser.add_argument(
+        "device",
+        help="Device path of the SD card to sync",
+        default="/dev/sdd1",
+    )
     parser.add_argument(
         "--no-refresh",
         action="store_true",
@@ -161,14 +190,17 @@ def parse_args() -> argparse.Namespace:
         default=False,
     )
     parser.add_argument(
-        "--remove", action="store_true", help="Move files instead of copying"
+        "--remove",
+        action="store_true",
+        help="Move files instead of copying",
     )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    mount("/dev/sdd1", "/mnt/flash", "exfat", "rw")
+    dev = args.device
+    mount(dev, "/mnt/flash", "exfat", "rw")
     cprint.info("Mounted /dev/sdd1 to /mnt/flash")
     main(not args.no_refresh, args.remove)
     umount("/mnt/flash")

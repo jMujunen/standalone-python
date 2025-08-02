@@ -18,20 +18,39 @@ def hex_to_rgb(hex_code) -> tuple[int, ...]:
     hex_code = hex_code.lstrip("#")
     return tuple(int(hex_code[i : i + 2], 16) for i in (0, 2, 4))
 
+def printhelp(fdesc):
+    print("""
+Usage:
+    python hex2rgb.py <hex code>
+    echo <hex code> | python hex2rgb.py # Reads from stdin
+    python hex2rgb.py                   # Reads from clipboard
+""", file=fdesc)
 
 if __name__ == "__main__":
-    match len(sys.argv[1:]):
-        case 1:
-            rgb = hex_to_rgb(sys.argv[1])
-        case 0:
+    match sys.argv[1:]:
+        case ['-h' | '--help']:
+            printhelp(sys.stdout)
+            sys.exit(0)
+        case [x]:
+            rgb = hex_to_rgb(x)
+        case [] | None:
             if sys.stdin.isatty():
-                rgb = hex_to_rgb(clipboard.paste())
+                try:
+                    arg = clipboard.paste()
+                    rgb = hex_to_rgb(arg)
+                except ValueError as e:
+                    print(f'\033[31mError: \033[0m {arg} is not a valid hex code', file=sys.stderr)
+                    printhelp(sys.stderr)
+                    sys.exit(1)
             else:
-                rgb = hex_to_rgb(sys.stdin.read().strip())
+                arg = sys.stdin.read().strip()
+                rgb = hex_to_rgb(arg)
         case _:
-            print("Usage: python hex2rgb.py <hex code>", file=sys.stderr)
+            printhelp(sys.stderr)
             sys.exit(1)
 
-    print(f"{rgb}")
+    print(str(rgb))
     clipboard.copy(str(rgb))
     sys.exit(0)
+
+

@@ -9,7 +9,7 @@ FOLDERS = {
     "PLAYERUNKNOWN'S BATTLEGROUNDS": "PUBG",
 }
 
-OUTPUT_PATH = "/mnt/ssd/OBS/Joona/opencv-output"
+OUTPUT_PATH = "/mnt/hddred/OBS/Joona/opencv-output"
 INPUT_PATH = "/mnt/win_ssd/Users/Joona/Videos/NVIDIA/PLAYERUNKNOWN'S BATTLEGROUNDS"
 
 NULLSIZE = 300

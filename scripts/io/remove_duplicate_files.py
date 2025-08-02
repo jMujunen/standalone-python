@@ -5,25 +5,27 @@ import argparse
 import os
 import sys
 from collections.abc import Generator
+from typing import Any
 
-from Color import cprint, fg, style
+from Color import cprint, fg
 from ExecutionTimer import ExecutionTimer
 from fsutils.dir import Dir
-from fsutils.file import File
-
+from fsutils.file import Base
 from ThreadPoolHelper import Pool
 
 IGNORED_DIRS = [".Trash-1000"]
 
 
-def process_file(file: File) -> tuple[str, str] | None:
+def process_file(file: Base) -> tuple[str, str] | None:
     """Concurrent processing. This is called from the ThreadPool instance."""
     if any(ignored in file.path for ignored in IGNORED_DIRS) or not file.exists:
         return None
     return (file.sha256(), file.path)
 
 
-def determine_originals(file_paths: list[str], num_keep: int):  # -> list[str]:
+def determine_originals(
+    file_paths: list[str], num_keep: int
+) -> tuple[list[Any], list[Any]]:  # -> list[str]:
     """Given a list of file paths and the number of duplicates to keep,
     return a list of file paths that should be kept.
 

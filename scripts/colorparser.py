@@ -4,6 +4,8 @@
 import argparse
 import random
 import re
+from asyncio import as_completed
+from re import Pattern
 
 import clipboard
 
@@ -97,38 +99,36 @@ def generate_fade(
     return fade_to_mid[:-1] + fade_from_mid
 
 
-def main(color: str) -> None:
+def main(input_string: str) -> None:
     """Parse the color input based on the format (RGB or Hex)."""
-    color_input = color
-    rbg_regex = re.compile(r"[1-2]\d{2}|\d{1,2},\s*\d{1,3},\s*\d{1,3}")
-    if rbg_regex.match(color_input):
-        # RGB format
-        rgb_values = map(int, color_input.split(","))
-        ascii_code = rgb_to_ascii(*rgb_values)
-        # RGB format
-        rgb_values = re.findall(r"\d+", color_input)
-        ascii_code = rgb_to_ascii(*rgb_values)
-    elif re.match(r"^#?(?:[0-9a-fA-F]{3}){1,2}$", color_input):
-        # Hex format
-        ascii_code = hex_to_ascii(color_input)
-    else:
-        print("Invalid input format. Please enter a valid RGB or hex color code.")
-        return
-    stripped_ascii_code = ascii_code.replace("\033", "")
-    print(f"{ascii_code}{stripped_ascii_code}\033[0m")
-    clipboard.copy(stripped_ascii_code)
+    rgb_regex: Pattern[str] = re.compile(r"\d{1,2},\s*\d{1,3},\s*\d{1,3}")
+    hex_regex: Pattern[str] = re.compile(r"#?(?:[0-9a-fA-F]{3}){2}")
+
+    rgb_matches: list[str] = rgb_regex.findall(input_string)
+    hex_matches: list[str] = hex_regex.findall(input_string)
+
+    for match in rgb_matches:
+        rgb = map(int, re.findall(r"\d+", match))
+        ascii_code = rgb_to_ascii(*rgb)
+        stripped_ascii_code = ascii_code.replace("\033", "")
+        print(f"{ascii_code}{match} - {stripped_ascii_code}\033[0m")
+        clipboard.copy(stripped_ascii_code)
+
+    for match in hex_matches:
+        ascii_code: str = hex_to_ascii(match)
+        stripped_ascii_code = ascii_code.replace("\033", "")
+        print(f"{ascii_code}{match} - {stripped_ascii_code}\033[0m")
+        clipboard.copy(stripped_ascii_code)
 
 
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="Manipulate and modify colors.")
-    parser.add_argument(
-        "color",
-        help='Enter RGB color code as "R,G,B | R G B" or hex color code as "#RRGGBB"',
+    parser = argparse.ArgumentParser(
+        description="Performs a non-greedy regex search on the given string and renders each hex or rbg color found"
     )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    main(args.color)
+    # args = parse_args()
+    main(clipboard.paste())
