@@ -6,15 +6,7 @@ from enum import Enum
 
 
 class SizeUnit(Enum):
-    """An enumeration representing different units of size measurement.
-
-    Attributes
-        B (int): Bytes.
-        KB (int): Kilobytes, where 1 KB = 1024 bytes.
-        MB (int): Megabytes, where 1 MB = 1024^2 bytes.
-        GB (int): Gigabytes, where 1 GB = 1024^3 bytes.
-        TB (int): Terabytes, where 1 TB = 1024^4 bytes.
-    """
+    """Represents different units of size measurement."""
 
     B = 1
     KB = 1024
@@ -55,7 +47,10 @@ class Size(int):
         return int(self.size_in_bytes)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}" + f"(raw={self.size_in_bytes}, human={self._convert()})"
+        return (
+            f"{self.__class__.__name__}"
+            + f"(raw={self.size_in_bytes}, human={self._convert()})"
+        )
 
     def __format__(self, format_spec: str, /) -> str:
         match format_spec:

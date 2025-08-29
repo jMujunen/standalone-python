@@ -7,7 +7,7 @@ from Styler import Styler
 
 
 def main(*args) -> str:
-    lsblk = Styler("lsblk", "-o", "NAME,FSTYPE,LABEL,UUID,FSUSE%", *args)
+    lsblk = Styler("lsblk", "-o", "NAME,FSTYPE,LABEL,UUID,FSUSE%,MOUNTPOINTS", *args)
 
     # Match device names
     lsblk.body_style(r"(sd[a-z][^0-9]|nvme[0-9]n[0-9][^a-z0-9])", "33")

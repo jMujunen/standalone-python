@@ -74,10 +74,10 @@ class style(Enum):
 
 @dataclass
 class Color:
-    r: int = field(default_factory=int, init=True, compare=True, hash=True)
-    g: int = field(default_factory=int, init=True, compare=True, hash=True)
-    b: int = field(default_factory=int, init=True, compare=True, hash=True)
-    bg: bool = field(default=False, init=True, compare=True, hash=True, kw_only=True)
+    r: int
+    g: int
+    b: int
+    bg: bool = field(default=False, kw_only=True)
 
     def __post_init__(self) -> None:
         if isinstance(self.r, str) and len(self.r) == 6 and hex_regex.match(self.r):
