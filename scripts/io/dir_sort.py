@@ -13,8 +13,8 @@ import re
 import shutil
 from pathlib import Path
 
-from fsutils.dir import Dir, obj
-from fsutils.file import File
+from fsutils.dir import Dir, File
+from fsutils.file import Base
 from fsutils.img import Img
 from fsutils.video import Video
 from ThreadPoolHelper import Pool
@@ -49,7 +49,7 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
 
     Paramaters:
     -----------
-        - item (File): The file object to be moved.
+        - item (File): The file Fileect to be moved.
         - target_root (str): The destination folder where the file will be placed.
         - rename (bool) :
 
@@ -83,9 +83,9 @@ def process_item(item: File, target_root: str, rename=True) -> str | None:
         os.makedirs(dest_folder, exist_ok=True)
     count = 1
     while os.path.exists(dest_path):
-        dest_object = obj(dest_path)
+        dest_Fileect = File(dest_path)
         # Keep destination file, remove source file if they are duplicate
-        if item == dest_object:
+        if item == dest_Fileect:
             os.remove(item.path)
             break
         dest_path = os.path.join(
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     dest = Dir(args.DEST)
     if source.path == dest.path:
         videos = [
-            obj(os.path.join(source.path, i))
+            File(os.path.join(source.path, i))
             for i in source.content
             if i.lower().endswith((".mp4", ".mov", "mkv"))
         ]
