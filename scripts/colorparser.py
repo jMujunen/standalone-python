@@ -4,8 +4,10 @@
 import argparse
 import random
 import re
-from asyncio import as_completed
+import sys
+from collections.abc import Generator
 from re import Pattern
+from typing import Any
 
 import clipboard
 
@@ -47,9 +49,9 @@ def rgb_to_hex(rgb: tuple[int | str, ...]) -> str:
 
 
 def generate_fade(
-    hex_code: str, steps=10, start_color="FFFFFF", end_color="000000"
+    hex_code: str, steps: int = 10, start: str = "FFFFFF", end: str = "000000"
 ) -> list[str]:
-    """Generate a list of hexadecimal color codes that trasciition smoothly
+    """Generate a list of hexadecimal color codes that transition smoothly
     from white (#FFFFFF) to the given color (hex_code) and then back to black (#000000).
 
     Parameters
@@ -64,22 +66,22 @@ def generate_fade(
         list[str]: A list of hexadecimal color codes representing the fade.
     """
 
-    def hex_to_rgb(hex_code: str) -> tuple:
+    def hex_to_rgb(hex_code: str) -> tuple[int, ...]:
         hex_code = hex_code.lstrip("#")
         return tuple(int(hex_code[i : i + 2], 16) for i in (0, 2, 4))
 
-    start_color = hex_to_rgb(start_color)
-    mid_color = hex_to_rgb(hex_code)
-    end_color = hex_to_rgb(end_color)
+    start_color: tuple[int, ...] = hex_to_rgb(start)
+    mid_color: tuple[int, ...] = hex_to_rgb(hex_code)
+    end_color: tuple[int, ...] = hex_to_rgb(end)
 
-    def formula_template(a, x, y):
+    def formula_template(a: int, x: int, y: int) -> float:
         return a + (x - y) * i / steps
 
-    fade_to_mid = []
-    fade_from_mid = []
+    fade_to_mid: list[str] = []
+    fade_from_mid: list[str] = []
 
     # Generate fade from white to mid color
-    for i in range(steps + 1):
+    for _ in range(steps + 1):
         # r,g,b
         r, g, b = (
             formula_template(start_color[0], mid_color[0], end_color[0]),
@@ -99,7 +101,7 @@ def generate_fade(
     return fade_to_mid[:-1] + fade_from_mid
 
 
-def main(input_string: str) -> None:
+def main(input_string: str) -> Generator:
     """Parse the color input based on the format (RGB or Hex)."""
     rgb_regex: Pattern[str] = re.compile(r"\d{1,2},\s*\d{1,3},\s*\d{1,3}")
     hex_regex: Pattern[str] = re.compile(r"#?(?:[0-9a-fA-F]{3}){2}")
@@ -112,23 +114,50 @@ def main(input_string: str) -> None:
         ascii_code = rgb_to_ascii(*rgb)
         stripped_ascii_code = ascii_code.replace("\033", "")
         print(f"{ascii_code}{match} - {stripped_ascii_code}\033[0m")
-        clipboard.copy(stripped_ascii_code)
+        yield stripped_ascii_code
 
     for match in hex_matches:
         ascii_code: str = hex_to_ascii(match)
         stripped_ascii_code = ascii_code.replace("\033", "")
         print(f"{ascii_code}{match} - {stripped_ascii_code}\033[0m")
-        clipboard.copy(stripped_ascii_code)
+        yield stripped_ascii_code
 
 
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Performs a non-greedy regex search on the given string and renders each hex or rbg color found"
+        description="Performs a non-greedy regex search on the given string and renders each hex or rbg color found",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "input",
+        help="Input source (clipboard or file)",
+        default="clipboard",
+        nargs="+",
+    )
+    parser.add_argument(
+        "--copy",
+        action="store_true",
+        help="Copy results to clipboard",
     )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
-    # args = parse_args()
-    main(clipboard.paste())
+    args = parse_args()
+    if args.input[0] == "clipboard":
+        input_txt = clipboard.paste()
+    elif args.input[0] == "file":
+        if len(args.input) != 2:
+            print("Error: Please provide a file path", file=sys.stderr)
+            sys.exit(1)
+        file_path = args.input[1]
+        with open(file_path, encoding="utf-8") as file:
+            input_txt = file.read()
+    else:
+        sys.exit(1)
+
+    for result in main(input_txt):
+        if args.copy:
+            clipboard.copy(result)
+    sys.exit(0)
