@@ -10,6 +10,32 @@ from size import Size
 
 SIZE_FORMAT = 12
 
+cpdef void main(str path, unsigned short int lines, bint include_files, bint one_filesystem):
+    """`du` wrapper.
+
+    Args:
+    -----
+        path (str): Path to directory.
+        lines (int): Number of lines to print.
+        include_files (bool, optional): Write counts for all files, not just directories
+        one_filesystem (bool, optional): Skip directories on separate mount points. Defaults to False.
+
+    Returns:
+    -------
+        str | None: stdout if filesizes is True else None
+    """
+    # Build the command to be executed based on the given arguments.
+    cdef str cmd, output, size, directory
+    cmd = "du -b" if not include_files else "du -ab"
+    if one_filesystem:
+        cmd += "x"
+    # Execute the command using capturing both stdout and stderr.
+    output = subprocess.getoutput(f"{cmd} {path} | sort -h | tail -{int(lines)}")
+    for item in output.split("\n"):
+        if not 'Permission denied' in item:
+            size, directory = item.split("\t")
+            print(f"{str(Size(int(size))).ljust(12)}{directory}")
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -38,32 +64,6 @@ def parse_args() -> argparse.Namespace:
     )
     return parser.parse_args()
 
-
-cpdef void main(str path, unsigned short int lines, bint include_files, bint one_filesystem):
-    """`du` wrapper.
-
-    Args:
-    -----
-        path (str): Path to directory.
-        lines (int): Number of lines to print.
-        include_files (bool, optional): Write counts for all files, not just directories
-        one_filesystem (bool, optional): Skip directories on separate mount points. Defaults to False.
-
-    Returns:
-    -------
-        str | None: stdout if filesizes is True else None
-    """
-    # Build the command to be executed based on the given arguments.
-    cdef str cmd, output, size, directory
-    cmd = "du -b" if not include_files else "du -ab"
-    if one_filesystem:
-        cmd += "x"
-    # Execute the command using capturing both stdout and stderr.
-    output = subprocess.getoutput(f"{cmd} {path} | sort -h | tail -{int(lines)}")
-    for item in output.split("\n"):
-        if not 'Permission denied' in item:
-            size, directory = item.split("\t")
-            print(f"{str(Size(int(size))).ljust(12)}{directory}")
 
 
 # Example usage
