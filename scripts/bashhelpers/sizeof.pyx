@@ -48,7 +48,13 @@ def parse_args() -> argparse.Namespace:
         default=".",
         help="Path to directory. Defaults to current directory.",
     )
-    parser.add_argument("-l", "--lines", type=int, default=1)
+    parser.add_argument(
+        "-l",
+        "--lines",
+        type=int,
+        default=1,
+        help="Show top n largest items",
+    )
     parser.add_argument(
         "-a",
         "--all",
@@ -57,9 +63,10 @@ def parse_args() -> argparse.Namespace:
         help="Show file sizes",
     )
     parser.add_argument(
-        "-mount",
+        "-1",
+        "--one-filesystem",
         action="store_true",
-        help="Skip directories on separate mount points",
+        help="Skip directories on different filesystems",
         default=False,
     )
     return parser.parse_args()
