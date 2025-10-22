@@ -78,4 +78,4 @@ if __name__ == "__main__":
     args = parse_args()
 
     with ExecutionTimer():
-        main(args.path, args.lines, args.all, args.mount)
+        main(args.path, args.lines, args.all, args.one_filesystem)
